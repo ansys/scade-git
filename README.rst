@@ -1,5 +1,5 @@
 Ansys SCADE Git Extensions
-=====================
+==========================
 |pyansys| |python| |pypi| |GH-CI| |codecov| |MIT| |black| |doc|
 
 ..

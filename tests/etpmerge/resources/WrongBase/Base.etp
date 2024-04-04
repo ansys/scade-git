@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="3" defaultConfiguration="3">
+	<props>
+		<Prop id="2" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+	</props>
+	<configurations>
+		<Configuration id="3" name="id 3 is a configuration"/>
+	</configurations>
+</Project>

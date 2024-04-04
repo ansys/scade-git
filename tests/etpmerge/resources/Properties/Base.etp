@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="30" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+		<Prop id="5" name="@EM:SCALAR_1">
+			<value>Exist</value>
+			<configuration>4</configuration>
+		</Prop>
+		<Prop id="6" name="@EM:LIST_1">
+			<value>Exist</value>
+			<value>list</value>
+			<configuration>4</configuration>
+		</Prop>
+		<Prop id="7" name="@EM:LIST_3">
+			<value>A</value>
+			<value>C</value>
+			<value>E</value>
+			<value>G</value>
+			<configuration>4</configuration>
+		</Prop>
+		<Prop id="9" name="@EM:SCALAR_1">
+			<value>del local</value>
+			<configuration>2</configuration>
+		</Prop>
+		<Prop id="10" name="@EM:SCALAR_2">
+			<value>del remote</value>
+			<configuration>2</configuration>
+		</Prop>
+		<Prop id="11" name="@EM:SCALAR_3">
+			<value>del all</value>
+			<configuration>2</configuration>
+		</Prop>
+		<Prop id="12" name="@EM:LIST_1">
+			<value>del</value>
+			<value>list</value>
+			<value>local</value>
+			<configuration>2</configuration>
+		</Prop>
+		<Prop id="13" name="@EM:LIST_2">
+			<value>del</value>
+			<value>list</value>
+			<value>remote</value>
+			<configuration>2</configuration>
+		</Prop>
+		<Prop id="14" name="@EM:LIST_3">
+			<value>dell</value>
+			<value>list</value>
+			<value>all</value>
+			<configuration>2</configuration>
+		</Prop>
+		<Prop id="17" name="@EM:SCALAR_1">
+			<value>Modify local</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="18" name="@EM:SCALAR_2">
+			<value>Modify remote</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="19" name="@EM:SCALAR_3">
+			<value>Modify all</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="20" name="@EM:LIST_1">
+			<value>Modify</value>
+			<value>list</value>
+			<value>local</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="21" name="@EM:LIST_2">
+			<value>Modify</value>
+			<value>list</value>
+			<value>remote</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="22" name="@EM:LIST_3">
+			<value>Modify</value>
+			<value>list</value>
+			<value>all</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="29" name="@STUDIO:AUTHORS">
+			<value>Delete remote</value>
+		</Prop>
+		<Prop id="30" name="@STUDIO:COMPAGNY">
+			<value>Delete local</value>
+		</Prop>
+	</props>
+	<configurations>
+		<Configuration id="2" name="Delete"/>
+		<Configuration id="4" name="Conflict"/>
+		<Configuration id="15" name="New"/>
+		<Configuration id="16" name="Modify"/>
+	</configurations>
+</Project>

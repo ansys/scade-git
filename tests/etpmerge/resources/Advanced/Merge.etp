@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="237" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+	</props>
+	<roots>
+		<Folder id="26" name="Source">
+			<elements>
+				<Folder id="112" name="dd source to delete local (remote)"/>
+				<FileRef id="180" persistAs="dd source to delete local (remote).txt"/>
+			</elements>
+		</Folder>
+		<Folder id="229" name="CCP Target (all)">
+			<elements>
+				<Folder id="110" name="dd delete local to target (local)"/>
+				<FileRef id="174" persistAs="dd delete local to target (local).txt"/>
+				<Folder id="108" name="dd delete remote to target (remote)"/>
+				<FileRef id="171" persistAs="dd delete remote to target (remote).txt"/>
+			</elements>
+		</Folder>
+		<Folder id="230" name="Create all">
+			<elements>
+				<FileRef id="175" persistAs="dd delete local to create all (local).txt"/>
+				<FileRef id="178" persistAs="dd delete remote to create all (remote).txt"/>
+			</elements>
+		</Folder>
+		<Folder id="231" name="Create local">
+			<elements>
+				<FileRef id="176" persistAs="dd delete local to create local (local).txt"/>
+			</elements>
+		</Folder>
+		<Folder id="235" name="new delete local (remote)"/>
+		<Folder id="236" name="Create remote">
+			<elements>
+				<FileRef id="177" persistAs="dd delete remote to create remote (remote).txt"/>
+			</elements>
+		</Folder>
+		<FileRef id="237" persistAs="new delete local (remote).txt"/>
+	</roots>
+	<configurations>
+		<Configuration id="2" name="Nominal"/>
+	</configurations>
+</Project>
+<<<<<<< HEAD
+Folder "112" ("dd source to delete local (remote)")
+-> local owner = "Source" ("26")
+=======
+-> remote owner = "Delete local" ("167") (deleted)
+>>>>>>>
+<<<<<<< HEAD
+Folder "235" ("new delete local (remote)")
+-> local owner = "<project>" ("1")
+=======
+-> remote owner = "Delete local" ("167") (deleted)
+>>>>>>>
+<<<<<<< HEAD
+FileRef "180" ("dd source to delete local (remote).txt")
+-> local owner = "Source" ("26")
+=======
+-> remote owner = "Delete local" ("167") (deleted)
+>>>>>>>
+<<<<<<< HEAD
+FileRef "237" ("new delete local (remote).txt")
+-> local owner = "<project>" ("1")
+=======
+-> remote owner = "Delete local" ("167") (deleted)
+>>>>>>>

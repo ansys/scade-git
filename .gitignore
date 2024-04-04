@@ -162,3 +162,5 @@ cython_debug/
 .vscode
 *.sln
 *.pyproj
+tests/tmp/
+TestResults/

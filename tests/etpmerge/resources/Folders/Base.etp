@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="68" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+	</props>
+	<roots>
+		<Folder id="4" name="Rename Root Local"/>
+		<Folder id="5" name="Elements">
+			<elements>
+				<Folder id="6" extensions="etp" name="Extensions Local"/>
+				<Folder id="7" extensions="etp" name="Extensions Remote"/>
+				<Folder id="8" extensions="etp" name="Extensions All"/>
+				<Folder id="9" name="Rename Child Local">
+					<elements>
+						<Folder id="22" name="Unchanged"/>
+					</elements>
+				</Folder>
+				<Folder id="10" name="Rename Child Remote">
+					<elements>
+						<Folder id="23" name="Unchanged"/>
+					</elements>
+				</Folder>
+				<Folder id="12" name="Rename Child All">
+					<elements>
+						<Folder id="21" name="Unchanged"/>
+					</elements>
+				</Folder>
+				<Folder id="15" name="Delete Child Local">
+					<elements>
+						<Folder id="19" name="To Delete"/>
+					</elements>
+				</Folder>
+				<Folder id="16" name="Delete Child Remote">
+					<elements>
+						<Folder id="20" name="To Delete"/>
+					</elements>
+				</Folder>
+				<Folder id="17" name="Delete Child All">
+					<elements>
+						<Folder id="18" name="To Delete"/>
+					</elements>
+				</Folder>
+			</elements>
+		</Folder>
+		<Folder id="13" name="Rename Root Remote"/>
+		<Folder id="14" name="Rename Root All"/>
+		<Folder id="24" name="Delete Root Local">
+			<elements>
+				<Folder id="28" name="To Delete"/>
+			</elements>
+		</Folder>
+		<Folder id="25" name="Delete Root Remote">
+			<elements>
+				<Folder id="29" name="To Delete"/>
+			</elements>
+		</Folder>
+		<Folder id="26" name="Delete Root All">
+			<props>
+				<Prop id="30" name="@EM:SCALAR_1">
+					<value>To delete</value>
+					<configuration>2</configuration>
+				</Prop>
+				<Prop id="31" name="@EM:LIST_1">
+					<value>To</value>
+					<value>delete</value>
+					<configuration>2</configuration>
+				</Prop>
+			</props>
+			<elements>
+				<Folder id="27" name="To Delete"/>
+			</elements>
+		</Folder>
+	</roots>
+	<configurations>
+		<Configuration id="2" name="Nominal"/>
+	</configurations>
+</Project>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="4" defaultConfiguration="4">
+	<props>
+		<Prop id="2" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+	</props>
+	<roots>
+		<Folder id="3" name="id 3 is a foler"/>
+	</roots>
+	<configurations>
+		<Configuration id="4" name="Default"/>
+	</configurations>
+</Project>

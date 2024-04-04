@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="81" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+	</props>
+	<roots>
+		<Folder id="4" extensions="local" name="Rename Root Local Ex"/>
+		<Folder id="5" name="Elements">
+			<elements>
+				<Folder id="6" extensions="letp" name="Extensions Local"/>
+				<Folder id="7" extensions="retp" name="Extensions Remote"/>
+				<Folder id="8" extensions="letp" name="Extensions All"/>
+				<Folder id="9" name="Rename Child Local Ex">
+					<elements>
+						<Folder id="22" name="Unchanged"/>
+					</elements>
+				</Folder>
+				<Folder id="10" name="Rename Child Remote Ex">
+					<elements>
+						<Folder id="23" name="Unchanged"/>
+					</elements>
+				</Folder>
+				<Folder id="12" name="Rename Child All Local">
+					<elements>
+						<Folder id="21" name="Unchanged"/>
+					</elements>
+				</Folder>
+				<Folder id="69" extensions="local" name="New Child Local">
+					<props>
+						<Prop id="70" name="@EM:SCALAR_1">
+							<value>New Child Local</value>
+							<configuration>2</configuration>
+						</Prop>
+						<Prop id="71" name="@EM:LIST_1">
+							<value>New</value>
+							<value>Child</value>
+							<value>Local</value>
+							<configuration>2</configuration>
+						</Prop>
+					</props>
+					<elements>
+						<Folder id="75" name="New Sub-Child Local"/>
+					</elements>
+				</Folder>
+				<Folder id="72" name="New Child All">
+					<props>
+						<Prop id="73" name="@EM:SCALAR_1">
+							<value>To Keep Local</value>
+							<configuration>2</configuration>
+						</Prop>
+						<Prop id="74" name="@EM:SCALAR_2">
+							<value>To Keep All</value>
+							<configuration>2</configuration>
+						</Prop>
+						<Prop id="81" name="@EM:LIST_1">
+							<value>To</value>
+							<value>Copy</value>
+							<value>From</value>
+							<value>Remote</value>
+							<configuration>2</configuration>
+						</Prop>
+					</props>
+					<elements>
+						<Folder id="76" name="New Sub-Child All"/>
+					</elements>
+				</Folder>
+				<Folder id="77" extensions="remote" name="New Child Remote">
+					<props>
+						<Prop id="78" name="@EM:SCALAR_1">
+							<value>New Child Remote</value>
+							<configuration>2</configuration>
+						</Prop>
+						<Prop id="79" name="@EM:LIST_1">
+							<value>New</value>
+							<value>Child</value>
+							<value>Remote</value>
+							<configuration>2</configuration>
+						</Prop>
+					</props>
+					<elements>
+						<Folder id="80" name="New Sub-Child Remote"/>
+					</elements>
+				</Folder>
+			</elements>
+		</Folder>
+		<Folder id="13" extensions="remote" name="Rename Root Remote Ex"/>
+		<Folder id="14" extensions="local" name="Rename Root All Local"/>
+	</roots>
+	<configurations>
+		<Configuration id="2" name="Nominal"/>
+	</configurations>
+</Project>
+<<<<<<< HEAD
+Folder "8" ("Extensions All")
+-> local extensions = "letp"
+=======
+-> remote extensions = "retp"
+>>>>>>>
+<<<<<<< HEAD
+Folder "12" ("Rename Child All Local")
+-> local name = "Rename Child All Local"
+=======
+-> remote name = "Rename Child All Remote"
+>>>>>>>
+<<<<<<< HEAD
+Folder "14" ("Rename Root All Local")
+-> local name = "Rename Root All Local"
+-> local extensions = "local"
+=======
+-> remote name = "Rename Root All Remote"
+-> remote extensions = "remote"
+>>>>>>>

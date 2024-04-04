@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="135" defaultConfiguration="104">
+	<props>
+		<Prop id="10" name="@STUDIO:PRODUCT">
+			<value>NA</value>
+		</Prop>
+		<Prop id="11" name="SCALAR NO CONF">
+			<value>UK</value>
+		</Prop>
+		<Prop id="22" name="VALUES NO CONF">
+			<value>Code Generator</value>
+			<value>104</value>
+		</Prop>
+		<Prop id="38" name="SCALAR CONF">
+			<value>Reporter</value>
+			<configuration>104</configuration>
+		</Prop>
+		<Prop id="55" name="VALUES CONF">
+			<value>One</value>
+			<value>Two</value>
+			<configuration>104</configuration>
+		</Prop>
+		<Prop id="56" name="EMPTY NO CONF"/>
+		<Prop id="64" name="EMPTY CONF" configuration="104"/>
+		<Prop id="66" name="REMOTE CUT PASTE" configuration="104"/>
+		<Prop id="130" name="@STUDIO:DESCRIPTION">
+			<value>Some text on&#xA;several lines</value>
+		</Prop>
+		<Prop id="135" name="LOCAL CUT PASTE" configuration="104"/>
+	</props>
+	<roots>
+		<Folder id="3" extensions="vsp;etp" name="Root identical">
+			<elements>
+				<FileRef id="118" persistAs="Child identical.txt"/>
+				<FileRef id="121" persistAs="Child remote cut-paste.txt"/>
+				<Folder id="126" name="Child remote cut-paste"/>
+				<Folder id="127" name="Child identical"/>
+				<Folder id="132" name="Child local cut-paste"/>
+				<FileRef id="133" persistAs="Child local cut-paste.txt"/>
+			</elements>
+		</Folder>
+		<FileRef id="119" persistAs="Root identical.txt"/>
+		<FileRef id="122" persistAs="Root remote cut-paste.txt"/>
+		<Folder id="125" name="Root remote cut-paste"/>
+		<Folder id="131" name="Root local cut-paste"/>
+		<FileRef id="134" persistAs="Root local cut-paste.txt"/>
+	</roots>
+	<configurations>
+		<Configuration id="104" name="Identical"/>
+	</configurations>
+</Project>

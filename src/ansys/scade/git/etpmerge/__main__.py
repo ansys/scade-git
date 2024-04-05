@@ -24,14 +24,14 @@
 
 from argparse import ArgumentParser
 
-# fmt: off
-# import scade_env through __init__ before importing any SCADE module
-from . import load_project, __version__  # isort: skip
-from scade.model.project.stdproject import get_roots as get_projects  # isort: skip
+from ansys.scade.apitools import declare_project
 
-from .etpmerge3 import EtpMerge3  # isort: skip
+# isort: split
 
-# fmt: on
+from scade.model.project.stdproject import get_roots as get_projects
+
+from ansys.scade.git import __version__
+from ansys.scade.git.etpmerge.etpmerge3 import EtpMerge3
 
 
 def main():
@@ -43,9 +43,9 @@ def main():
     parser.add_argument('-m', '--merged', metavar='<merged>', help='merged file', required=True)
     options = parser.parse_args()
 
-    load_project(options.local)
-    load_project(options.remote)
-    load_project(options.base)
+    declare_project(options.local)
+    declare_project(options.remote)
+    declare_project(options.base)
     local, remote, base = get_projects()
 
     etp = EtpMerge3(local, remote, base)

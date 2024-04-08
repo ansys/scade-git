@@ -69,7 +69,8 @@ Releases = "https://github.com/ansys/scade-git/releases"
 Homepage = "https://www.ansys.com/products/embedded-software/ansys-scade-suite"
 
 [project.scripts]
-etpmerge = "ansys.scade.etpmerge.__main__:main"
+etpmerge = "ansys.scade.git.etpmerge.__main__:main"
+register_ansys_scade_git = "ansys.scade.git.register:main"
 
 [tool.ruff]
 line-length = 99

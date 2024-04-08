@@ -20,6 +20,7 @@ maintainers = [
 dependencies=[
     "importlib-metadata >= 1.0; python_version < '3.8'",
     "importlib-metadata >= 4.0; python_version >= '3.8'",
+    "ansys-scade-apitools",
 ]
 classifiers=[
     "Development Status :: 4 - Beta",
@@ -67,6 +68,9 @@ Documentation = "https://git.scade.docs.pyansys.com"
 Releases = "https://github.com/ansys/scade-git/releases"
 Homepage = "https://www.ansys.com/products/embedded-software/ansys-scade-suite"
 
+[project.scripts]
+etpmerge = "ansys.scade.git.etpmerge.__main__:main"
+register_ansys_scade_git = "ansys.scade.git.register:main"
 
 [tool.ruff]
 line-length = 99

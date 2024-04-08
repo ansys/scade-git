@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="34" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+		<Prop id="5" name="@EM:SCALAR_1">
+			<value>Exist local</value>
+			<configuration>4</configuration>
+		</Prop>
+		<Prop id="6" name="@EM:LIST_1">
+			<value>Exist</value>
+			<value>list</value>
+			<value>local</value>
+			<value>remote</value>
+			<configuration>4</configuration>
+		</Prop>
+		<Prop id="7" name="@EM:LIST_3">
+			<value>D</value>
+			<value>F</value>
+			<value>G</value>
+			<value>H</value>
+			<value>B</value>
+			<configuration>4</configuration>
+		</Prop>
+		<Prop id="17" name="@EM:SCALAR_1">
+			<value>Modify local ex</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="18" name="@EM:SCALAR_2">
+			<value>Modify remote ex</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="19" name="@EM:SCALAR_3">
+			<value>Modify all ex</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="20" name="@EM:LIST_1">
+			<value>Modify</value>
+			<value>list</value>
+			<value>local</value>
+			<value>ex</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="21" name="@EM:LIST_2">
+			<value>Modify</value>
+			<value>list</value>
+			<value>remote</value>
+			<value>ex</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="22" name="@EM:LIST_3">
+			<value>Modify</value>
+			<value>list</value>
+			<value>all</value>
+			<value>ex</value>
+			<configuration>16</configuration>
+		</Prop>
+		<Prop id="23" name="@EM:SCALAR_1">
+			<value>New local</value>
+			<configuration>15</configuration>
+		</Prop>
+		<Prop id="24" name="@EM:SCALAR_3">
+			<value>New all</value>
+			<configuration>15</configuration>
+		</Prop>
+		<Prop id="25" name="@EM:LIST_1">
+			<value>New</value>
+			<value>list</value>
+			<value>remote</value>
+			<configuration>15</configuration>
+		</Prop>
+		<Prop id="26" name="@EM:LIST_3">
+			<value>New</value>
+			<value>list</value>
+			<value>all</value>
+			<configuration>15</configuration>
+		</Prop>
+		<Prop id="31" name="@EM:SCALAR_2">
+			<value>New local</value>
+			<configuration>4</configuration>
+		</Prop>
+		<Prop id="32" name="@EM:LIST_2">
+			<value>New</value>
+			<value>list</value>
+			<value>local</value>
+			<value>remote</value>
+			<configuration>4</configuration>
+		</Prop>
+		<Prop id="33" name="@EM:SCALAR_2">
+			<value>New remote</value>
+			<configuration>15</configuration>
+		</Prop>
+		<Prop id="34" name="@EM:LIST_2">
+			<value>New</value>
+			<value>list</value>
+			<value>remote</value>
+			<configuration>15</configuration>
+		</Prop>
+	</props>
+	<configurations>
+		<Configuration id="2" name="Delete"/>
+		<Configuration id="4" name="Conflict"/>
+		<Configuration id="15" name="New"/>
+		<Configuration id="16" name="Modify"/>
+	</configurations>
+</Project>
+<<<<<<< HEAD
+Prop "5" ("@EM:SCALAR_1")
+    from: Project "1" ("<project>")
+-> local value = "Exist local"
+=======
+-> remote value = "Exist remote"
+>>>>>>>
+<<<<<<< HEAD
+Prop "31" ("@EM:SCALAR_2")
+    from: Project "1" ("<project>")
+-> local value = "New local"
+=======
+-> remote value = "New remote"
+>>>>>>>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="82" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+	</props>
+	<roots>
+		<Folder id="4" name="Properties">
+			<elements>
+				<FileRef id="69" persistAs="Props remote.txt"/>
+				<FileRef id="70" persistAs="Props local.txt"/>
+				<FileRef id="71" persistAs="Props all.txt"/>
+			</elements>
+		</Folder>
+		<Folder id="13" name="Target Conflict"/>
+		<Folder id="14" name="Source Move">
+			<elements>
+				<FileRef id="72" persistAs="Move child remote.txt"/>
+				<FileRef id="73" persistAs="Move child local.txt"/>
+				<FileRef id="74" persistAs="Move child all.txt"/>
+			</elements>
+		</Folder>
+		<Folder id="24" name="Target Move"/>
+		<Folder id="25" name="Create"/>
+		<Folder id="26" name="Delete">
+			<elements>
+				<FileRef id="78" persistAs="Delete remote.txt"/>
+				<FileRef id="79" persistAs="Delete local.txt"/>
+				<FileRef id="80" persistAs="Delete all.txt"/>
+			</elements>
+		</Folder>
+		<FileRef id="75" persistAs="Move root remote.txt"/>
+		<FileRef id="76" persistAs="Move root local.txt"/>
+		<FileRef id="77" persistAs="Move root all.txt"/>
+		<FileRef id="81" persistAs="Delete root remote.txt"/>
+		<FileRef id="82" persistAs="Delete root local.txt"/>
+	</roots>
+	<configurations>
+		<Configuration id="2" name="Nominal"/>
+	</configurations>
+</Project>

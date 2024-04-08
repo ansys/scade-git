@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="180" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+	</props>
+	<roots>
+		<Folder id="14" name="Conflict">
+			<elements>
+				<Folder id="109" name="dd source to conflict (local) root (remote)">
+					<elements>
+						<Folder id="171" name="new sub-conflict 11"/>
+						<Folder id="179" name="new sub-root 21"/>
+					</elements>
+				</Folder>
+			</elements>
+		</Folder>
+		<Folder id="26" name="Source"/>
+		<Folder id="69" name="Target">
+			<elements>
+				<Folder id="113" name="dd root to target (local)">
+					<elements>
+						<Folder id="168" name="new sub-target 11"/>
+					</elements>
+				</Folder>
+				<Folder id="115" name="dd root to target (local) conflict (remote)">
+					<elements>
+						<Folder id="169" name="new sub-target 12"/>
+						<Folder id="176" name="new sub-conflict 21"/>
+					</elements>
+				</Folder>
+				<Folder id="108" name="dd source to target (local)">
+					<elements>
+						<Folder id="167" name="new sub-target 13"/>
+					</elements>
+				</Folder>
+				<Folder id="105" name="dd source to target (local) conflict (remote)">
+					<elements>
+						<Folder id="170" name="new sub-target 14"/>
+						<Folder id="174" name="new sub-conflict 23"/>
+					</elements>
+				</Folder>
+				<Folder id="106" name="dd source to target (remote)">
+					<elements>
+						<Folder id="177" name="new sub-target 22"/>
+					</elements>
+				</Folder>
+				<Folder id="114" name="dd root to target (remote)">
+					<elements>
+						<Folder id="178" name="new sub-target 21"/>
+					</elements>
+				</Folder>
+			</elements>
+		</Folder>
+		<Folder id="111" name="dd source to root (local)">
+			<elements>
+				<Folder id="172" name="new sub-root 11"/>
+			</elements>
+		</Folder>
+		<Folder id="110" name="dd source to root (local) conflict (remote)">
+			<elements>
+				<Folder id="173" name="new sub-root 12"/>
+				<Folder id="175" name="new sub-conflict 22"/>
+			</elements>
+		</Folder>
+		<Folder id="112" name="dd source to root (remote)">
+			<elements>
+				<Folder id="180" name="new sub-root 22"/>
+			</elements>
+		</Folder>
+	</roots>
+	<configurations>
+		<Configuration id="2" name="Nominal"/>
+	</configurations>
+</Project>
+<<<<<<< HEAD
+Folder "105" ("dd source to target (local) conflict (remote)")
+-> local owner = "Target" ("69")
+=======
+-> remote owner = "Conflict" ("14")
+>>>>>>>
+<<<<<<< HEAD
+Folder "110" ("dd source to root (local) conflict (remote)")
+-> local owner = "<project>" ("1")
+=======
+-> remote owner = "Conflict" ("14")
+>>>>>>>
+<<<<<<< HEAD
+Folder "115" ("dd root to target (local) conflict (remote)")
+-> local owner = "Target" ("69")
+=======
+-> remote owner = "Conflict" ("14")
+>>>>>>>
+<<<<<<< HEAD
+Folder "109" ("dd source to conflict (local) root (remote)")
+-> local owner = "Conflict" ("14")
+=======
+-> remote owner = "<project>" ("1")
+>>>>>>>

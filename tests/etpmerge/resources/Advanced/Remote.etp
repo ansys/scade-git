@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="236" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+	</props>
+	<roots>
+		<Folder id="26" name="Source">
+			<elements>
+				<Folder id="111" name="dd source to delete remote (local)"/>
+				<FileRef id="179" persistAs="dd source to delete remote (local).txt"/>
+			</elements>
+		</Folder>
+		<Folder id="167" name="Delete local">
+			<elements>
+				<Folder id="110" name="dd delete local to target (local)"/>
+				<Folder id="170" name="propagate"/>
+				<FileRef id="174" persistAs="dd delete local to target (local).txt"/>
+				<FileRef id="175" persistAs="dd delete local to create all (local).txt"/>
+				<FileRef id="176" persistAs="dd delete local to create local (local).txt"/>
+				<Folder id="112" name="dd source to delete local (remote)"/>
+				<FileRef id="180" persistAs="dd source to delete local (remote).txt"/>
+				<FileRef id="235" persistAs="new delete local (remote).txt"/>
+				<Folder id="236" name="new delete local (remote)"/>
+			</elements>
+		</Folder>
+		<Folder id="232" name="CCP Target (all)">
+			<elements>
+				<FileRef id="173" persistAs="dd delete local to target (remote).txt"/>
+				<Folder id="108" name="dd delete remote to target (remote)"/>
+				<FileRef id="171" persistAs="dd delete remote to target (remote).txt"/>
+			</elements>
+		</Folder>
+		<Folder id="233" name="Create remote">
+			<elements>
+				<FileRef id="177" persistAs="dd delete remote to create remote (remote).txt"/>
+			</elements>
+		</Folder>
+		<Folder id="234" name="Create all">
+			<elements>
+				<FileRef id="178" persistAs="dd delete remote to create all (remote).txt"/>
+			</elements>
+		</Folder>
+	</roots>
+	<configurations>
+		<Configuration id="2" name="Nominal"/>
+	</configurations>
+</Project>

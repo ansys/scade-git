@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="124" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+	</props>
+	<roots>
+		<Folder id="4" name="Properties">
+			<elements>
+				<FileRef id="69" persistAs="./Props remote.txt">
+					<props>
+						<Prop id="121" name="@ARCHIVE:FILE_SELECTION">
+							<value>IGNORE</value>
+						</Prop>
+					</props>
+				</FileRef>
+				<FileRef id="70" persistAs="./Props local.txt">
+					<props>
+						<Prop id="114" name="@ARCHIVE:FILE_SELECTION">
+							<value>IGNORE</value>
+						</Prop>
+					</props>
+				</FileRef>
+				<FileRef id="71" persistAs="./Props all.txt">
+					<props>
+						<Prop id="115" name="@ARCHIVE:FILE_SELECTION">
+							<value>IGNORE</value>
+						</Prop>
+					</props>
+				</FileRef>
+			</elements>
+		</Folder>
+		<Folder id="13" name="Target Conflict"/>
+		<Folder id="14" name="Source Move"/>
+		<Folder id="24" name="Target Move">
+			<elements>
+				<FileRef id="76" persistAs="Move root local.txt"/>
+				<FileRef id="77" persistAs="Move root all.txt"/>
+				<FileRef id="75" persistAs="Move root remote.txt"/>
+			</elements>
+		</Folder>
+		<Folder id="25" name="Create">
+			<elements>
+				<FileRef id="117" persistAs="Create local.txt">
+					<props>
+						<Prop id="119" name="@EM:SCALAR_1">
+							<value>Create local</value>
+							<configuration>2</configuration>
+						</Prop>
+						<Prop id="120" name="@ARCHIVE:FILE_SELECTION">
+							<value>IGNORE</value>
+						</Prop>
+					</props>
+				</FileRef>
+				<FileRef id="118" persistAs="Create all.txt"/>
+				<FileRef id="122" persistAs="Create remote.txt">
+					<props>
+						<Prop id="123" name="@ARCHIVE:FILE_SELECTION">
+							<value>IGNORE</value>
+						</Prop>
+						<Prop id="124" name="@EM:SCALAR_1">
+							<value>Create remote</value>
+							<configuration>2</configuration>
+						</Prop>
+					</props>
+				</FileRef>
+			</elements>
+		</Folder>
+		<Folder id="26" name="Delete"/>
+		<FileRef id="73" persistAs="Move child local.txt"/>
+		<FileRef id="74" persistAs="Move child all.txt"/>
+		<FileRef id="72" persistAs="Move child remote.txt"/>
+	</roots>
+	<configurations>
+		<Configuration id="2" name="Nominal"/>
+	</configurations>
+</Project>
+<<<<<<< HEAD
+Prop "115" ("@ARCHIVE:FILE_SELECTION")
+    from: FileRef "71" ("./Props all.txt")
+-> local value = "IGNORE"
+=======
+-> remote value = "INCLUDE"
+>>>>>>>
+<<<<<<< HEAD
+FileRef "71" ("./Props all.txt")
+-> local persist_as = "./Props all.txt"
+=======
+-> remote persist_as = "../Files/Props all.txt"
+>>>>>>>
+<<<<<<< HEAD
+FileRef "74" ("Move child all.txt")
+-> local owner = "<project>" ("1")
+=======
+-> remote owner = "Target Conflict" ("13")
+>>>>>>>
+<<<<<<< HEAD
+FileRef "77" ("Move root all.txt")
+-> local owner = "Target Move" ("24")
+=======
+-> remote owner = "Target Conflict" ("13")
+>>>>>>>
+<<<<<<< HEAD
+FileRef "118" ("Create all.txt")
+-> local owner = "Create" ("25")
+=======
+-> remote owner = "<project>" ("1")
+>>>>>>>

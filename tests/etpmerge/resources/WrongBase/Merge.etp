@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="4" defaultConfiguration="4">
+	<props>
+		<Prop id="2" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+		<Prop id="3" name="id 3 is a configuration">
+			<value>N/A</value>
+		</Prop>
+	</props>
+	<configurations>
+		<Configuration id="4" name="Default"/>
+	</configurations>
+</Project>
+<<<<<<< HEAD
+Merge error: Both projects do not share a common ancestor (id "3")
+Manual merge required
+-> local <unchanged>
+=======
+-> remote <ignored>
+>>>>>>>

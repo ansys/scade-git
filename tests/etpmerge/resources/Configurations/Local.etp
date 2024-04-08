@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="43" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+		<Prop id="12" name="@EM:SCALAR_1">
+			<value>Nominal</value>
+			<configuration>2</configuration>
+		</Prop>
+		<Prop id="17" name="@EM:SCALAR_1">
+			<value>CCP Remote</value>
+			<configuration>5</configuration>
+		</Prop>
+		<Prop id="25" name="@EM:SCALAR_1">
+			<value>Del Remote</value>
+			<configuration>8</configuration>
+		</Prop>
+		<Prop id="32" name="@EM:SCALAR_1">
+			<value>CCP Local</value>
+			<configuration>29</configuration>
+		</Prop>
+		<Prop id="36" name="@EM:SCALAR_1">
+			<value>New All</value>
+			<configuration>31</configuration>
+		</Prop>
+		<Prop id="40" name="@EM:SCALAR_1">
+			<value>New Local</value>
+			<configuration>30</configuration>
+		</Prop>
+	</props>
+	<configurations>
+		<Configuration id="2" name="Nominal"/>
+		<Configuration id="5" name="CCP Remote"/>
+		<Configuration id="8" name="Del Remote"/>
+		<Configuration id="9" name="Rename All Local"/>
+		<Configuration id="10" name="Rename Local Ex"/>
+		<Configuration id="11" name="Rename Remote"/>
+		<Configuration id="29" name="CCP Local"/>
+		<Configuration id="30" name="New Local"/>
+		<Configuration id="31" name="New All"/>
+	</configurations>
+</Project>

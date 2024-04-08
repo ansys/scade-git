@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="120" defaultConfiguration="2">
+	<props>
+		<Prop id="3" name="@STUDIO:PRODUCT">
+			<value>UK</value>
+		</Prop>
+	</props>
+	<roots>
+		<Folder id="4" name="Properties">
+			<elements>
+				<FileRef id="69" persistAs="Props remote.txt"/>
+				<FileRef id="70" persistAs="./Props local.txt">
+					<props>
+						<Prop id="114" name="@ARCHIVE:FILE_SELECTION">
+							<value>IGNORE</value>
+						</Prop>
+					</props>
+				</FileRef>
+				<FileRef id="71" persistAs="./Props all.txt">
+					<props>
+						<Prop id="115" name="@ARCHIVE:FILE_SELECTION">
+							<value>IGNORE</value>
+						</Prop>
+					</props>
+				</FileRef>
+			</elements>
+		</Folder>
+		<Folder id="13" name="Target Conflict"/>
+		<Folder id="14" name="Source Move">
+			<elements>
+				<FileRef id="72" persistAs="Move child remote.txt"/>
+			</elements>
+		</Folder>
+		<Folder id="24" name="Target Move">
+			<elements>
+				<FileRef id="76" persistAs="Move root local.txt"/>
+				<FileRef id="77" persistAs="Move root all.txt"/>
+			</elements>
+		</Folder>
+		<Folder id="25" name="Create">
+			<elements>
+				<FileRef id="117" persistAs="Create local.txt">
+					<props>
+						<Prop id="119" name="@EM:SCALAR_1">
+							<value>Create local</value>
+							<configuration>2</configuration>
+						</Prop>
+						<Prop id="120" name="@ARCHIVE:FILE_SELECTION">
+							<value>IGNORE</value>
+						</Prop>
+					</props>
+				</FileRef>
+				<FileRef id="118" persistAs="Create all.txt"/>
+			</elements>
+		</Folder>
+		<Folder id="26" name="Delete">
+			<elements>
+				<FileRef id="78" persistAs="Delete remote.txt"/>
+			</elements>
+		</Folder>
+		<FileRef id="75" persistAs="Move root remote.txt"/>
+		<FileRef id="73" persistAs="Move child local.txt"/>
+		<FileRef id="74" persistAs="Move child all.txt"/>
+		<FileRef id="81" persistAs="Delete root remote.txt"/>
+	</roots>
+	<configurations>
+		<Configuration id="2" name="Nominal"/>
+	</configurations>
+</Project>

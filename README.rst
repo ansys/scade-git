@@ -40,7 +40,17 @@ Ansys SCADE Git Extensions
 
 Overview
 --------
-Ansys SCADE Git Extensions is <TODO>.
+
+.. readme_common_begins
+
+Ansys SCADE Git Extensions is a collection of utilities for `Git`_ in a SCADE environment.
+
+Merge tools can be used with any version control system.
+
+.. LINKS AND REFERENCES
+.. _Git: https://git-scm.com
+
+.. readme_common_ends
 
 Requirements
 ------------
@@ -68,7 +78,7 @@ page, you can create issues to report bugs and request new features. On the `Dis
 page on the Ansys Developer portal, you can post questions, share ideas, and get community feedback.
 
 License
-~~~~~~~
+-------
 Ansys SCADE Git Extensions is licensed under the MIT license.
 
 This toolkit makes no commercial claim over Ansys whatsoever. The use of this toolkit

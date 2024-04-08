@@ -31,7 +31,13 @@ for installing in developer mode.
 
    .. code:: bash
 
-       python -m pip install ansys-scade-git
+      python -m pip install ansys-scade-git
+
+#. Complete the installation with this command:
+
+   .. code:: bash
+
+      python -m ansys.scade.git.register
 
 
 .. toctree::

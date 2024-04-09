@@ -18,9 +18,10 @@ maintainers = [
     {name = "Ansys, Inc.", email = "pyansys.core@ansys.com"},
 ]
 dependencies=[
+    "ansys-scade-apitools",
+    'dulwich>=0.21.3',
     "importlib-metadata >= 1.0; python_version < '3.8'",
     "importlib-metadata >= 4.0; python_version >= '3.8'",
-    "ansys-scade-apitools",
     "lxml",
 ]
 classifiers=[

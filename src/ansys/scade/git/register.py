@@ -86,7 +86,14 @@ def git_config() -> bool:
 
     print('Git: register the etpmerge custom merge driver in Git global settings')
     driver = '"%s" -b %%O -l %%A -r %%B -m %%A' % (scripts_dir / 'etpmerge.exe')
-    if not register_driver('etpmerge', 'Merge for SCADE project files', str(driver), 'true'):
+    description = 'Merge for SCADE project files'
+    if not register_driver('etpmerge', description, str(driver), 'true'):
+        status = False
+
+    print('Git: register the amlgtmerge custom merge driver in Git global settings')
+    description = 'Merge for SCADE ALM Gateway not exported traceability files'
+    driver = '"%s" -b %%O -l %%A -r %%B -m %%A' % (scripts_dir / 'amlgtmerge.exe')
+    if not register_driver('amlgtmerge', description, str(driver), 'true'):
         status = False
 
     print('Git: register no diff for xscade files')

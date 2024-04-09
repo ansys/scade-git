@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<traceability version="1.3">
+    <object id="!ed/18/134D/3DB4/607ecda0229a">
+        <requirement id="CC_HLR_IN_02" traceType="REMOVE_LINK"/>
+        <requirement id="CC_HLR_IN_05" traceType="ADD_LINK"/>
+    </object>
+    <object id="!ed/38/134D/3DB4/607ecda4169">
+        <requirement id="CC_HLR_IN_08" traceType="ADD_LINK"/>
+    </object>
+    <object id="!ed/28/134D/3DB4/607ecda4154c">
+        <requirement id="CC_HLR_IN_04" traceType="REMOVE_LINK"/>
+    </object>
+</traceability>

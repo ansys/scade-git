@@ -1,0 +1,7 @@
+<Links>
+  <Link source="!ed/18/134D/3DB4/607ecda0229a" target="CC_HLR_IN_01" description="P::O1/"/>
+  <Link source="!ed/18/134D/3DB4/607ecda0229a" target="CC_HLR_IN_02" description="P::O1/"/>
+  <Link source="!ed/28/134D/3DB4/607ecda4154c" target="CC_HLR_IN_04" description="P::O3/"/>
+  <Link source="!ed/30/134D/3DB4/607ecda436d0" target="CC_HLR_IN_04" description="P::O4/"/>
+  <Link source="!ed/20/134D/3DB4/607ecda33fb1" target="CC_HLR_IN_03" description="P::O2/"/>
+</Links>

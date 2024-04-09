@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<traceability version="1.3">
+    <object id="!ed/18/134D/3DB4/607ecda0229a" pathName="P::O1/">
+        <requirement id="CC_HLR_IN_02" traceType="ADD_LINK"/>
+        <requirement id="CC_HLR_IN_05" traceType="ADD_LINK"/>
+    </object>
+    <object id="!ed/28/134D/3DB4/607ecda4154c" pathName="P::O3/">
+        <requirement id="CC_HLR_IN_04" traceType="ADD_LINK"/>
+    </object>
+    <object id="!ed/30/134D/3DB4/607ecda436d0" pathName="P::O4/">
+        <requirement id="CC_HLR_IN_04" traceType="ADD_LINK"/>
+    </object>
+    <object id="!ed/20/134D/3DB4/607ecda33fb1" pathName="P::O2/">
+        <requirement id="CC_HLR_IN_03" traceType="ADD_LINK"/>
+    </object>
+    <object id="!ed/38/134D/3DB4/607ecda4169" pathName="P::O5/">
+        <requirement id="CC_HLR_IN_06" traceType="ADD_LINK"/>
+    </object>
+    <object id="!ed/28/279D/8AC4/6613db4332b7" pathName="P::O6/">
+        <requirement id="CC_HLR_OUT_01" traceType="REMOVE_LINK"/>
+    </object>
+</traceability>

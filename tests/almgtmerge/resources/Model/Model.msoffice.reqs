@@ -1,0 +1,84 @@
+<ReqProject xmlns="http://www.esterel-technologies.com/scade/lifecycle/almgateway/scade_req/1" text="Model" identifier="D:\AnsysDev\Nobackup\PyAnsys\git\tests\almgtmerge\resources\Model\Model.etp">
+  <traceabilityLinks>
+    <TraceabilityLink type="Covering:trace" local="true" source="!ed/18/134D/3DB4/607ecda0229a" target="CC_HLR_IN_01"/>
+    <TraceabilityLink type="Covering:trace" local="true" source="!ed/18/134D/3DB4/607ecda0229a" target="CC_HLR_IN_02"/>
+    <TraceabilityLink type="Covering:trace" local="true" source="!ed/28/134D/3DB4/607ecda4154c" target="CC_HLR_IN_04"/>
+    <TraceabilityLink type="Covering:trace" local="true" source="!ed/30/134D/3DB4/607ecda436d0" target="CC_HLR_IN_04"/>
+    <TraceabilityLink type="Covering:trace" local="true" source="!ed/20/134D/3DB4/607ecda33fb1" target="CC_HLR_IN_03"/>
+  </traceabilityLinks>
+  <documents>
+    <Document identifier="Cruise Control Requirements" text="Cruise Control Requirements.docx">
+      <children>
+        <Section identifier="1." text="Introduction"/>
+        <Section identifier="2." text="Cruise Control Requirements">
+          <children>
+            <Section identifier="2.1." text="Interface">
+              <children>
+                <Requirement identifier="CC_HLR_IN_01" text="CC_HLR_IN_01" description="On: Enable the CC&#10;"/>
+                <Requirement identifier="CC_HLR_IN_02" text="CC_HLR_IN_02" description="Off: Disable the CC&#10;"/>
+                <Requirement identifier="CC_HLR_IN_03" text="CC_HLR_IN_03" description="Resume: Resume the CC after a braking&#10;"/>
+                <Requirement identifier="CC_HLR_IN_04" text="CC_HLR_IN_04" description="Set: Set the current speed as the new cruise speed&#10;"/>
+                <Requirement identifier="CC_HLR_IN_05" text="CC_HLR_IN_05" description="QuickDecel: Decrease the cruise speed&#10;"/>
+                <Requirement identifier="CC_HLR_IN_06" text="CC_HLR_IN_06" description="QuickAccel: Increase the cruise speed&#10;"/>
+                <Requirement identifier="CC_HLR_IN_07" text="CC_HLR_IN_07" description="Accel: Accelerator pedal sensor&#10;"/>
+                <Requirement identifier="CC_HLR_IN_08" text="CC_HLR_IN_08" description="Brake: Brake pedal sensor&#10;"/>
+                <Requirement identifier="CC_HLR_IN_09" text="CC_HLR_IN_09" description="Speed: Car speed sensor"/>
+                <Requirement identifier="CC_HLR_OUT_01" text="CC_HLR_OUT_01" description="CruiseSpeed: Cruise speed value"/>
+                <Requirement identifier="CC_HLR_OUT_02" text="CC_HLR_OUT_02" description="ThrottleCmd: Throttle command"/>
+                <Requirement identifier="CC_HLR_OUT_03" text="CC_HLR_OUT_03" description="CruiseState: this is the state of the CC. It can be OFF, ON, STDBY, INT.&#10;"/>
+              </children>
+            </Section>
+            <Section identifier="2.2." text="Cruise Control behavior">
+              <children>
+                <Requirement identifier="CC_HLR_CCB_01" text="CC_HLR_CCB_01" description="When the driver starts the car, the CC shall be off.&#10;The output CruiseState should be set to OFF"/>
+                <Requirement identifier="CC_HLR_CCB_02" text="CC_HLR_CCB_02" description="The CC shall be set on when the driver push the on button."/>
+                <Requirement identifier="CC_HLR_CCB_03" text="CC_HLR_CCB_03" description="The CC shall automatically go off when the off button is pressed."/>
+                <Requirement identifier="CC_HLR_CCB_04" text="CC_HLR_CCB_04" description="If the car speed is in the speed limit and the accelerator pedal is not pressed, the CC shall be on and regulate the car speed.&#10;The output CruiseState shall be set to ON."/>
+                <Requirement identifier="CC_HLR_CCB_05" text="CC_HLR_CCB_05" description="The CC system shall be automatically disabled when the accelerator pedal is pressed, or the car speed is outside the speed limit.&#10;The output CruiseState shall be set to STDBY."/>
+                <Requirement identifier="CC_HLR_CCB_06" text="CC_HLR_CCB_06" description="The system shall return to the ON state when both the accelerator pedal is not pressed, and the car speed is inside the speed limit.&#10;The last set cruise speed shall be re-used.&#10;"/>
+                <Requirement identifier="CC_HLR_CCB_07" text="CC_HLR_CCB_07" description="The CC shall be immediately interrupted when the brake is pressed.&#10;The output CruiseState shall be set to INT."/>
+                <Requirement identifier="CC_HLR_CCB_08" text="CC_HLR_CCB_08" description="The system shall resume either to the ON or STDBY states, depending on the Accelerator pedal and the Speed value when the resume button is pressed. The last set cruise speed shall be re-used."/>
+              </children>
+            </Section>
+            <Section identifier="2.3." text="Car driving control">
+              <children>
+                <Requirement identifier="CC_HLR_CDC_01" text="CC_HLR_CDC_01" description="When the CC is off, the car speed shall be driven using the accelerator pedal."/>
+                <Requirement identifier="CC_HLR_CDC_02" text="CC_HLR_CDC_02" description="When the CC is on, the car speed shall be automatically regulated."/>
+                <Requirement identifier="CC_HLR_CDC_03" text="CC_HLR_CDC_03" description="The regulation shall be done using a proportional and integral algorithm, with Kp and Ki factors."/>
+                <Requirement identifier="CC_HLR_CDC_04" text="CC_HLR_CDC_04" description="The regulation algorithm shall be protected against the overshoot of its integral part: the integral action shall be reset when the CC is going on, and frozen when the throttle output is saturated."/>
+                <Requirement identifier="CC_HLR_CDC_05" text="CC_HLR_CDC_05" description="The throttle command shall be saturated at ThrottleSatMax when automatically regulating, in order to limit the car acceleration for the comfort."/>
+              </children>
+            </Section>
+            <Section identifier="2.4." text="Cruise speed management">
+              <children>
+                <Requirement identifier="CC_HLR_CSM_01" text="CC_HLR_CSM_01" description="The Cruise Speed shall be managed only when the cruise control is enabled, meaning ON, STDBY, or INT states."/>
+                <Requirement identifier="&lt;Missing Requirement ID&gt;_1" text="&lt;Missing Requirement ID&gt;_1" description=""/>
+                <Requirement identifier="CC_HLR_CSM_02" text="CC_HLR_CSM_02" description="The cruise speed shall be set to the current speed when the set button is pressed."/>
+                <Requirement identifier="CC_HLR_CSM_03" text="CC_HLR_CSM_03" description="The cruise speed shall be increased of SpeedInc km/h when the QUICKACCEL button is pressed.&#10;only if this new value of the cruise speed is still lower than the maximal speed SpeedMax km/h."/>
+                <Requirement identifier="CC_HLR_CSM_04" text="CC_HLR_CSM_04" description="The cruise speed shall be decreased of SpeedInc km/h when the QUICKDECEL button is pressed."/>
+                <Requirement identifier="CC_HLR_CSM_05" text="CC_HLR_CSM_05" description="The Cruise Speed shall be maintained between SpeedMin and SpeedMax km/h values."/>
+              </children>
+            </Section>
+            <Section identifier="2.5." text="Pedals pressed detection">
+              <children>
+                <Requirement identifier="CC_HLR_PPD_01" text="CC_HLR_PPD_01" description="The accelerator pedal shall be detected as pressed when its value is above PedalsMin.&#10;"/>
+                <Requirement identifier="CC_HLR_PPD_02" text="CC_HLR_PPD_02" description="The Brake pedal shall be detected as pressed when its value is above PedalsMin."/>
+              </children>
+            </Section>
+            <Section identifier="2.6." text="Cruise Control parameters">
+              <children>
+                <Requirement identifier="CC_HLR_CCP_01" text="CC_HLR_CCP_01" description="SpeedMin: 30.0 Km/h"/>
+                <Requirement identifier="CC_HLR_CCP_02" text="CC_HLR_CCP_02" description="SpeedMax: 150.0 Km/h&#10;"/>
+                <Requirement identifier="CC_HLR_CCP_03" text="CC_HLR_CCP_03" description="SpeedInc: 2.5 Km/h"/>
+                <Requirement identifier="CC_HLR_CCP_04" text="CC_HLR_CCP_04" description="Kp: 8.113"/>
+                <Requirement identifier="CC_HLR_CCP_05" text="CC_HLR_CCP_05" description="Ki: 0.5"/>
+                <Requirement identifier="CC_HLR_CCP_06" text="CC_HLR_CCP_06" description="ThrottleSatMax: 45.0 percent"/>
+                <Requirement identifier="CC_HLR_CCP_07" text="CC_HLR_CCP_07" description="PedalsMin: 3.0 percent."/>
+              </children>
+            </Section>
+          </children>
+        </Section>
+      </children>
+    </Document>
+  </documents>
+</ReqProject>

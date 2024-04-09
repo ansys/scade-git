@@ -1,0 +1,156 @@
+# Copyright (C) 2021 - 2024 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""Merge3 for SCADE ALMGW not exported traceability files (ALMGT)."""
+
+
+from argparse import ArgumentParser
+
+from lxml import etree as et
+
+
+class LLR:
+    """Wrapper for XML element `<object>`."""
+    def __init__(self, id: str = '', path: str = ''):
+        self.elem = None
+        self.id = id
+        self.path = path
+        # traceability edits: either add or remove link to hlr
+        self.edits = {}
+
+
+    def is_empty(self) -> bool:
+        """Return whether the instance contains traceability links."""
+        return len(self.edits) == 0
+
+
+    def parse(self, elem):
+        """Cache the sub-elements `<requirement>` in a dictionary."""
+        self.elem = elem
+        self.id = self.elem.get('id')
+        self.path = self.elem.get('pathName', '')
+        for elem in self.elem.findall('requirement'):
+            req = elem.get('id')
+            self.edits[req] = elem
+        return self
+
+
+    def create_elem(self, root):
+        """Create the underlying XML element."""
+        self.elem = et.SubElement(root, 'object', id=self.id, pathName=self.path)
+        return self
+
+
+class GTFile:
+    """Wrapper for ALMGW not exported traceability files (ALMGT)."""
+    def __init__(self):
+        self.tree = None
+        self.llrs = {}
+
+
+    def parse(self, filename: str):
+        """Parse the file and cache the elements in dictionaries."""
+        parser = et.XMLParser(remove_blank_text=True)
+        try:
+            self.tree = et.parse(filename, parser)
+        except OSError as e:
+            print(e)
+            return
+        for elem in self.tree.getroot().findall('object'):
+            llr = LLR().parse(elem)
+            self.llrs[llr.id] = llr
+        return self
+
+
+    def save(self, filename: str):
+        """Save the modified file."""
+        et.indent(self.tree.getroot(), space = '    ')
+        self.tree.write(filename, encoding='utf-8', standalone = 'yes', xml_declaration=True, pretty_print=True)
+
+
+    def merge(self, other: 'GTFile', base: 'GTFile'):
+        """Merge the remote file, base on a common ancestor."""
+        # self += other - base
+        for otherllr in other.llrs.values():
+            selfllr = self.llrs.get(otherllr.id)
+            basellr = base.llrs.get(otherllr.id)
+            if basellr:
+                # remove the edits present in base
+                to_remove = [_ for _ in otherllr.edits.keys() if _ in basellr.edits]
+                for hlr in to_remove:
+                    basellr.edits.pop(hlr)
+                    otherllr.edits.pop(hlr)
+            # add remaining remote hlrs to local ones
+            if not selfllr and not otherllr.is_empty():
+                # create an instance
+                selfllr = LLR(otherllr.id, otherllr.path)
+                # and add it ti the file
+                selfllr.create_elem(self.tree.getroot())
+
+            for hlr, elem in otherllr.edits.items():
+                if hlr not in selfllr.edits:
+                    # add the hlr edit
+                    et.SubElement(
+                        selfllr.elem,
+                        'requirement',
+                        id=hlr,
+                        traceType=elem.get('traceType')
+                    )
+
+        # the remaining hlrs in base have been deleted on remote:
+        # remove them locally if still present
+        for basellr in base.llrs.values():
+            selfllr = self.llrs.get(basellr.id)
+            if selfllr :
+                for hlr in basellr.edits.keys():
+                    elem = selfllr.edits.pop(hlr, None)
+                    if elem is not None:
+                        print('not empty')
+                        selfllr.elem.remove(elem)
+                if selfllr.is_empty():
+                    self.llrs.pop(selfllr.id)
+                    self.tree.getroot().remove(selfllr.elem)
+
+
+def merge3(local: str, remote: str, base: str, merged: str):
+    """Merge `remote` and `local` into `merged`."""
+    gtbase = GTFile().parse(base)
+    gtremote = GTFile().parse(remote)
+    gtlocal = GTFile().parse(local)
+    gtlocal.merge(gtremote, gtbase)
+    gtlocal.save(merged)
+
+
+def main():
+    """Entry point."""
+    parser = ArgumentParser(description = 'merge3 for almgt files')
+    parser.add_argument('-l', '--local', metavar = '<local>', help = 'local file', required = True)
+    parser.add_argument('-r', '--remote', metavar = '<remote>', help = 'remote file', required = True)
+    parser.add_argument('-b', '--base', metavar = '<base>', help = 'base file', required = True)
+    parser.add_argument('-m', '--merged', metavar = '<merged>', help = 'merged file', required = True)
+    options = parser.parse_args()
+
+    merge3(options.local, options.remote, options.base, options.merged)
+
+
+if __name__ == '__main__':
+    main()

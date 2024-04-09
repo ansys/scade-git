@@ -164,3 +164,4 @@ cython_debug/
 *.pyproj
 tests/tmp/
 TestResults/
+pytest.ini

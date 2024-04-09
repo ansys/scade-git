@@ -30,7 +30,7 @@ import pytest
 from ansys.scade.git.almgtmerge.almgtmerge3 import merge3
 from test_utils import cmp_file, get_resources_dir
 
-almgtmerge_data = [
+almgtmerge_data_nominal = [
     (get_resources_dir() / 'almgtmerge' / 'resources' / 'Nominal'),
     (get_resources_dir() / 'almgtmerge' / 'resources' / 'DelBoth'),
 ]
@@ -38,15 +38,16 @@ almgtmerge_data = [
 
 @pytest.mark.parametrize(
     'dir',
-    almgtmerge_data,
-    ids=[Path(_).name for _ in almgtmerge_data],
+    almgtmerge_data_nominal,
+    ids=[Path(_).name for _ in almgtmerge_data_nominal],
 )
-def test_almgtmerge(capsys, dir, tmpdir):
+def test_almgtmerge_nominal(capsys, dir, tmpdir):
     merge_args = [str(dir / (_ + '.almgt')) for _ in ['Local', 'Remote', 'Base']]
     # save the result to tmpdir
     result = str(tmpdir / (dir.name + 'Merge.almgt'))
     merge_args.append(result)
-    merge3(*merge_args)
+    status = merge3(*merge_args)
+    assert status
 
     # compare to the reference
     ref = str(dir / 'Merge.almgt')
@@ -59,3 +60,22 @@ def test_almgtmerge(capsys, dir, tmpdir):
         print(line, end='')
     captured = capsys.readouterr()
     assert captured.out == ''
+
+
+almgtmerge_data_robustness = [
+    (get_resources_dir() / 'almgtmerge' / 'resources' / 'OsError'),
+]
+
+
+@pytest.mark.parametrize(
+    'dir',
+    almgtmerge_data_robustness,
+    ids=[Path(_).name for _ in almgtmerge_data_robustness],
+)
+def test_almgtmerge_robustness(capsys, dir, tmpdir):
+    merge_args = [str(dir / (_ + '.almgt')) for _ in ['Local', 'Remote', 'Base']]
+    # save the result to tmpdir
+    result = str(tmpdir / (dir.name + 'Merge.almgt'))
+    merge_args.append(result)
+    status = merge3(*merge_args)
+    assert not status

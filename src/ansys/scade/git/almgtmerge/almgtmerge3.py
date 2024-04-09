@@ -23,8 +23,6 @@
 """Merge3 for SCADE ALMGW not exported traceability files (ALMGT)."""
 
 
-from argparse import ArgumentParser
-
 from lxml import etree as et
 
 
@@ -74,7 +72,7 @@ class GTFile:
             self.tree = et.parse(filename, parser)
         except OSError as e:
             print(e)
-            return
+            return None
         for elem in self.tree.getroot().findall('object'):
             llr = LLR().parse(elem)
             self.llrs[llr.id] = llr
@@ -87,7 +85,7 @@ class GTFile:
         self.tree.write(filename, encoding='utf-8', standalone = 'yes', xml_declaration=True, pretty_print=True)
 
 
-    def merge(self, other: 'GTFile', base: 'GTFile'):
+    def merge(self, other: 'GTFile', base: 'GTFile') -> bool:
         """Merge the remote file, base on a common ancestor."""
         # self += other - base
         for otherllr in other.llrs.values():
@@ -130,27 +128,20 @@ class GTFile:
                     self.llrs.pop(selfllr.id)
                     self.tree.getroot().remove(selfllr.elem)
 
+        # the semantics of the file prevent any conflict
+        return True
 
-def merge3(local: str, remote: str, base: str, merged: str):
+
+def merge3(local: str, remote: str, base: str, merged: str) -> bool:
     """Merge `remote` and `local` into `merged`."""
     gtbase = GTFile().parse(base)
     gtremote = GTFile().parse(remote)
     gtlocal = GTFile().parse(local)
-    gtlocal.merge(gtremote, gtbase)
-    gtlocal.save(merged)
-
-
-def main():
-    """Entry point."""
-    parser = ArgumentParser(description = 'merge3 for almgt files')
-    parser.add_argument('-l', '--local', metavar = '<local>', help = 'local file', required = True)
-    parser.add_argument('-r', '--remote', metavar = '<remote>', help = 'remote file', required = True)
-    parser.add_argument('-b', '--base', metavar = '<base>', help = 'base file', required = True)
-    parser.add_argument('-m', '--merged', metavar = '<merged>', help = 'merged file', required = True)
-    options = parser.parse_args()
-
-    merge3(options.local, options.remote, options.base, options.merged)
-
-
-if __name__ == '__main__':
-    main()
+    if not gtbase or not gtremote or not gtlocal:
+        # error already reported
+        status = False
+    else:
+        status = gtlocal.merge(gtremote, gtbase)
+    if status:
+        gtlocal.save(merged)
+    return status

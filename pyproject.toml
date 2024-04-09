@@ -71,6 +71,7 @@ Homepage = "https://www.ansys.com/products/embedded-software/ansys-scade-suite"
 
 [project.scripts]
 etpmerge = "ansys.scade.git.etpmerge.__main__:main"
+almgtmerge = "ansys.scade.git.almgtmerge.__main__:main"
 register_ansys_scade_git = "ansys.scade.git.register:main"
 
 [tool.ruff]

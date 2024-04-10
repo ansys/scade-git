@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Operator xmlns="http://www.esterel-technologies.com/ns/scade/6" xmlns:ed="http://www.esterel-technologies.com/ns/scade/pragmas/editor/8" xmlns:kcg="http://www.esterel-technologies.com/ns/scade/pragmas/codegen/3" kind="node" name="Root">
+	<data>
+		<!-- () = Child(); -->
+		<Equation>
+			<right>
+				<!-- Child() -->
+				<CallExpression>
+					<operator>
+						<OpCall name="1">
+							<operator>
+								<OperatorRef name="Child"/>
+							</operator>
+						</OpCall>
+					</operator>
+					<pragmas>
+						<ed:CallExpression xmlns="http://www.esterel-technologies.com/ns/scade/pragmas/editor/8">
+							<references>
+								<OperatorRef path="Child" refOid="!ed/2d52/2EB0/9B70/6616a5e83c65"/>
+							</references>
+						</ed:CallExpression>
+					</pragmas>
+				</CallExpression>
+			</right>
+			<pragmas>
+				<ed:Equation oid="!ed/2d56/2EB0/9B70/6616a7a14949"/>
+			</pragmas>
+		</Equation>
+	</data>
+	<pragmas>
+		<ed:Operator oid="!ed/2d50/2EB0/9B70/6616a5db6f9e" xmlns="http://www.esterel-technologies.com/ns/scade/pragmas/editor/8">
+			<diagrams>
+				<NetDiagram name="Root" landscape="true" format="A4 (210 297)" oid="!ed/2d51/2EB0/9B70/6616a5db113">
+					<presentationElements>
+						<EquationGE presentable="!ed/2d56/2EB0/9B70/6616a7a14949">
+							<position>
+								<Point x="3228" y="3387"/>
+							</position>
+							<size>
+								<Size width="1773" height="1402"/>
+							</size>
+						</EquationGE>
+					</presentationElements>
+				</NetDiagram>
+			</diagrams>
+		</ed:Operator>
+	</pragmas>
+</Operator>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<File xmlns="http://www.esterel-technologies.com/ns/scade/6" xmlns:ed="http://www.esterel-technologies.com/ns/scade/pragmas/editor/8" xmlns:kcg="http://www.esterel-technologies.com/ns/scade/pragmas/codegen/3">
+	<declarations>
+		<Package name="P">
+			<declarations>
+				<Type name="User">
+					<definition>
+						<NamedType>
+							<type>
+								<NullRef/>
+							</type>
+						</NamedType>
+					</definition>
+					<pragmas>
+						<ed:Type oid="!ed/2d54/2EB0/9B70/6616a6852644"/>
+					</pragmas>
+				</Type>
+				<Operator name="Root" href="Root.xscade"/>
+				<Operator name="Child" href="Child\Child.xscade"/>
+			</declarations>
+			<pragmas>
+				<ed:Package oid="!ed/2d4c/2EB0/9B70/6616a4c75faf" xmlns="http://www.esterel-technologies.com/ns/scade/pragmas/editor/8">
+					<diagrams>
+						<TreeDiagram landscape="false" format="A4 (210 297)" oid="!ed/2d4d/2EB0/9B70/6616a4c7177f" blockKind="constants"/>
+						<TreeDiagram landscape="false" format="A4 (210 297)" oid="!ed/2d4e/2EB0/9B70/6616a4c7670a" blockKind="types"/>
+						<TreeDiagram landscape="false" format="A4 (210 297)" oid="!ed/2d4f/2EB0/9B70/6616a4c73522" blockKind="sensors"/>
+					</diagrams>
+				</ed:Package>
+			</pragmas>
+		</Package>
+	</declarations>
+</File>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Operator xmlns="http://www.esterel-technologies.com/ns/scade/6" xmlns:ed="http://www.esterel-technologies.com/ns/scade/pragmas/editor/8" xmlns:kcg="http://www.esterel-technologies.com/ns/scade/pragmas/codegen/3" kind="node" name="Child">
+	<pragmas>
+		<ed:Operator oid="!ed/2d52/2EB0/9B70/6616a5e83c65" symbolFile="Child.ssl" xmlns="http://www.esterel-technologies.com/ns/scade/pragmas/editor/8">
+			<diagrams>
+				<NetDiagram name="Child" landscape="true" format="A4 (210 297)" oid="!ed/2d53/2EB0/9B70/6616a5e86409"/>
+			</diagrams>
+		</ed:Operator>
+	</pragmas>
+</Operator>

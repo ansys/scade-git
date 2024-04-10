@@ -64,6 +64,12 @@ source and enhance it.
 
       python -m pip install --editable .
 
+#. Configure the project:
+
+   .. code:: bash
+
+      python -m ansys.scade.git.register
+
 #. Use `tox`_ to verify your development installation:
 
    .. code:: bash

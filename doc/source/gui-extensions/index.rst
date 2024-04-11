@@ -20,7 +20,7 @@ The Git extension supports several commands:
 * Unstage selected files or all staged files: Remove files from the Git staging area.
 * Reset All: Discard all changes and reset the Git repository to the last commit of the current branch.
 * Commit: Commit files in the staging area.
-* Diff: Select a version of the project and copy it to a temporary folder in order to launch the SCADE Diff Merge tool.
+* Diff: Select a version of the project and copy it to a temporary folder to launch the SCADE Diff Merge tool.
 
 Git Browser
 ~~~~~~~~~~~
@@ -35,7 +35,7 @@ The name of the top-level folder mentions the current branch.
 Git Menu
 ~~~~~~~~
 
-All actions described above are available in a Git menu or in the Git toolbar:
+All preceding actions are available in a Git menu or in the Git toolbar:
 
 .. figure:: /_static/Gitmenu.png
 
@@ -57,7 +57,7 @@ A dialog lists all available branches in Git.
 
 .. figure:: /_static/Gitdiff.png
 
-Once you select one branch and click on Diff, the extension copies this project
+Once you select one branch and click Diff, the extension copies this project
 version in a temporary folder and lists the path in the Git messages window.
 You must add this project to the workspace and manually launch the
 Diff Analyzer to start a diff merge session.

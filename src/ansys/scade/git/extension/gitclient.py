@@ -31,8 +31,9 @@ from typing import Callable, List, Tuple
 
 # force user installed modules to have priority on Python installation
 site_user = site.getusersitepackages()
-sys.path.remove(site_user)
-sys.path.insert(1, site_user)
+if site_user in sys.path:
+    sys.path.remove(site_user)
+    sys.path.insert(1, site_user)
 
 import dulwich as dulwich  # noqa: E402
 from dulwich import porcelain as git  # noqa: E402
@@ -216,15 +217,24 @@ class GitClient:
 
     def get_file_status(self, file_path: str) -> Tuple[str, GitStatus]:
         """
-        Return the list of the repository's branches.
+        Return the Git status of a file.
+
+        Parameters
+        ----------
+        file_path : str
+            Input path, either absolute or relative to the Git repository.
 
         Returns
         -------
-        List[str]
+        Tuple[str, GitStatus]
         """
         if self.repo_path:
             try:
-                index_file_name = Path(file_path).relative_to(self.repo_path).as_posix()
+                path = Path(file_path)
+                if path.is_absolute():
+                    index_file_name = path.relative_to(self.repo_path).as_posix()
+                else:
+                    index_file_name = path.as_posix()
                 return index_file_name, self.files_status.get(index_file_name, GitStatus.untracked)
             except ValueError:
                 return file_path, GitStatus.extern
@@ -268,10 +278,10 @@ class GitClient:
                     else:
                         index_file = file
                     self.repo.unstage([index_file])
-                except Exception as e:
+                except BaseException as e:
                     self.log('Error unstage: {0}'.format(e))
 
-    def reset_files(self, files):
+    def reset_files(self, files: List[str]):
         """
         Discard the changes of the input files.
 
@@ -287,11 +297,12 @@ class GitClient:
                     # porcelain.reset_file only accepts relative paths to the repo path
                     file_path = Path(file)
                     if file_path.is_absolute():
-                        index_file = file_path.relative_to(self.repo_path).as_posix()
+                        # index_file = file_path.relative_to(self.repo_path).as_posix()
+                        index_file = str(file_path.relative_to(self.repo_path))
                     else:
                         index_file = file
                     git.reset_file(self.repo, index_file)
-                except Exception as e:
+                except BaseException as e:
                     self.log('Error reset: {0}'.format(e))
 
     def reset(self):
@@ -299,7 +310,7 @@ class GitClient:
         if self.repo:
             git.reset(self.repo, 'hard')
 
-    def archive(self, branch: str, file: str):
+    def archive(self, branch: str, file: str) -> bool:
         """
         Archive a branch to a target file.
 
@@ -311,7 +322,13 @@ class GitClient:
             Output file.
         """
         if self.repo:
-            git.archive(self.repo, branch, file)
+            try:
+                with Path(file).open('wb') as f:
+                    git.archive(self.repo, branch, f)
+                return True
+            except BaseException as e:
+                self.log('Error archive: {0}'.format(e))
+        return False
 
     def commit(self, commit_text: str):
         """

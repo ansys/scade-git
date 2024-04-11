@@ -31,6 +31,11 @@ import pytest
 from ansys.scade.apitools import scade
 
 
+def pytest_configure(config):
+    """Declare the markers used in this project."""
+    config.addinivalue_line('markers', 'project: project to be loaded')
+
+
 @pytest.fixture(scope='session')
 def tmpdir():
     """Create/empty the temporary directory for output files."""

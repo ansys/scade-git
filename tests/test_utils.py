@@ -27,6 +27,7 @@ import difflib
 from inspect import getsourcefile
 import os
 from pathlib import Path
+from subprocess import run
 
 
 def get_resources_dir() -> Path:
@@ -53,3 +54,18 @@ def cmp_file(fromfile: str, tofile: str, n=3, linejunk=None):
 
     diff = difflib.context_diff(fromlines, tolines, fromfile, tofile, n=n)
     return diff
+
+
+def run_git(command: str, *args: str) -> bool:
+    """Run a git command."""
+    cmd = ['git', command] + list(args)
+    cp = run(cmd, capture_output=True, text=True)
+    if cp.stdout:
+        print(cp.stdout)
+    if cp.stderr:
+        print(cp.stderr)
+    return cp.returncode == 0
+
+def git_restore(pathspec: str) -> bool:
+    """Discard changes to a file or a directory."""
+    return run_git('restore', '--worktree', '--staged', pathspec)

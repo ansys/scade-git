@@ -22,12 +22,13 @@
 
 """Front-end for Git commands."""
 
+from abc import ABCMeta, abstractmethod
 from enum import Enum
 import os
 from pathlib import Path
 import site
 import sys
-from typing import Callable, List, Tuple
+from typing import List, Tuple
 
 # force user installed modules to have priority on Python installation
 site_user = site.getusersitepackages()
@@ -85,17 +86,9 @@ def find_git_repo(local_proj_path: str) -> str:
     return None
 
 
-class GitClient:
-    """
-    Provide access to Git commands.
-
-    Parameters
-    ----------
-    log : Callable[[str], None]
-        Function for logging messages.
-    """
-    def __init__(self, log: Callable[[str], None]):
-        self.log = log
+class GitClient(metaclass = ABCMeta):
+    """Provide access to Git commands."""
+    def __init__(self):
         self.repo_path = None
         self.repo_name = None
         self.branch = ''
@@ -104,8 +97,8 @@ class GitClient:
         # check Dulwich version
         dulwich_ver = dulwich.__version__
         if dulwich_ver < min_dulwich_ver:
-            log('Error: the Git extension is not correctly installed. It is disabled.')
-            log(
+            self.log('Error: the Git extension is not correctly installed. It is disabled.')
+            self.log(
                 '   Dulwich (Git Python module) min version required: {0}, installed: {1}'.format(
                     min_dulwich_ver, dulwich_ver
                 )
@@ -113,9 +106,14 @@ class GitClient:
             self.dulwich_ok = False
             # debug info
             for file in sys.path:
-                log('sys path: {0}'.format(str(file)))
+                self.log('sys path: {0}'.format(str(file)))
         else:
             self.dulwich_ok = True
+
+    @abstractmethod
+    def log(self, text: str):
+        """Log a message."""
+        raise NotImplementedError('Abstract method call')
 
     def get_init_status(self) -> bool:
         """

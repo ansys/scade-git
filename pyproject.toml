@@ -110,6 +110,10 @@ source = ["ansys.scade"]
 
 [tool.coverage.report]
 show_missing = true
+exclude_also = [
+    "raise NotImplementedError",
+    "@(abc\\.)?abstractmethod",
+    ]
 
 [tool.pytest.ini_options]
 testpaths = "tests"

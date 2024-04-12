@@ -39,9 +39,10 @@ CLEAN = GitStatus.clean
 EXTERN = GitStatus.extern
 
 
-def log(text):
-    """Print the logs to the standard output."""
-    print(text)
+class TestGitClient(GitClient):
+    def log(self, text):
+        """Print the logs to the standard output."""
+        print(text)
 
 
 def get_resources_dir() -> Path:
@@ -75,7 +76,7 @@ def tmp_repo(request, tmpdir_factory):
     request.cls.project_path = str(request.cls.dir / path.name)
 
     # get the instance of GitClient
-    request.cls.git_client = GitClient(log)
+    request.cls.git_client = TestGitClient()
     status = request.cls.git_client.get_init_status()
     assert status
     status = request.cls.git_client.refresh(request.cls.project_path)
@@ -301,7 +302,7 @@ def wrong_repo(request, tmpdir_factory):
     request.cls.project_path = str(request.cls.dir / path.name)
 
     # get the instance of GitClient
-    request.cls.git_client = GitClient(log)
+    request.cls.git_client = TestGitClient()
     status = request.cls.git_client.get_init_status()
     assert status
     status = request.cls.git_client.refresh(request.cls.project_path)

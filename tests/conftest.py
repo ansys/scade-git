@@ -39,7 +39,7 @@ def pytest_configure(config):
 @pytest.fixture(scope='session')
 def tmpdir():
     """Create/empty the temporary directory for output files."""
-    path = Path('tests') / 'tmp'
+    path = (Path('tests') / 'tmp').resolve()
     try:
         rmtree(str(path))
     except FileNotFoundError:

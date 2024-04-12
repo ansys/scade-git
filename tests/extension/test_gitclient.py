@@ -21,11 +21,12 @@
 # SOFTWARE.
 
 from pathlib import Path
+from shutil import copytree
 
 import pytest
 
 from ansys.scade.git.extension.gitclient import GitClient, GitStatus
-from test_utils import get_resources_dir as get_tests_dir, git_restore
+from test_utils import get_resources_dir as get_tests_dir, run_git
 
 # local constants for conciseness
 ADDED = GitStatus.added
@@ -49,60 +50,66 @@ def get_resources_dir() -> Path:
 
 
 @pytest.fixture(scope='class')
-def git_client(request):
+def tmp_repo(request, tmpdir_factory):
     """
-    Initializes a GitClient for a test directory.
+    Initializes a GitClient for a test repository.
 
-    The changes are restored once the tests are completed.
+    A temporary git repo is created from the directory containing the project.
     """
     # behaves as a __init__ method for request.cls
-    # load the project
     marker = request.node.get_closest_marker('project')
     # marker is None if the test is not designed correctly
     assert marker
     path = marker.args[0]
-    request.cls.dir = path.parent
-    request.cls.project_path = str(path)
-    # restore the project's directory: useless for nominal use cases
-    status = git_restore(str(request.cls.dir))
+    tmp_repos = Path(tmpdir_factory.mktemp('repos'))
+    tmp_dir = tmp_repos / path.parent.name
+    copytree(path.parent, tmp_dir)
+    # create git repo and add all files
+    run_git('init', '-b', 'main', str(tmp_dir))
+    # runt the next commands in the context of the git repo
+    run_git('add', str(tmp_dir), dir=tmp_dir)
+    run_git('commit', '-m', 'copy', dir=tmp_dir)
+
+    # store the temporary paths in the test class instance
+    request.cls.dir = tmp_dir
+    request.cls.project_path = str(request.cls.dir / path.name)
+
     # get the instance of GitClient
     request.cls.git_client = GitClient(log)
     status = request.cls.git_client.get_init_status()
     assert status
-    status = request.cls.git_client.refresh(str(path))
-    # status is False for robustness test cases
-    # assert status
-    yield
-    # finalize the test: restore the project's directory
-    status = git_restore(str(request.cls.dir))
+    status = request.cls.git_client.refresh(request.cls.project_path)
+    assert status
 
 
 @pytest.mark.project(get_resources_dir() / 'Model' / 'Model.etp')
-@pytest.mark.usefixtures('git_client')
+@pytest.mark.usefixtures('tmp_repo')
 class TestGitClientNominal:
-    """
-    Nominal tests for GitClient.
-
-    Note: Methods like commit or reset are not tested since they
-          impact either the history or optional changes outside
-          of the test sub-directory.
-    """
+    """Nominal tests for GitClient."""
     file_data = [
-        ([str(get_resources_dir() / 'Model' / 'Model.etp'), CLEAN]),
+        (['Model.etp', CLEAN]),
         (['C:/Program Files/ANSYS Inc/v241/SCADE/SCADE/libraries/SC65/libdigital/libdigital.etp', EXTERN]),
-        (['tests/extension/resources/Model/Child/Child.xscade', CLEAN]),
-        (['tests/extension/resources/Model/Root.xscade', CLEAN]),
-        (['tests/extension/resources/Model/P.xscade', CLEAN]),
-        (['tests/extension/resources/Model/Model.l4', CLEAN]),
-        (['tests/extension/resources/Sibling/Macros.h', CLEAN]),
+        (['Root.xscade', CLEAN]),
+        (['Child/Child.xscade', CLEAN]),
+        (['P.xscade', CLEAN]),
+        (['Model.l4', CLEAN]),
+        # Sibling not in the temporary repository
+        # (['/Sibling/Macros.h', CLEAN]),
     ]
 
+    @pytest.mark.parametrize(
+        'absolute',
+        [False, True],
+    )
     @pytest.mark.parametrize(
         'path, expected',
         file_data,
         ids=[Path(_[0]).name for _ in file_data],
     )
-    def test_get_file_status(self, path: str, expected: GitStatus):
+    def test_get_file_status(self, path: str, expected: GitStatus, absolute: bool):
+        if absolute and not Path(path).absolute():
+            # path is expected to be relative to the repository
+            path = str(self.dir / path)
         _, status = self.git_client.get_file_status(path)
         assert status == expected
 
@@ -133,6 +140,11 @@ class TestGitClientNominal:
         self.git_client.refresh(self.project_path)
         _, status = self.git_client.get_file_status(str(path))
         assert status == MODIFIED_UNSTAGED
+        # revert
+        self.git_client.reset_files([str(path)])
+        self.git_client.refresh(self.project_path)
+        _, status = self.git_client.get_file_status(str(path))
+        assert status == CLEAN
 
     def test_status_modified_staged(self):
         # modify a file
@@ -163,7 +175,7 @@ class TestGitClientNominal:
     def test_status_removed_staged(self):
         # modify a file, using a relative path to exercise stage and unstage
         # path = self.dir / 'removed_staged.txt'
-        path = Path('tests/extension/resources/Model/removed_staged.txt')
+        path = Path('removed_staged.txt')
         _, status = self.git_client.get_file_status(str(path))
         assert status == CLEAN
         path.unlink()
@@ -175,6 +187,36 @@ class TestGitClientNominal:
         self.git_client.refresh(self.project_path)
         _, status = self.git_client.get_file_status(str(path))
         assert status == REMOVED_UNSTAGED
+
+    def test_reset(self):
+        # modify a file and reset the changes
+        path = self.dir / 'reset.txt'
+        _, status = self.git_client.get_file_status(str(path))
+        assert status == CLEAN
+        path.open('w').write('new content\n')
+        self.git_client.stage([str(path)])
+        self.git_client.refresh(self.project_path)
+        _, status = self.git_client.get_file_status(str(path))
+        assert status == MODIFIED_STAGED
+        self.git_client.reset()
+        self.git_client.refresh(self.project_path)
+        _, status = self.git_client.get_file_status(str(path))
+        assert status == CLEAN
+
+    def test_commit(self):
+        # modify a file and commit the changes
+        path = self.dir / 'commit.txt'
+        _, status = self.git_client.get_file_status(str(path))
+        assert status == CLEAN
+        path.open('w').write('new content\n')
+        self.git_client.stage([str(path)])
+        self.git_client.refresh(self.project_path)
+        _, status = self.git_client.get_file_status(str(path))
+        assert status == MODIFIED_STAGED
+        self.git_client.commit('some text')
+        self.git_client.refresh(self.project_path)
+        _, status = self.git_client.get_file_status(str(path))
+        assert status == CLEAN
 
     def test_branch_list(self):
         # basic test: make sure the branch 'main' is present
@@ -191,7 +233,7 @@ class TestGitClientNominal:
 
 # unexisting project in the parent of the repository
 @pytest.mark.project(get_resources_dir() / 'Model' / 'Model.etp')
-@pytest.mark.usefixtures('git_client')
+@pytest.mark.usefixtures('tmp_repo')
 class TestGitClientRobustnessWrongArgs:
     """
     Verify GitClient does not raise exception with invalid parameters.
@@ -200,7 +242,7 @@ class TestGitClientRobustnessWrongArgs:
     """
     def test_get_file_status(self):
         # unexisting file
-        path = Path('tests/extension/resources/Model/Unknown.txt')
+        path = Path('Unknown.txt')
         _, status = self.git_client.get_file_status(path)
         assert status == UNTRACKED
         path = self.dir / path.name
@@ -209,7 +251,7 @@ class TestGitClientRobustnessWrongArgs:
 
     def test_stage(self):
         # unexisting file
-        path = Path('tests/extension/resources/Model/Unknown.txt')
+        path = Path('Unknown.txt')
         self.git_client.stage([str(path)])
         # no exception
         path = self.dir / path.name
@@ -218,7 +260,7 @@ class TestGitClientRobustnessWrongArgs:
 
     def test_unstage(self):
         # unexisting file
-        path = Path('tests/extension/resources/Model/Unknown.txt')
+        path = Path('Unknown.txt')
         self.git_client.unstage([str(path)])
         # no exception
         path = self.dir / path.name
@@ -227,7 +269,7 @@ class TestGitClientRobustnessWrongArgs:
 
     def test_reset_files(self):
         # unexisting file
-        path = Path('tests/extension/resources/Model/Unknown.txt')
+        path = Path('Unknown.txt')
         self.git_client.reset_files([str(path)])
         # no exception
         path = self.dir / path.name
@@ -242,9 +284,32 @@ class TestGitClientRobustnessWrongArgs:
         assert not status
 
 
-# unexisting project in the parent of the repository
-@pytest.mark.project(get_tests_dir().parent.parent / 'Unknown.etp')
-@pytest.mark.usefixtures('git_client')
+@pytest.fixture(scope='class')
+def wrong_repo(request, tmpdir_factory):
+    """Initializes a GitClient for a test directory which is not tracked."""
+    # behaves as a __init__ method for request.cls
+    marker = request.node.get_closest_marker('project')
+    # marker is None if the test is not designed correctly
+    assert marker
+    path = marker.args[0]
+    tmp_repos = Path(tmpdir_factory.mktemp('repos'))
+    tmp_dir = tmp_repos / path.parent.name
+    copytree(path.parent, tmp_dir)
+
+    # store the temporary paths in the test class instance
+    request.cls.dir = tmp_dir
+    request.cls.project_path = str(request.cls.dir / path.name)
+
+    # get the instance of GitClient
+    request.cls.git_client = GitClient(log)
+    status = request.cls.git_client.get_init_status()
+    assert status
+    status = request.cls.git_client.refresh(request.cls.project_path)
+    assert not status
+
+
+@pytest.mark.project(get_resources_dir() / 'Model' / 'Model.etp')
+@pytest.mark.usefixtures('wrong_repo')
 class TestGitClientRobustnessWrongRepo:
     """Verify GitClient does not raise exception with invalid repository."""
     def test_get_file_status(self):
@@ -268,6 +333,16 @@ class TestGitClientRobustnessWrongRepo:
         # add any file
         path = self.dir / 'Model.etp'
         self.git_client.reset_files([str(path)])
+        # no exception
+
+    def test_reset(self):
+        # no parameter required
+        self.git_client.reset()
+        # no exception
+
+    def test_commit(self):
+        # commit any change
+        self.git_client.commit('some text')
         # no exception
 
     def test_archive(self, tmpdir):

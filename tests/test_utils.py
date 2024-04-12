@@ -56,9 +56,14 @@ def cmp_file(fromfile: str, tofile: str, n=3, linejunk=None):
     return diff
 
 
-def run_git(command: str, *args: str) -> bool:
+def run_git(command: str, *args: str, dir=None) -> bool:
     """Run a git command."""
-    cmd = ['git', command] + list(args)
+    cmd = ['git']
+    if dir:
+        cmd.append('--work-tree=%s' % dir)
+        cmd.append('--git-dir=%s/.git' % dir)
+    cmd.append(command)
+    cmd += list(args)
     cp = run(cmd, capture_output=True, text=True)
     if cp.stdout:
         print(cp.stdout)

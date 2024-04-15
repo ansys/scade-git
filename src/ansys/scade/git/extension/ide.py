@@ -25,18 +25,16 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, List
 
-from scade.model.project.stdproject import Project
-
 
 class Ide(metaclass = ABCMeta):
     """SCADE IDE abstraction."""
     @abstractmethod
-    def create_browser(self, name: str, icon: str = None):
+    def create_browser(self, name: str, icon: str = ''):
         """Abstract scade.create_browser."""
         raise NotImplementedError('Abstract method call')
 
     @abstractmethod
-    def browser_report(self, item: Any, parent: Any = None, expanded: bool = False):
+    def browser_report(self, item: Any, parent: Any = None, expanded: bool = False, name: str = '', icon_file: str = ''):
         """Abstract scade.browser_report."""
         raise NotImplementedError('Abstract method call')
 
@@ -46,8 +44,13 @@ class Ide(metaclass = ABCMeta):
         raise NotImplementedError('Abstract method call')
 
     @abstractmethod
-    def get_active_project(self) -> Project:
+    def get_active_project(self) -> Any:
         """Abstract scade.active_project."""
+        raise NotImplementedError('Abstract method call')
+
+    @abstractmethod
+    def get_projects(self) -> List[Any]:
+        """Abstract scade.model.project.stdproject.get_roots."""
         raise NotImplementedError('Abstract method call')
 
     @abstractmethod
@@ -55,9 +58,12 @@ class Ide(metaclass = ABCMeta):
         """Abstract scade.tabput."""
         raise NotImplementedError('Abstract method call')
 
+
 try:
     from scade.tool.suite.gui.commands import Command as _Command
 except ImportError:
+    import scade
+    scade.output('fake activated\n')
     class _Command:
         """Stub for scade.tool.suite.gui.commands.Command."""
         def __init__(
@@ -71,6 +77,11 @@ except ImportError:
             self.status_message = status_message
             self.tooltip_message = tooltip_message
             self.image_file = image_file
+
+        def on_enable(self) -> bool:
+            """Return whether the command can be activated, `True` by default."""
+            return True
+
 
 class Command(_Command):
     """Base class for commands."""

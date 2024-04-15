@@ -31,7 +31,7 @@ import tempfile
 from typing import Union
 
 import scade
-from scade.model.project.stdproject import FileRef, Project, get_roots as get_projects
+from scade.model.project.stdproject import FileRef, Project
 
 from ansys.scade.git.extension.gitclient import GitClient, GitStatus
 from ansys.scade.git.extension.ide import Command, Ide
@@ -98,7 +98,8 @@ def report_item(ide: Ide, item: Union[Project, FileRef, str]) -> str:
         index_file_name, status = _git_client.get_file_status(item.pathname)
         browser_cat, icon = status_data.get(status, GitStatus.extern)
         project_files_status[browser_cat].append(index_file_name)
-        ide.browser_report(item, browser_cat, icon_file=icon, name=index_file_name)
+        name = item.persist_as if Path(index_file_name).is_absolute() else index_file_name
+        ide.browser_report(item, browser_cat, icon_file=icon, name=name)
     return index_file_name
 
 
@@ -113,7 +114,7 @@ def refresh_browser(ide: Ide):
             branch_name = 'branch: ' + _git_client.branch
 
             # create SCADE Git browser
-            ide.create_browser(branch_name)
+            create_browser(ide, branch_name)
 
             # clear files status lists
             project_files_status[BrowserCat['Staged']].clear()
@@ -123,7 +124,7 @@ def refresh_browser(ide: Ide):
 
             # look for files present in the SCADE project
             project_files = []
-            for project in get_projects():
+            for project in ide.get_projects():
                 # for project file
                 project_files.append(report_item(ide, project))
                 # for files registered in the project
@@ -353,7 +354,7 @@ class CmdDiff(GitRepoCommand):
         if branch:
             branch_path = "".join([c for c in branch if c.isalnum() or c in "._-"])
             tmp_dir = create_temp_dir(os.path.join('SCADE', 'git-diff', _git_client.repo_name, branch_path))
-            active_project = get_projects()[0]
+            active_project = self.ide.get_projects()[0]
             diff_project = tmp_dir / Path(active_project.pathname).relative_to(_git_client.repo_path)
             # create a tar archive of the branch
             archive_file = tmp_dir.with_suffix('.tar')

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Project id="1" oid_count="99" defaultConfiguration="23">
+<Project id="1" oid_count="111" defaultConfiguration="23">
 	<props>
 		<Prop id="10" name="@STUDIO:PRODUCT">
 			<value>SC</value>
@@ -319,6 +319,39 @@
 			<value>57</value>
 			<value>65</value>
 		</Prop>
+		<Prop id="100" name="@STUDIO:TOOLCONF">
+			<value>DiffAnalyzer</value>
+			<value>14</value>
+			<value>23</value>
+			<value>34</value>
+			<value>39</value>
+			<value>44</value>
+			<value>54</value>
+			<value>57</value>
+			<value>65</value>
+		</Prop>
+		<Prop id="101" name="@STUDIO:TOOLCONF">
+			<value>Synchronization</value>
+			<value>14</value>
+			<value>23</value>
+			<value>34</value>
+			<value>39</value>
+			<value>44</value>
+			<value>54</value>
+			<value>57</value>
+			<value>65</value>
+		</Prop>
+		<Prop id="102" name="@STUDIO:TOOLCONF">
+			<value>Import/Export</value>
+			<value>14</value>
+			<value>23</value>
+			<value>34</value>
+			<value>39</value>
+			<value>44</value>
+			<value>54</value>
+			<value>57</value>
+			<value>65</value>
+		</Prop>
 	</props>
 	<roots>
 		<Folder id="3" extensions="vsp;etp" name="SCADE Libraries">
@@ -357,6 +390,18 @@
 		<Folder id="90" name="C Files">
 			<elements>
 				<FileRef id="91" persistAs="..\Sibling\Macros.h"/>
+			</elements>
+		</Folder>
+		<Folder id="103" name="Misc. FIles">
+			<elements>
+				<FileRef id="104" persistAs="removed_unstaged.txt"/>
+				<FileRef id="105" persistAs="removed_staged.txt"/>
+				<FileRef id="106" persistAs="modified_unstaged.txt"/>
+				<FileRef id="107" persistAs="modified_staged.txt"/>
+				<FileRef id="108" persistAs="commit.txt"/>
+				<FileRef id="109" persistAs="reset.txt"/>
+				<FileRef id="110" persistAs="untracked.txt"/>
+				<FileRef id="111" persistAs="new.txt"/>
 			</elements>
 		</Folder>
 	</roots>

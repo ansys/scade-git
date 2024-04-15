@@ -43,16 +43,16 @@ def cmp_log(log_file, lines) -> bool:
     return log_lines == lines
 
 
-def cmp_file(fromfile: str, tofile: str, n=3, linejunk=None):
+def cmp_file(fromfile: Path, tofile: Path, n=3, linejunk=None):
     """Return the differences between two files."""
-    with open(fromfile) as fromf, open(tofile) as tof:
+    with fromfile.open() as fromf, tofile.open() as tof:
         if linejunk:
             fromlines = [line for line in fromf if not linejunk(line)]
             tolines = [line for line in tof if not linejunk(line)]
         else:
             fromlines, tolines = list(fromf), list(tof)
 
-    diff = difflib.context_diff(fromlines, tolines, fromfile, tofile, n=n)
+    diff = difflib.context_diff(fromlines, tolines, str(fromfile), str(tofile), n=n)
     return diff
 
 

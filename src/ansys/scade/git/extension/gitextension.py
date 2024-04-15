@@ -26,7 +26,7 @@ from typing import Any, List
 
 # from scade.tool.suite.gui import register_load_model_callable, register_unload_model_callable
 import scade
-from scade.model.project.stdproject import Project
+from scade.model.project.stdproject import Project, get_roots as get_projects
 from scade.tool.suite.gui.commands import ContextMenu, Menu, Toolbar
 from scade.tool.suite.gui.dialogs import Dialog, message_box
 from scade.tool.suite.gui.widgets import Button, EditBox, ListBox
@@ -42,6 +42,7 @@ from ansys.scade.git.extension.gitextcore import (
     CmdStageAll,
     CmdUnstage,
     CmdUnstageAll,
+    set_git_client,
 )
 from ansys.scade.git.extension.ide import Ide
 
@@ -52,9 +53,19 @@ class Studio(Ide):
         """Redirect the call to SCADE IDE."""
         scade.create_browser(name, icon)
 
-    def browser_report(self, item: Any, parent: Any = None, expanded: bool = False):
+    def browser_report(
+            self,
+            item: Any,
+            parent: Any = None,
+            expanded: bool = False,
+            name: str = '',
+            icon_file: str = '',
+        ):
         """Redirect the call to SCADE IDE."""
-        scade.browser_report(item, parent, expanded)
+        if icon_file:
+            scade.browser_report(item, parent, expanded=expanded, name=name, icon_file=icon_file)
+        else:
+            scade.browser_report(item, parent, expanded=expanded, name=name)
 
     def selection(self) -> List[Any]:
         """Redirect the call to SCADE IDE."""
@@ -63,6 +74,10 @@ class Studio(Ide):
     def get_active_project(self) -> Project:
         """Redirect the call to SCADE IDE."""
         return scade.get_active_project()
+
+    def get_projects(self) -> List[Any]:
+        """Redirect the call to the API."""
+        return get_projects()
 
     def log(self, text: str):
         """Redirect the call to the locall log function."""
@@ -199,18 +214,20 @@ class CmdDiff(CoreCmdDiff):
 
 
 git_client = GitClient()
+set_git_client(git_client)
 
 if git_client.get_init_status():
     log('Loaded Git extension')
-    cmd_refresh = CmdRefresh()
-    cmd_stage = CmdStage()
-    cmd_unstage = CmdUnstage()
-    cmd_reset = CmdReset()
-    cmd_stage_all = CmdStageAll()
-    cmd_unstage_all = CmdUnstageAll()
-    cmd_reset_all = CmdResetAll()
-    cmd_commit = CmdCommit()
-    cmd_diff = CmdDiff()
+    studio = Studio()
+    cmd_refresh = CmdRefresh(studio)
+    cmd_stage = CmdStage(studio)
+    cmd_unstage = CmdUnstage(studio)
+    cmd_reset = CmdReset(studio)
+    cmd_stage_all = CmdStageAll(studio)
+    cmd_unstage_all = CmdUnstageAll(studio)
+    cmd_reset_all = CmdResetAll(studio)
+    cmd_commit = CmdCommit(studio)
+    cmd_diff = CmdDiff(studio)
 
     Menu([cmd_refresh, cmd_stage_all, cmd_unstage_all, cmd_commit, cmd_diff], '&Project/Git')
     Toolbar('Git', [cmd_refresh, cmd_stage_all, cmd_unstage_all, cmd_commit, cmd_diff])

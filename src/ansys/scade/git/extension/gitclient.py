@@ -138,6 +138,7 @@ class GitClient(metaclass = ABCMeta):
         -------
         bool
         """
+        self.files_status = {}
         if self.dulwich_ok:
             self.repo_path = find_git_repo(project_path)
         if self.repo_path:
@@ -195,7 +196,6 @@ class GitClient(metaclass = ABCMeta):
             self.repo_name = None
             self.branch = ''
             self.repo = None
-            self.files_status = {}
             return False
 
     def get_branch_list(self) -> List[str]:

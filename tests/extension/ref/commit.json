@@ -3,26 +3,7 @@
       {
          "children": [
             {
-               "children": [
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "removed.ico",
-                     "name": "<FileRef> Model/removed_staged.txt"
-                  },
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "modified.ico",
-                     "name": "<FileRef> Model/modified_staged.txt"
-                  },
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "added.ico",
-                     "name": "<FileRef> Model/new.txt"
-                  }
-               ],
+               "children": [],
                "expanded": true,
                "icon": "",
                "name": "Staged files"
@@ -100,6 +81,12 @@
                      "children": [],
                      "expanded": false,
                      "icon": "clean.ico",
+                     "name": "<FileRef> Model/modified_staged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
                      "name": "<FileRef> Model/commit.txt"
                   },
                   {
@@ -107,6 +94,12 @@
                      "expanded": false,
                      "icon": "clean.ico",
                      "name": "<FileRef> Model/reset.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/new.txt"
                   }
                ],
                "expanded": false,

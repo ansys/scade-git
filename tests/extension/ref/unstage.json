@@ -13,12 +13,6 @@
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "modified.ico",
-                     "name": "<FileRef> Model/modified_staged.txt"
-                  },
-                  {
-                     "children": [],
-                     "expanded": false,
                      "icon": "added.ico",
                      "name": "<FileRef> Model/new.txt"
                   }
@@ -40,6 +34,12 @@
                      "expanded": false,
                      "icon": "modified.ico",
                      "name": "<FileRef> Model/modified_unstaged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "modified.ico",
+                     "name": "<FileRef> Model/modified_staged.txt"
                   },
                   {
                      "children": [],

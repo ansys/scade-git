@@ -3,44 +3,13 @@
       {
          "children": [
             {
-               "children": [
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "removed.ico",
-                     "name": "<FileRef> Model/removed_staged.txt"
-                  },
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "modified.ico",
-                     "name": "<FileRef> Model/modified_staged.txt"
-                  },
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "added.ico",
-                     "name": "<FileRef> Model/new.txt"
-                  }
-               ],
+               "children": [],
                "expanded": true,
                "icon": "",
                "name": "Staged files"
             },
             {
                "children": [
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "removed.ico",
-                     "name": "<FileRef> Model/removed_unstaged.txt"
-                  },
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "modified.ico",
-                     "name": "<FileRef> Model/modified_unstaged.txt"
-                  },
                   {
                      "children": [],
                      "expanded": false,
@@ -95,6 +64,30 @@
                      "expanded": false,
                      "icon": "clean.ico",
                      "name": "<FileRef> Sibling/Macros.h"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/removed_unstaged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/removed_staged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/modified_unstaged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/modified_staged.txt"
                   },
                   {
                      "children": [],

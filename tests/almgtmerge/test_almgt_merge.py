@@ -44,13 +44,13 @@ almgtmerge_data_nominal = [
 def test_almgtmerge_nominal(capsys, dir, tmpdir):
     merge_args = [str(dir / (_ + '.almgt')) for _ in ['Local', 'Remote', 'Base']]
     # save the result to tmpdir
-    result = str(tmpdir / (dir.name + 'Merge.almgt'))
-    merge_args.append(result)
+    result = tmpdir / (dir.name + 'Merge.almgt')
+    merge_args.append(str(result))
     status = merge3(*merge_args)
     assert status
 
     # compare to the reference
-    ref = str(dir / 'Merge.almgt')
+    ref = dir / 'Merge.almgt'
     # ignore banner if any
     captured = capsys.readouterr()
     diff = cmp_file(ref, result, n=0)

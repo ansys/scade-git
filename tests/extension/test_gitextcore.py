@@ -30,7 +30,7 @@ import scade.model.project.stdproject as std
 from ansys.scade.apitools import scade
 from ansys.scade.git.extension.gitclient import GitStatus
 import ansys.scade.git.extension.gitextcore as core
-from ansys.scade.git.extension.ide import Ide
+from ansys.scade.git.extension.ide import Command, Ide
 from test_utils import cmp_file, get_resources_dir as get_tests_dir, run_git
 
 # local constants for conciseness
@@ -53,18 +53,6 @@ def get_ref_dir() -> Path:
     """Return the reference directory for these tests."""
     return get_tests_dir() / 'extension' / 'ref'
 
-
-"""
-    CmdCommit,
-    CmdDiff as CoreCmdDiff,
-    CmdRefresh,
-    CmdReset,
-    CmdResetAll as CoreCmdResetAll,
-    CmdStage,
-    CmdStageAll,
-    CmdUnstage,
-    CmdUnstageAll,
-"""
 
 class TestIde(Ide):
     """SCADE IDE instantiation for unit tests."""
@@ -136,7 +124,10 @@ def model_repo(request, git_repo):
     and perform a few Git commands to make the repo consistent
     with the project's expected status.
     """
-    tmp_dir = git_repo
+    tmp_dir, client = git_repo
+    # perform modifications on a branch
+    run_git('branch', 'tests', dir=tmp_dir)
+    run_git('checkout', 'tests', dir=tmp_dir)
     model_dir = tmp_dir /'Model'
     path = model_dir / 'untracked_file.txt'
     path.open('w').write('some content\n')
@@ -154,31 +145,70 @@ def model_repo(request, git_repo):
     path.unlink()
     run_git('add', str(path), dir=tmp_dir)
 
-    core.set_git_client(request.cls.git_client)
+    core.set_git_client(client)
+    project_path = tmp_dir / 'Model' / 'Model.etp'
+    _test_ide.project = scade.load_project(str(project_path))
+    client.refresh(str(path))
 
     return tmp_dir
 
 
-@pytest.mark.repo(get_resources_dir())
-@pytest.mark.usefixtures('model_repo')
-class TestGitExtCoreBrowser:
-    def test_cmd_refresh(self, capsys, tmpdir):
-        project_path = self.dir / 'Model' / 'Model.etp'
-        print('project path', project_path)
-        _test_ide.project = scade.load_project(str(project_path))
-        cmd = core.CmdRefresh(_test_ide)
-        assert cmd.on_enable()
-        cmd.on_activate()
-        result = tmpdir / 'refresh.json'
-        _test_ide.save_browser(result)
-        ref = get_ref_dir() / 'refresh.json'
+commands_data = [
+    (core.CmdRefresh(_test_ide), 'refresh.json', []),
+    (core.CmdStage(_test_ide), 'stage.json', ['modified_unstaged.txt', 'removed_unstaged.txt']),
+    (core.CmdStageAll(_test_ide), 'stage_all.json', []),
+    (core.CmdUnstage(_test_ide), 'unstage.json', ['modified_staged.txt']),
+    (core.CmdUnstageAll(_test_ide), 'unstage_all.json', []),
+    (core.CmdReset(_test_ide), 'reset.json', [
+        'modified_staged.txt',
+        'modified_unstaged.txt',
+        'new.txt',
+        'removed_staged.txt',
+        'removed_unstaged.txt',
+        'untracked.txt',
+    ]),
+    (core.CmdResetAll(_test_ide), 'reset_all.json', []),
+    (core.CmdCommit(_test_ide), 'commit.json', []),
+]
 
-        # read the outputs issued before the diff
-        captured = capsys.readouterr()
-        # ignore the version number
-        diff = cmp_file(ref, result, n = 0)
-        for line in list(diff):
-            print(line, end = '')
-        #stdout.writelines(diff)
-        captured = capsys.readouterr()
-        assert captured.out == ''
+
+@pytest.mark.usefixtures('model_repo')
+@pytest.mark.parametrize(
+    'cmd, ref, sel',
+    commands_data,
+    ids=[_[1] for _ in commands_data],
+)
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_commands(capsys, tmpdir: Path, cmd: Command, ref: str, sel: List[str]):
+    _test_ide.selection = [_ for _ in _test_ide.get_active_project().file_refs if _.persist_as in sel]
+    assert cmd.on_enable()
+    cmd.on_activate()
+    result = tmpdir / ref
+    _test_ide.save_browser(result)
+
+    # read the outputs issued before the diff, if any
+    captured = capsys.readouterr()
+    # ignore the version number
+    diff = cmp_file(get_ref_dir() / ref, result, n = 0)
+    for line in list(diff):
+        print(line, end = '')
+    #stdout.writelines(diff)
+    captured = capsys.readouterr()
+    assert captured.out == ''
+
+
+@pytest.mark.usefixtures('model_repo')
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff(capsys):
+    cmd = core.CmdDiff(_test_ide)
+    assert cmd.on_enable()
+
+    # read the outputs issued before the diff, if any
+    captured = capsys.readouterr()
+    cmd.on_activate()
+    # get the status of the command on stdout, must be two lines
+    captured = capsys.readouterr()
+    lines = captured.out.strip().split('\n')
+    assert len(lines) == 2
+    archive = Path(lines[1].strip())
+    assert archive.exists()

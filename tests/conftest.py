@@ -25,6 +25,7 @@
 
 from pathlib import Path
 from shutil import copytree, rmtree
+from typing import Tuple
 
 import pytest
 
@@ -35,7 +36,7 @@ from test_utils import run_git
 
 def pytest_configure(config):
     """Declare the markers used in this project."""
-    config.addinivalue_line('markers', 'project: project to be loaded')
+    config.addinivalue_line('markers', 'repo: repository to duplicate')
 
 
 @pytest.fixture(scope='session')
@@ -66,7 +67,7 @@ class TestGitClient(GitClient):
 
 
 @pytest.fixture(scope='class')
-def tmp_repo(request, tmpdir_factory) -> str:
+def tmp_repo(request, tmpdir_factory) -> Tuple[str, GitClient]:
     """
     Initializes a GitClient for a test directory which is not tracked.
 
@@ -81,28 +82,25 @@ def tmp_repo(request, tmpdir_factory) -> str:
     tmp_dir = tmp_repos / path.name
     copytree(path, tmp_dir)
 
-    # store the temporary paths in the test class instance
-    request.cls.dir = tmp_dir
-
     # get the instance of GitClient
-    request.cls.git_client = TestGitClient()
-    status = request.cls.git_client.get_init_status()
+    git_client = TestGitClient()
+    status = git_client.get_init_status()
     assert status
-    return tmp_dir
+    return tmp_dir, git_client
 
 
 @pytest.fixture(scope='class')
-def git_repo(request, tmp_repo) -> str:
+def git_repo(request, tmp_repo) ->  Tuple[str, GitClient]:
     """
     Initializes a GitClient for a test repository.
 
     Create a Git repository from the temporary directory and add all files.
     """
-    tmp_dir = tmp_repo
+    tmp_dir, client = tmp_repo
     # create git repo and add all files
     run_git('init', '-b', 'main', str(tmp_dir))
     # runt the next commands in the context of the git repo
     run_git('add', str(tmp_dir), dir=tmp_dir)
     run_git('commit', '-m', 'copy', dir=tmp_dir)
 
-    return tmp_dir
+    return tmp_dir, client

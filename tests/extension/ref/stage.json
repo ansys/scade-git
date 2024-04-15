@@ -8,7 +8,19 @@
                      "children": [],
                      "expanded": false,
                      "icon": "removed.ico",
+                     "name": "<FileRef> Model/removed_unstaged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "removed.ico",
                      "name": "<FileRef> Model/removed_staged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "modified.ico",
+                     "name": "<FileRef> Model/modified_unstaged.txt"
                   },
                   {
                      "children": [],
@@ -29,18 +41,6 @@
             },
             {
                "children": [
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "removed.ico",
-                     "name": "<FileRef> Model/removed_unstaged.txt"
-                  },
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "modified.ico",
-                     "name": "<FileRef> Model/modified_unstaged.txt"
-                  },
                   {
                      "children": [],
                      "expanded": false,

@@ -193,7 +193,7 @@ class CmdStage(GitRepoCommand):
     def on_activate(self):
         """Run the command."""
         files_to_process = list()
-        for item in self.ide.scade.selection:
+        for item in self.ide.selection:
             if isinstance(item, FileRef) or isinstance(item, Project):
                 files_to_process.append(item.pathname)
         if files_to_process:
@@ -215,7 +215,7 @@ class CmdUnstage(GitRepoCommand):
     def on_activate(self):
         """Run the command."""
         files_to_process = list()
-        for item in self.ide.scade.selection:
+        for item in self.ide.selection:
             if isinstance(item, FileRef) or isinstance(item, Project):
                 files_to_process.append(item.pathname)
         if files_to_process:
@@ -237,7 +237,7 @@ class CmdReset(GitRepoCommand):
     def on_activate(self):
         """Run the command."""
         files_to_process = list()
-        for item in self.ide.scade.selection:
+        for item in self.ide.selection:
             if isinstance(item, FileRef) or isinstance(item, Project):
                 files_to_process.append(item.pathname)
         if files_to_process:
@@ -295,7 +295,7 @@ class CmdResetAll(GitRepoCommand):
     def on_activate(self):
         """Run the command."""
         confirm = self.confirm_reset()
-        if confirm == 6:
+        if confirm:
             _git_client.reset()
             refresh_browser(self.ide)
 
@@ -320,7 +320,7 @@ class CmdCommit(GitRepoCommand):
         refresh_browser(self.ide)
         if project_files_status[BrowserCat['Unstaged']]:
             confirm = self.confirm_commit()
-            if confirm != 6:
+            if not confirm:
                 return
 
         commit_text = self.get_commit_text()
@@ -374,7 +374,7 @@ class CmdDiff(GitRepoCommand):
 
     def select_branch(self) -> str:
         """Provide a default behavior for command line tools."""
-        return 'HEAD'
+        return 'main'
 
 
 script_path = Path(os.path.abspath(getsourcefile(lambda: 0)))

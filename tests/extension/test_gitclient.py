@@ -21,10 +21,11 @@
 # SOFTWARE.
 
 from pathlib import Path
+from typing import Tuple
 
 import pytest
 
-from ansys.scade.git.extension.gitclient import GitStatus
+from ansys.scade.git.extension.gitclient import GitClient, GitStatus
 from test_utils import get_resources_dir as get_tests_dir
 
 # local constants for conciseness
@@ -43,8 +44,20 @@ def get_resources_dir() -> Path:
     return get_tests_dir() / 'extension' / 'resources'
 
 
+@pytest.fixture(scope='class')
+def cls_tmp_repo(request, tmp_repo: Tuple[str, GitClient]):
+    """Initialize the test class with the fixture data."""
+    request.cls.dir, request.cls.git_client = tmp_repo
+
+
+@pytest.fixture(scope='class')
+def cls_git_repo(request, git_repo: Tuple[str, GitClient]):
+    """Initialize the test class with the fixture data."""
+    request.cls.dir, request.cls.git_client = git_repo
+
+
 @pytest.mark.repo(get_resources_dir() / 'Model')
-@pytest.mark.usefixtures('git_repo')
+@pytest.mark.usefixtures('cls_git_repo')
 class TestGitClientNominal:
     """Nominal tests for GitClient."""
     file_data = [
@@ -211,7 +224,7 @@ class TestGitClientNominal:
 
 # unexisting project in the parent of the repository
 @pytest.mark.repo(get_resources_dir() / 'Model')
-@pytest.mark.usefixtures('git_repo')
+@pytest.mark.usefixtures('cls_git_repo')
 class TestGitClientRobustnessWrongArgs:
     """
     Verify GitClient does not raise exception with invalid parameters.
@@ -264,7 +277,7 @@ class TestGitClientRobustnessWrongArgs:
 
 
 @pytest.mark.repo(get_resources_dir() / 'Model')
-@pytest.mark.usefixtures('tmp_repo')
+@pytest.mark.usefixtures('cls_tmp_repo')
 class TestGitClientRobustnessWrongRepo:
     """Verify GitClient does not raise exception with invalid repository."""
     def test_get_file_status(self):

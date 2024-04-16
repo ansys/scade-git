@@ -91,6 +91,7 @@ class TestIde(Ide):
         parent['children'].append(entry)
         self.browser_items[child] = entry
 
+    @property
     def selection(self) -> List[Any]:
         """Stub scade.selection."""
         return self.selection

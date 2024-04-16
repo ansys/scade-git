@@ -22,7 +22,7 @@
 
 """SCADE IDE abstraction."""
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Any, List
 
 
@@ -38,7 +38,7 @@ class Ide(metaclass = ABCMeta):
         """Abstract scade.browser_report."""
         raise NotImplementedError('Abstract method call')
 
-    @abstractmethod
+    @abstractproperty
     def selection(self) -> List[Any]:
         """Abstract scade.selection."""
         raise NotImplementedError('Abstract method call')

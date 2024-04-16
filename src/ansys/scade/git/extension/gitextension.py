@@ -67,6 +67,7 @@ class Studio(Ide):
         else:
             scade.browser_report(item, parent, expanded=expanded, name=name)
 
+    @property
     def selection(self) -> List[Any]:
         """Redirect the call to SCADE IDE."""
         return scade.selection

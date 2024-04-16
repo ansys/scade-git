@@ -54,11 +54,11 @@ def get_ref_dir() -> Path:
     return get_tests_dir() / 'extension' / 'ref'
 
 
-class TestIde(Ide):
+class StubIde(Ide):
     """SCADE IDE instantiation for unit tests."""
     def __init__(self):
         self.project = None
-        self.selection = []
+        self._selection = []
         self.browser = None
         self.browser_items = None
 
@@ -94,7 +94,12 @@ class TestIde(Ide):
     @property
     def selection(self) -> List[Any]:
         """Stub scade.selection."""
-        return self.selection
+        return self._selection
+
+    @selection.setter
+    def selection(self, selection: List[Any]):
+        """Stub scade.selection."""
+        self._selection = selection
 
     def get_active_project(self) -> std.Project:
         """Stub scade.active_project."""
@@ -114,7 +119,7 @@ class TestIde(Ide):
             json.dump(self.browser, f, indent='   ', sort_keys=True)
 
 
-_test_ide = TestIde()
+_test_ide = StubIde()
 
 @pytest.fixture(scope='function')
 def model_repo(request, git_repo):

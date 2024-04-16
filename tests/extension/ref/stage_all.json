@@ -32,6 +32,12 @@
                      "children": [],
                      "expanded": false,
                      "icon": "added.ico",
+                     "name": "<FileRef> Model/untracked.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "added.ico",
                      "name": "<FileRef> Model/new.txt"
                   }
                ],
@@ -40,14 +46,7 @@
                "name": "Staged files"
             },
             {
-               "children": [
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "untracked.ico",
-                     "name": "<FileRef> Model/untracked.txt"
-                  }
-               ],
+               "children": [],
                "expanded": true,
                "icon": "",
                "name": "Unstaged files"
@@ -118,7 +117,7 @@
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "error.ico",
+                     "icon": "extern.ico",
                      "name": "<FileRef> $(SCADE)\\libraries\\SC65\\libdigital\\libdigital.etp"
                   }
                ],

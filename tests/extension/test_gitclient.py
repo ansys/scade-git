@@ -37,6 +37,7 @@ MODIFIED_UNSTAGED = GitStatus.modified_unstaged
 UNTRACKED = GitStatus.untracked
 CLEAN = GitStatus.clean
 EXTERN = GitStatus.extern
+ERROR = GitStatus.error
 
 
 def get_resources_dir() -> Path:
@@ -236,10 +237,10 @@ class TestGitClientRobustnessWrongArgs:
         # unexisting file
         path = Path('Unknown.txt')
         _, status = self.git_client.get_file_status(path)
-        assert status == UNTRACKED
+        assert status == ERROR
         path = self.dir / path.name
         _, status = self.git_client.get_file_status(path)
-        assert status == UNTRACKED
+        assert status == ERROR
 
     def test_stage(self):
         # unexisting file

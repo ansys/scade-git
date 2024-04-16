@@ -3,14 +3,7 @@
       {
          "children": [
             {
-               "children": [
-                  {
-                     "children": [],
-                     "expanded": false,
-                     "icon": "added.ico",
-                     "name": "<FileRef> Model/new.txt"
-                  }
-               ],
+               "children": [],
                "expanded": true,
                "icon": "",
                "name": "Staged files"
@@ -46,6 +39,12 @@
                      "expanded": false,
                      "icon": "untracked.ico",
                      "name": "<FileRef> Model/untracked.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "added.ico",
+                     "name": "<FileRef> Model/new.txt"
                   }
                ],
                "expanded": true,

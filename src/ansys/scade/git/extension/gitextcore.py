@@ -402,7 +402,8 @@ status_data = {
     GitStatus.modified_unstaged: [BrowserCat['Unstaged'], str(script_dir / 'img/modified.ico')],
     GitStatus.untracked: [BrowserCat['Unstaged'], str(script_dir / 'img/untracked.ico')],
     GitStatus.clean: [BrowserCat['Clean'], str(script_dir / 'img/clean.ico')],
-    GitStatus.extern: [BrowserCat['Extern'], str(script_dir / 'img/error.ico')],
+    GitStatus.extern: [BrowserCat['Extern'], str(script_dir / 'img/extern.ico')],
+    GitStatus.error: [BrowserCat['Extern'], str(script_dir / 'img/error.ico')],
 }
 
 project_files_status = {

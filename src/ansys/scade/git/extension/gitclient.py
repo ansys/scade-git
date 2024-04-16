@@ -54,6 +54,8 @@ GitStatus = Enum(
         'untracked',
         'clean',
         'extern',
+        # status used for paths not present in the file system nor in the index
+        'error',
     ],
 )
 
@@ -230,10 +232,16 @@ class GitClient(metaclass = ABCMeta):
             try:
                 path = Path(file_path)
                 if path.is_absolute():
+                    abspath = path
                     index_file_name = path.relative_to(self.repo_path).as_posix()
                 else:
                     index_file_name = path.as_posix()
-                return index_file_name, self.files_status.get(index_file_name, GitStatus.untracked)
+                    abspath = Path(self.repo_path) / path
+                status = self.files_status.get(index_file_name, None)
+                if not status:
+                    self.log("not status: %s %s" % (abspath, abspath.exists()))
+                    status = GitStatus.untracked if abspath.exists() else GitStatus.error
+                return index_file_name, status
             except ValueError:
                 return file_path, GitStatus.extern
         else:

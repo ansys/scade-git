@@ -129,7 +129,7 @@ def model_repo(request, git_repo):
     run_git('branch', 'tests', dir=tmp_dir)
     run_git('checkout', 'tests', dir=tmp_dir)
     model_dir = tmp_dir /'Model'
-    path = model_dir / 'untracked_file.txt'
+    path = model_dir / 'untracked.txt'
     path.open('w').write('some content\n')
     path = model_dir / 'new.txt'
     path.open('w').write('new content\n')

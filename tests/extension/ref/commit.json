@@ -111,8 +111,14 @@
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "error.ico",
+                     "icon": "extern.ico",
                      "name": "<FileRef> $(SCADE)\\libraries\\SC65\\libdigital\\libdigital.etp"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "error.ico",
+                     "name": "<FileRef> Model/removed_staged.txt"
                   }
                ],
                "expanded": false,

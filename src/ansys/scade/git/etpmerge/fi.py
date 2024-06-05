@@ -20,123 +20,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Provides create/delete/copy functions for project entities."""
+"""Provides editing functions, delete and copy, for project entities."""
 
 import _scade_api
 import scade.model.project.stdproject as std
 
-
-def create_folder(owner: std.ProjectEntity, name: str, extensions: str = '') -> std.Folder:
-    """
-    Create a Folder instance.
-
-    Parameters
-    ----------
-    owner : ProjectEntity
-        Owner of the folder: Either the project or a folder.
-    name : str
-        Name of the folder.
-    extensions : str
-        Optional filter for browsing for added files.
-
-    Returns
-    -------
-    New Folder instance
-    """
-    if isinstance(owner, std.Project):
-        folder = std.Folder(owner)
-        folder.owner = owner
-    else:
-        folder = std.Folder(owner.project)
-        folder.folder = owner
-    folder.name = name
-    folder.extensions = extensions
-
-    return folder
-
-
-def create_configuration(owner: std.Project, name: str) -> std.Configuration:
-    """
-    Create a Configuration instance.
-
-    Parameters
-    ----------
-    owner : Project
-        Project owning the configuration.
-    name : str
-        Name of the configuration.
-
-    Returns
-    -------
-    New Configuration instance
-    """
-    configuration = std.Configuration(owner)
-    configuration.project = owner
-    configuration.name = name
-
-    return configuration
-
-
-def create_file_ref(owner: std.ProjectEntity, persist_as: str) -> std.FileRef:
-    """
-    Create a FileRef instance.
-
-    Parameters
-    ----------
-    owner : ProjectEntity
-        Owner of the file: Either the project or a folder.
-    persist_as : str
-        Reference to the file to be stored, optionally relative to the project.
-
-    Returns
-    -------
-    New FileRef instance
-    """
-    if isinstance(owner, std.Project):
-        file_ref = std.FileRef(owner)
-        file_ref.owner = owner
-    else:
-        file_ref = std.FileRef(owner.project)
-        file_ref.folder = owner
-    file_ref.persist_as = persist_as
-
-    return file_ref
-
-
-def create_prop(
-    owner: std.Annotable, configuration: std.Configuration, name: str, values
-) -> std.Prop:
-    """
-    Create a Prop instance.
-
-    Parameters
-    ----------
-    owner : ProjectEntity
-        Owner of the property: Either the project, a file or a folder.
-    name : str
-        Name of the property.
-    configuration : Configuration
-        Optional configuration linked to the property.
-    values : List[str]
-        Values of the property.
-
-    Returns
-    -------
-    New Prop instance
-    """
-    if isinstance(owner, std.Project):
-        project = owner
-    else:
-        project = owner.project
-
-    prop = std.Prop(project)
-    prop.entity = owner
-    prop.name = name
-    prop.values = values
-    if configuration is not None:
-        prop.configuration = configuration
-
-    return prop
+from ansys.scade.apitools.create import (
+    create_configuration,
+    create_file_ref,
+    create_folder,
+    create_prop,
+)
 
 
 def copy_configuration(configuration: std.Configuration, owner: std.Project) -> std.Configuration:
@@ -147,14 +41,14 @@ def copy_configuration(configuration: std.Configuration, owner: std.Project) -> 
 
     Parameters
     ----------
-    configuration : Configuration
+    configuration : std.Configuration
         Configuration to copy to the local project.
-    owner : Project
+    owner : std.Project
         Remote project.
 
     Returns
     -------
-    New configuration instance
+    std.Configuration
     """
     copy = create_configuration(owner, configuration.name)
     copy._base = configuration._base
@@ -170,14 +64,14 @@ def copy_folder(folder: std.Folder, owner: std.ProjectEntity) -> std.Folder:
 
     Parameters
     ----------
-    folder : Folder
+    folder : std.Folder
         Folder to copy to the local project.
-    owner : ProjectEntity
+    owner : std.ProjectEntity
         Owner of the folder: Either the project or a folder.
 
     Returns
     -------
-    New Folder instance
+    std.Folder
     """
     copy = create_folder(owner, folder.name, extensions=folder.extensions)
     copy._base = folder._base
@@ -197,14 +91,14 @@ def copy_file_ref(file_ref: std.FileRef, owner: std.ProjectEntity) -> std.FileRe
 
     Parameters
     ----------
-    file_ref : FileRef
+    file_ref : std.FileRef
         File to copy to the local project.
-    owner : ProjectEntity
+    owner : std.ProjectEntity
         Owner of the file: Either the project or a folder.
 
     Returns
     -------
-    New FileRef instance
+    std.FileRef
     """
     copy = create_file_ref(owner, file_ref.persist_as)
     copy._base = file_ref._base
@@ -224,14 +118,14 @@ def copy_prop(prop: std.Prop, owner: std.Annotable) -> std.Prop:
 
     Parameters
     ----------
-    prop : Prop
+    prop : std.Prop
         Property to copy to the local project.
-    owner : Annotable
+    owner : std.Annotable
         Owner of the property.
 
     Returns
     -------
-    New Prop instance
+    std.Prop
     """
     # note: if/else rather than =/if/else for code coverage
     if prop.configuration:
@@ -250,12 +144,8 @@ def delete_configuration(configuration: std.Configuration):
 
     Parameters
     ----------
-    configuration : Configuration
+    configuration : std.Configuration
         Configuration to disconnect.
-
-    Returns
-    -------
-    None
     """
     # remove the configuration from its project
     _scade_api.remove(configuration.project, 'configuration', configuration)
@@ -270,12 +160,8 @@ def delete_prop(prop: std.Prop):
 
     Parameters
     ----------
-    prop : Prop
+    prop : std.Prop
         Property to disconnect.
-
-    Returns
-    -------
-    None
     """
     # remove the property from its owner and optional configuration
     _scade_api.remove(prop.entity, 'prop', prop)
@@ -290,12 +176,8 @@ def delete_folder(folder: std.Folder):
 
     Parameters
     ----------
-    folder : Folder
+    folder : std.Folder
         Folder to disconnect.
-
-    Returns
-    -------
-    None
     """
     # remove the folder from its owner
     if folder.folder:
@@ -312,12 +194,8 @@ def delete_file_ref(file_ref: std.FileRef):
 
     Parameters
     ----------
-    file_ref : FileRef
+    file_ref : std.FileRef
         File to disconnect.
-
-    Returns
-    -------
-    None
     """
     # remove the file from its owner
     if file_ref.folder:
@@ -334,14 +212,10 @@ def move_element(element: std.Element, target: std.ProjectEntity):
 
     Parameters
     ----------
-    element : Element
+    element : std.Element
         Element to move.
-    target : ProjectEntity
+    target : std.ProjectEntity
         New owner of the element, either a project or a folder
-
-    Returns
-    -------
-    None
     """
     if element.folder:
         _scade_api.remove(element.folder, 'element', element)

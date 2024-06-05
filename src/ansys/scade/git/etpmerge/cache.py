@@ -24,7 +24,7 @@
 Caches properties for etpmerge3.
 
 * The local/remote entities have a property `_base` to refer to the
-  corresponding base object, None if the object has been created
+  corresponding base object, `None` if the object has been created
 * Each project maintains
   * A dictionary of entities by id: `_map_ids`
   * A dictionary of file by pathname: `_map_files`
@@ -42,10 +42,17 @@ from .visitor import Visit
 
 
 class WrongBaseError(BaseException):
-    """Error raised when two projects are not related."""
+    """
+    Error raised when two projects are not related.
+
+    Parameters
+    ----------
+    project_entity : ProjectEntity
+        Inconsistent project entity.
+    """
 
     def __init__(self, project_entity: std.ProjectEntity):
-        """Store the inconsistent project entity."""
+        # store the inconsistent project entity
         self.project_entity = project_entity
 
 
@@ -98,7 +105,14 @@ class CacheMaps(Visit):
 
 
 class CacheBase(Visit):
-    """Visitor for mapping the elements of a local or remote project to a base project."""
+    """
+    Visitor for mapping the elements of a local or remote project to a base project.
+
+    Parameters
+    ----------
+    base : std.Project
+        Configuration to copy to the local project.
+    """
 
     def __init__(self, base: std.Project):
         """Initialize the visitor and stores the reference to the base project."""
@@ -151,12 +165,22 @@ class CacheBase(Visit):
         super().visit_prop(prop)
 
     # helper
-    def resolve_by_id(self, project_entity: std.ProjectEntity):
+    def resolve_by_id(self, project_entity: std.ProjectEntity) -> bool:
         """
         Search for the base entity of a local or a remote one by Id.
 
         Update the attributes `_base` with the found entity and when not None,
         make sure it has at least the same type.
+
+        Parameters
+        ----------
+        project_entity : ProjectEntity
+            Entity to search in the base project.
+
+        Returns
+        -------
+        bool
+            Whether a corresponding entity has been found.
         """
         base = self.base._map_ids.get(project_entity.id)
         if base and type(base) != type(project_entity):

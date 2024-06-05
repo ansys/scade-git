@@ -59,6 +59,7 @@ GitStatus = Enum(
     ],
 )
 
+
 def find_git_repo(local_proj_path: str) -> str:
     # repo – Path to the repository
     """
@@ -88,8 +89,9 @@ def find_git_repo(local_proj_path: str) -> str:
     return None
 
 
-class GitClient(metaclass = ABCMeta):
+class GitClient(metaclass=ABCMeta):
     """Provide access to Git commands."""
+
     def __init__(self):
         self.repo_path = None
         self.repo_name = None
@@ -114,7 +116,14 @@ class GitClient(metaclass = ABCMeta):
 
     @abstractmethod
     def log(self, text: str):
-        """Log a message."""
+        """
+        Log a message.
+
+        Parameters
+        ----------
+        text : str
+            Message to display.
+        """
         raise NotImplementedError('Abstract method call')
 
     def get_init_status(self) -> bool:

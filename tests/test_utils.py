@@ -1,5 +1,4 @@
-﻿# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
-
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -70,6 +69,7 @@ def run_git(command: str, *args: str, dir=None) -> bool:
     if cp.stderr:
         print(cp.stderr)
     return cp.returncode == 0
+
 
 def git_restore(pathspec: str) -> bool:
     """Discard changes to a file or a directory."""

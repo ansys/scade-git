@@ -42,7 +42,14 @@ class CheckIds(Visit):
         self.map_ids = {}
 
     def visit_project_entity(self, project_entity: std.ProjectEntity):
-        """Add the attributes for a project entity."""
+        """
+        Register the entity's id if not already present, otherwise report the issue.
+
+        Parameters
+        ----------
+        project_entity : std.ProjectEntity
+            Visited project entity.
+        """
         if project_entity.id in self.map_ids:
             print('%d: duplicated id' % project_entity.id)
         else:
@@ -57,6 +64,7 @@ def main():
     options = parser.parse_args()
 
     declare_project(options.project)
+    # load the declared projects
     project = get_projects()[0]
 
     CheckIds().visit(project)

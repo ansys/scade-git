@@ -1,5 +1,4 @@
-﻿# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
-
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -90,7 +89,7 @@ def tmp_repo(request, tmpdir_factory) -> Tuple[str, GitClient]:
 
 
 @pytest.fixture(scope='class')
-def git_repo(request, tmp_repo) ->  Tuple[str, GitClient]:
+def git_repo(request, tmp_repo) -> Tuple[str, GitClient]:
     """
     Initializes a GitClient for a test repository.
 

@@ -56,6 +56,7 @@ def get_ref_dir() -> Path:
 
 class StubIde(Ide):
     """SCADE IDE instantiation for unit tests."""
+
     def __init__(self):
         self.project = None
         self._selection = []
@@ -68,13 +69,13 @@ class StubIde(Ide):
         self.browser_items = {None: self.browser}
 
     def browser_report(
-            self,
-            item: Any,
-            parent: Any = None,
-            expanded: bool = False,
-            name: str = '',
-            icon_file: str = '',
-        ):
+        self,
+        item: Any,
+        parent: Any = None,
+        expanded: bool = False,
+        name: str = '',
+        icon_file: str = '',
+    ):
         """Stub scade.browser_report."""
         if isinstance(item, str):
             child = item
@@ -86,7 +87,7 @@ class StubIde(Ide):
             'name': child,
             'icon': Path(icon_file).name if icon_file else '',
             'expanded': expanded,
-            'children': []
+            'children': [],
         }
         parent['children'].append(entry)
         self.browser_items[child] = entry
@@ -121,6 +122,7 @@ class StubIde(Ide):
 
 _test_ide = StubIde()
 
+
 @pytest.fixture(scope='function')
 def model_repo(request, git_repo):
     """
@@ -134,7 +136,7 @@ def model_repo(request, git_repo):
     # perform modifications on a branch
     run_git('branch', 'tests', dir=tmp_dir)
     run_git('checkout', 'tests', dir=tmp_dir)
-    model_dir = tmp_dir /'Model'
+    model_dir = tmp_dir / 'Model'
     path = model_dir / 'untracked.txt'
     path.open('w').write('some content\n')
     path = model_dir / 'new.txt'
@@ -188,7 +190,9 @@ commands_data = [
 )
 @pytest.mark.repo(get_resources_dir())
 def test_git_ext_core_commands(capsys, tmpdir: Path, cmd: Command, ref: str, sel: List[str]):
-    _test_ide.selection = [_ for _ in _test_ide.get_active_project().file_refs if _.persist_as in sel]
+    _test_ide.selection = [
+        _ for _ in _test_ide.get_active_project().file_refs if _.persist_as in sel
+    ]
     assert cmd.on_enable()
     cmd.on_activate()
     result = tmpdir / ref
@@ -197,10 +201,10 @@ def test_git_ext_core_commands(capsys, tmpdir: Path, cmd: Command, ref: str, sel
     # read the outputs issued before the diff, if any
     captured = capsys.readouterr()
     # ignore the version number
-    diff = cmp_file(get_ref_dir() / ref, result, n = 0)
+    diff = cmp_file(get_ref_dir() / ref, result, n=0)
     for line in list(diff):
-        print(line, end = '')
-    #stdout.writelines(diff)
+        print(line, end='')
+    # stdout.writelines(diff)
     captured = capsys.readouterr()
     assert captured.out == ''
 

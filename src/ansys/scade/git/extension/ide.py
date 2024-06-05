@@ -26,15 +26,23 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Any, List
 
 
-class Ide(metaclass = ABCMeta):
+class Ide(metaclass=ABCMeta):
     """SCADE IDE abstraction."""
+
     @abstractmethod
     def create_browser(self, name: str, icon: str = ''):
         """Abstract scade.create_browser."""
         raise NotImplementedError('Abstract method call')
 
     @abstractmethod
-    def browser_report(self, item: Any, parent: Any = None, expanded: bool = False, name: str = '', icon_file: str = ''):
+    def browser_report(
+        self,
+        item: Any,
+        parent: Any = None,
+        expanded: bool = False,
+        name: str = '',
+        icon_file: str = '',
+    ):
         """Abstract scade.browser_report."""
         raise NotImplementedError('Abstract method call')
 
@@ -63,16 +71,19 @@ try:
     from scade.tool.suite.gui.commands import Command as _Command
 except ImportError:
     import scade
+
     scade.output('fake activated\n')
+
     class _Command:
         """Stub for scade.tool.suite.gui.commands.Command."""
+
         def __init__(
-                self,
-                name: str,
-                status_message: str,
-                tooltip_message: str,
-                image_file: str = None,
-            ):
+            self,
+            name: str,
+            status_message: str,
+            tooltip_message: str,
+            image_file: str = None,
+        ):
             self.name = name
             self.status_message = status_message
             self.tooltip_message = tooltip_message
@@ -85,6 +96,7 @@ except ImportError:
 
 class Command(_Command):
     """Base class for commands."""
+
     def __init__(self, ide: Ide, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ide = ide

@@ -37,7 +37,13 @@ from ansys.scade.git.extension.gitclient import GitClient, GitStatus
 from ansys.scade.git.extension.ide import Command, Ide
 
 # configuration parameters
-BrowserCat = {'Staged': 'Staged files', 'Unstaged': 'Unstaged files', 'Clean': 'Clean files', 'Extern': 'Extern files'}
+BrowserCat = {
+    'Staged': 'Staged files',
+    'Unstaged': 'Unstaged files',
+    'Clean': 'Clean files',
+    'Extern': 'Extern files',
+}
+
 
 def create_temp_dir(folder: str):
     """
@@ -98,13 +104,23 @@ def report_item(ide: Ide, item: Union[Project, FileRef, str]) -> str:
         index_file_name, status = _git_client.get_file_status(item.pathname)
         browser_cat, icon = status_data.get(status, GitStatus.extern)
         project_files_status[browser_cat].append(index_file_name)
-        name = item.persist_as if Path(index_file_name).is_absolute() else index_file_name
+        if isinstance(item, Project):
+            name = index_file_name
+        else:
+            name = item.persist_as if Path(index_file_name).is_absolute() else index_file_name
         ide.browser_report(item, browser_cat, icon_file=icon, name=name)
     return index_file_name
 
 
 def refresh_browser(ide: Ide):
-    """Refresh the Git browser."""
+    """
+    Refresh the Git browser.
+
+    Parameters
+    ----------
+    ide : Studio
+        SCADE IDE environment.
+    """
     active_project = ide.get_active_project()
     if active_project:
         # save project before Git refresh
@@ -157,7 +173,15 @@ def refresh_browser(ide: Ide):
 
 
 class CmdRefresh(Command):
-    """SCADE Command: Refresh."""
+    """
+    SCADE Command: Refresh.
+
+    Parameters
+    ----------
+    ide : Studio
+        SCADE IDE environment.
+    """
+
     def __init__(self, ide: Ide):
         super().__init__(
             ide,
@@ -174,13 +198,22 @@ class CmdRefresh(Command):
 
 class GitRepoCommand(Command):
     """Base class for commands that require a valid Git repository."""
+
     def on_enable(self) -> bool:
         """Enable the command if the Git repository exists and is refreshed."""
         return _git_client.repo is not None
 
 
 class CmdStage(GitRepoCommand):
-    """SCADE Command: Stage."""
+    """
+    SCADE Command: Stage.
+
+    Parameters
+    ----------
+    ide : Studio
+        SCADE IDE environment.
+    """
+
     def __init__(self, ide: Ide):
         super().__init__(
             ide,
@@ -202,7 +235,15 @@ class CmdStage(GitRepoCommand):
 
 
 class CmdUnstage(GitRepoCommand):
-    """SCADE Command: Unstage."""
+    """
+    SCADE Command: Unstage.
+
+    Parameters
+    ----------
+    ide : Studio
+        SCADE IDE environment.
+    """
+
     def __init__(self, ide: Ide):
         super().__init__(
             ide,
@@ -224,7 +265,15 @@ class CmdUnstage(GitRepoCommand):
 
 
 class CmdReset(GitRepoCommand):
-    """SCADE Command: Reset."""
+    """
+    SCADE Command: Reset.
+
+    Parameters
+    ----------
+    ide : Studio
+        SCADE IDE environment.
+    """
+
     def __init__(self, ide: Ide):
         super().__init__(
             ide,
@@ -246,7 +295,15 @@ class CmdReset(GitRepoCommand):
 
 
 class CmdStageAll(GitRepoCommand):
-    """SCADE Command: Stage All."""
+    """
+    SCADE Command: Stage All.
+
+    Parameters
+    ----------
+    ide : Studio
+        SCADE IDE environment.
+    """
+
     def __init__(self, ide: Ide):
         super().__init__(
             ide,
@@ -264,7 +321,15 @@ class CmdStageAll(GitRepoCommand):
 
 
 class CmdUnstageAll(GitRepoCommand):
-    """SCADE Command: Unstage All."""
+    """
+    SCADE Command: Unstage All.
+
+    Parameters
+    ----------
+    ide : Studio
+        SCADE IDE environment.
+    """
+
     def __init__(self, ide: Ide):
         super().__init__(
             ide,
@@ -282,7 +347,15 @@ class CmdUnstageAll(GitRepoCommand):
 
 
 class CmdResetAll(GitRepoCommand):
-    """SCADE Command: Reset All."""
+    """
+    SCADE Command: Reset All.
+
+    Parameters
+    ----------
+    ide : Studio
+        SCADE IDE environment.
+    """
+
     def __init__(self, ide: Ide):
         super().__init__(
             ide,
@@ -305,14 +378,22 @@ class CmdResetAll(GitRepoCommand):
 
 
 class CmdCommit(GitRepoCommand):
-    """SCADE Command: Commit."""
+    """
+    SCADE Command: Commit.
+
+    Parameters
+    ----------
+    ide : Studio
+        SCADE IDE environment.
+    """
+
     def __init__(self, ide: Ide):
         super().__init__(
             ide,
             name='Commit',
             status_message='Commit',
             tooltip_message='Commit',
-            image_file=res['commit']
+            image_file=res['commit'],
         )
 
     def on_activate(self):
@@ -338,7 +419,15 @@ class CmdCommit(GitRepoCommand):
 
 
 class CmdDiff(GitRepoCommand):
-    """SCADE Command: Diff."""
+    """
+    SCADE Command: Diff.
+
+    Parameters
+    ----------
+    ide : Studio
+        SCADE IDE environment.
+    """
+
     def __init__(self, ide: Ide):
         super().__init__(
             ide,
@@ -353,9 +442,13 @@ class CmdDiff(GitRepoCommand):
         branch = self.select_branch()
         if branch:
             branch_path = "".join([c for c in branch if c.isalnum() or c in "._-"])
-            tmp_dir = create_temp_dir(os.path.join('SCADE', 'git-diff', _git_client.repo_name, branch_path))
+            tmp_dir = create_temp_dir(
+                os.path.join('SCADE', 'git-diff', _git_client.repo_name, branch_path)
+            )
             active_project = self.ide.get_projects()[0]
-            diff_project = tmp_dir / Path(active_project.pathname).relative_to(_git_client.repo_path)
+            diff_project = tmp_dir / Path(active_project.pathname).relative_to(
+                _git_client.repo_path
+            )
             # create a tar archive of the branch
             archive_file = tmp_dir.with_suffix('.tar')
             _git_client.archive(branch, archive_file)
@@ -368,7 +461,11 @@ class CmdDiff(GitRepoCommand):
                 archive_file.unlink()
                 # display the branch project to compare with the current project in the Git output tab
                 if diff_project.exists():
-                    self.ide.log('Launch the Diff Analyzer tool with the project\n   {0}'.format(str(diff_project)))
+                    self.ide.log(
+                        'Launch the Diff Analyzer tool with the project\n   {0}'.format(
+                            str(diff_project)
+                        )
+                    )
                     # self.ide.log('module scade: {0}'.format(getmembers(scade.tool.suite.diff)))
                     # scade.tool.suite.diff_analyze(active_project.pathname, diff_project.asposix())
 
@@ -414,6 +511,7 @@ project_files_status = {
 }
 
 _git_client = None
+
 
 def set_git_client(git_client: GitClient):
     """

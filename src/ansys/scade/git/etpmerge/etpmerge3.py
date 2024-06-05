@@ -25,6 +25,7 @@
 import os
 from pathlib import Path
 import traceback
+from typing import Set
 
 import scade.model.project.stdproject as std
 
@@ -35,7 +36,18 @@ from .utils import get_context, get_element_owner, get_name, get_prop_key
 
 
 class EtpMerge3:
-    """Merge the remote project to the local project and store the list of conflicts."""
+    """
+    Merge the remote project to the local project and store the list of conflicts.
+
+    Parameters
+    ----------
+    local : Project
+        Local project in the working area.
+    remote : Project
+        Remote project to be merged.
+    base : Project
+        Common ancestor project of the projects being merged.
+    """
 
     def __init__(self, local: std.Project, remote: std.Project, base: std.Project):
         """Store the references to the projects and initialize the dynamic variables."""
@@ -46,7 +58,7 @@ class EtpMerge3:
         # tuples (local change, remote change)
         self.conflicts = []
 
-    def _merge3(self) -> bool:
+    def _merge3(self):
         """Merge the remote project to the local project and store the list of conflicts."""
         self.cache()
         # merge remote into local, with base as common parent
@@ -60,7 +72,14 @@ class EtpMerge3:
         self.merge_properties(self.remote)
 
     def merge3(self, pathname: str) -> bool:
-        """Merge the remote project to the local project and save the file."""
+        """
+        Merge the remote project to the local project and save the file.
+
+        Parameters
+        ----------
+        pathname : str
+            Path of the resulting project.
+        """
         # report any error as conflict
         try:
             self._merge3()
@@ -119,7 +138,12 @@ class EtpMerge3:
         """
         Return the set of local folders with a corresponding remote folder.
 
-        (Uses Recursion)
+        Note: Uses Recursion
+
+        Parameters
+        ----------
+        remote_owner : ProjectEntity
+            Remote owner of the folders to be merged.
         """
         # note: use _map_folders: common attribute for both projects and folders
         locals = set()
@@ -180,8 +204,15 @@ class EtpMerge3:
             locals |= self.merge_folders(remote)
         return locals
 
-    def clean_folders(self, folders):
-        """Delete the folders which are not new and were not used in the first pass."""
+    def clean_folders(self, folders: Set[std.Folder]):
+        """
+        Delete the folders which are not new and were not used in the first pass.
+
+        Parameters
+        ----------
+        folders : Set[Folder]
+            Set of folders present or new in the remote project.
+        """
         for local in self.local._folders:
             if local._base and local not in folders:
                 # delete the folder
@@ -251,8 +282,15 @@ class EtpMerge3:
                 # delete the file
                 fi.delete_file_ref(local)
 
-    def merge_properties(self, remote_entity):
-        """Either do nothing, or delete or create a property."""
+    def merge_properties(self, remote_entity: std.Annotable):
+        """
+        Either do nothing, or delete or create a property.
+
+        Parameters
+        ----------
+        remote_entity : Annotable
+            Remote owner of the properties to be merged.
+        """
         assert remote_entity._local
         local_entity = remote_entity._local
         # save the list of local props, remaining items
@@ -298,8 +336,17 @@ class EtpMerge3:
                 # delete the property
                 fi.delete_prop(local)
 
-    def merge_values(self, local_entity, remote_entity):
-        """Merge the values of both properties."""
+    def merge_values(self, local_entity: std.Annotable, remote_entity: std.Annotable):
+        """
+        Merge the values of both properties.
+
+        Parameters
+        ----------
+        local_entity : Annotable
+            Local owner of the values to be merged.
+        remote_entity : Annotable
+            Remote owner of the values to be merged.
+        """
         # Issue: we don't know which properties are scalar or not, neither if the lists are ordered.
         # -> The lists are considered as not ordered: this may hide conflicts
         # -> The properties having one and only one value are considered as scalar:
@@ -373,7 +420,14 @@ class EtpMerge3:
             local_entity.values = local_values
 
     def save(self, pathname: str):
-        """Save the local project as the target project."""
+        """
+        Save the local project as the target project.
+
+        Parameters
+        ----------
+        pathname : str
+            Path of the resulting project.
+        """
         # the files provided to merge are stored in the index
         # which means, for default Git configurations, unix format
         # -> the merged file must be in the same format, else
@@ -423,7 +477,14 @@ class EtpMerge3:
             CacheBase(self.base).visit(project)
 
     def merge_attributes(self, remote: std.ProjectEntity, *attributes: str):
-        """Propagate the attributes."""
+        """
+        Propagate the attributes.
+
+        Parameters
+        ----------
+        remote_entity : ProjectEntity
+            Remote entity which attributes should me merged.
+        """
         local = remote._local
         base = remote._base
         # assert local._base == base
@@ -454,7 +515,8 @@ class EtpMerge3:
                     elif self.is_moved(remote):
                         # keep the local ownership and issue a conflict
                         texts_local.append(
-                            '-> local owner = "%s" ("%d")' % (get_name(local_owner), local_owner.id)
+                            '-> local owner = "%s" ("%d")'
+                            % (get_name(local_owner), local_owner.id)
                         )
                         texts_remote.append(
                             '-> remote owner = "%s" ("%d")'
@@ -482,11 +544,21 @@ class EtpMerge3:
 
     def is_moved(self, element: std.Element) -> bool:
         """
-        Return true when an object has a different owner from its base object.
+        Return whether an object has a different owner from its base object.
 
-        . An element, local or remote, is moved when its owner's base is different from
+        * An element, local or remote, is moved when its owner's base is different from
           its base's owner.
-        . An element is considered as moved if one of the bases is None.
+        * An element is considered as moved if one of the bases is None.
+
+        Parameters
+        ----------
+        element : Element
+            Input element.
+
+        Returns
+        -------
+        bool
+            `True` if the element has been moved to a different owner.
         """
         owner = get_element_owner(element)
         if not element._base or not owner._base:

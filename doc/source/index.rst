@@ -47,9 +47,7 @@ see each of the following cards:
    gui-extensions/index
    merge-tools/index
 
-Indices and tables
-------------------
+Search
+------
 
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

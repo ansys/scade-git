@@ -1,0 +1,25 @@
+Notes-Types { Esterel-Technologies }  DEFINITIONS ::=
+BEGIN
+    Remark ::= SEQUENCE OF { SEQUENCE {
+    annot_object OID,
+    name STRING,
+        information {
+            Description TEXT
+            {
+            	 NT_FIELD_HEIGHT 20 ,
+            	 NT_FIELD_WIDTH 60 },
+            to_c BOOLEAN
+            {
+            	 NT_DEFAULT_VALUE T ,
+            	 NT_PRINTABLE F ,
+            	 NT_LEFT_LABEL "Propagate to generated code" }
+    } } }
+
+END
+
+Notes-Values { Esterel-Technologies }  DEFINITIONS ::=
+BEGIN
+    Remark ::= {
+        {"!ed/2d4c/2EB0/9B70/6616a4c75faf", "Remark_1","Great package" , F }}
+END
+

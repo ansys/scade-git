@@ -59,12 +59,12 @@ def test_etpmerge(capsys, lrb, tmpdir):
     local, remote, base = lrb
     # save the result to tmpdir
     basename = Path(base.pathname).parent.stem + '.etp'
-    result = str(tmpdir / basename)
+    result = tmpdir / basename
     etp = EtpMerge3(local, remote, base)
-    etp.merge3(result)
+    etp.merge3(str(result))
 
     # compare to the reference
-    ref = str(Path(base.pathname).with_name('Merge.etp'))
+    ref = Path(base.pathname).with_name('Merge.etp')
     # ignore banner if any
     captured = capsys.readouterr()
     diff = cmp_file(ref, result, n=0)

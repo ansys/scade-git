@@ -1,0 +1,136 @@
+{
+   "children": [
+      {
+         "children": [
+            {
+               "children": [],
+               "expanded": true,
+               "icon": "",
+               "name": "Staged files"
+            },
+            {
+               "children": [
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "untracked.ico",
+                     "name": "<FileRef> Model/untracked.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "untracked.ico",
+                     "name": "<FileRef> Model/new.txt"
+                  }
+               ],
+               "expanded": true,
+               "icon": "",
+               "name": "Unstaged files"
+            },
+            {
+               "children": [
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<Project> Model/Model.etp"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/Child/Child.xscade"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/Root.xscade"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/P.xscade"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "Model/P.ann"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/Model.l4"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Sibling/Macros.h"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/removed_unstaged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/removed_staged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/modified_unstaged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/modified_staged.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/commit.txt"
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "clean.ico",
+                     "name": "<FileRef> Model/reset.txt"
+                  }
+               ],
+               "expanded": false,
+               "icon": "",
+               "name": "Clean files"
+            },
+            {
+               "children": [
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon": "extern.ico",
+                     "name": "<FileRef> $(SCADE)\\libraries\\SC65\\libdigital\\libdigital.etp"
+                  }
+               ],
+               "expanded": false,
+               "icon": "",
+               "name": "Extern files"
+            }
+         ],
+         "expanded": true,
+         "icon": "",
+         "name": "branch: tests"
+      }
+   ],
+   "icon": "git.ico",
+   "name": "Git"
+}

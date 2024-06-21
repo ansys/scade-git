@@ -30,31 +30,12 @@ import sys
 APPDATA = os.getenv('APPDATA')
 USERPROFILE = os.getenv('USERPROFILE')
 
-TEMPLATE_FILE = """
-[Studio/Work Interfaces/ansys-scade-__extension_name__37]
-"Pathname"="ETCUST.DLL"
-"Version"="19400"
-"Expire"="23200"
-
-[Custom/Studio/Extensions/ansys-scade-__extension_name__37]
-"Pathname"="%APPDATA%/Python/Python37/site-packages/ansys/scade/__extension_name__/__extension_name__.py"
-
-[Studio/Work Interfaces/ansys-scade-__extension_name__310]
-"Pathname"="ETCUST.DLL"
-"Version"="23200"
-"Expire"="24200"
-
-[Custom/Studio/Extensions/ansys-scade-__extension_name__310]
-"Pathname"="%APPDATA%/Python/Python310/site-packages/ansys/scade/__extension_name__/__extension_name__.py"
-"""
-
-
 def git_config() -> bool:
     """
     Update the global Git configuration.
 
     * Declare merge tools
-    * Register merge tools for targeted files
+    * Register merge tools for targeted file extensions
     """
     def register_driver(id: str, name: str, path: str, trust_exit: bool) -> bool:
         status = True
@@ -104,68 +85,47 @@ def git_config() -> bool:
     # set git attributes
     gitattributes = Path(USERPROFILE, '.config', 'git', 'attributes')
     gitattributes.parent.mkdir(parents=True, exist_ok=True)
-    with gitattributes.open(mode='a+') as f:
-        f.seek(0)
-        contents = f.readlines()
-        prefix = '\n' if contents and contents[-1] and contents[-1][-1] != '\n' else ''
-        etpmerge = False
-        xscademerge = False
-        for line in contents:
-            if line.strip() == '*.etp merge=etpmerge':
-                etpmerge = True
-            if line.strip() == '*.xscade merge=xscademerge':
-                xscademerge = True
-        if not etpmerge:
-            print('add "*.etp merge=etpmerge" in global {}'.format(gitattributes))
-            f.write('%s*.etp merge=etpmerge\n' % prefix)
-            prefix = ''
-        else:
-            print('line "*.etp merge=etpmerge" exists in global {}'.format(gitattributes))
-        if not xscademerge:
-            print('add "*.xscade merge=xscademerge" in global {}'.format(gitattributes))
-            f.write('%s*.xscade merge=xscademerge\n' % prefix)
-            prefix = ''
-        else:
-            print('line "*.xscade merge=xscademerge" exists in global {}'.format(gitattributes))
+    contents = gitattributes.open().read().split('\n') if gitattributes.exists() else []
+    if contents and not contents[-1]:
+        # remove trailing blank line
+        contents = contents[:-1]
+    modified = False
+    for extension in ['xscade', 'etp', 'almgt']:
+        line = '*.{0} merge={0}merge'.format(extension)
+        if line not in contents:
+            print('add {} in global {}'.format(line, gitattributes))
+            contents.append(line)
+            modified = True
+    if modified:
+        contents.append('')
+        gitattributes.open('w').write('\n'.join(contents))
 
     return status
 
 
-def remove_prefix(text: str, prefix: str):
-    """TODO."""
-    if text.startswith(prefix):
-        return text[len(prefix) :]
-    return None
+def register_srg_file(srg: Path, install: Path):
+    """Copy the srg file to Customize and patch it with the installation directory."""
+    text = srg.open().read()
+    text = text.replace('%TARGETDIR%', install.as_posix())
+    dst = Path(APPDATA, 'SCADE', 'Customize', srg.name)
+    dst.open('w').write(text)
 
 
-def create_srg_file(extension_name):
-    """Register the SCADE extension srg file."""
-    # Then get the template, replace the content and write to the right place
-    template = TEMPLATE_FILE
-
-    template = template.replace("__extension_name__", extension_name)
-    srg_filename = os.path.join(APPDATA, 'SCADE', 'Customize', extension_name + '.srg')
-
-    with open(srg_filename, "w") as f:
-        f.write(template)
+def scade_config():
+    """Register the SCADE extension srg files."""
+    script_dir = Path(__file__).parent
+    # registrations depending on Python interpreter
+    python_version = str(sys.version_info.major) + str(sys.version_info.minor)
+    register_srg_file(script_dir / ('git-%s.srg' % python_version), script_dir)
+    # other registrations
+    # None for now
+    # register_srg_file(script_dir / 'git.srg', script_dir)
 
 
 def main():
     """Register package."""
     git_config()
-
-
-    if False:
-        # TODO: patch existing srg files with target directory instead of generating them
-        # registration script installed in <python>/Lib/site_packages/ansys/scade/git
-        script_path = Path(__file__)
-        script_name = script_path.stem
-        extension_name = remove_prefix(script_name, 'register_ansys_scade_')
-        if extension_name:
-            create_srg_file(extension_name)
-            print('Registered extension ansys.scade.{}'.format(extension_name))
-        else:
-            print('Failed to register extension ansys.scade.{}'.format(extension_name))
+    scade_config()
 
 
 if __name__ == '__main__':

@@ -1,0 +1,7 @@
+[Studio/Work Interfaces/ansys-scade-gitextension37]
+"Pathname"="ETCUST.DLL"
+"Version"="19400"
+"Expire"="23200"
+
+[Custom/Studio/Extensions/ansys-scade-gitextension37]
+"Pathname"="%TARGETDIR%/extension/gitextension.py"

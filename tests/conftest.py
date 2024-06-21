@@ -24,17 +24,25 @@
 """Unit tests fixtures."""
 
 from pathlib import Path
-from shutil import rmtree
+from shutil import copytree, rmtree
+from typing import Tuple
 
 import pytest
 
 from ansys.scade.apitools import scade
+from ansys.scade.git.extension.gitclient import GitClient
+from test_utils import run_git
+
+
+def pytest_configure(config):
+    """Declare the markers used in this project."""
+    config.addinivalue_line('markers', 'repo: repository to duplicate')
 
 
 @pytest.fixture(scope='session')
 def tmpdir():
     """Create/empty the temporary directory for output files."""
-    path = Path('tests') / 'tmp'
+    path = (Path('tests') / 'tmp').resolve()
     try:
         rmtree(str(path))
     except FileNotFoundError:
@@ -50,3 +58,49 @@ def lrb(request):
     dir = Path(request.param)
     names = 'Local.etp', 'Remote.etp', 'Base.etp'
     return [scade.load_project(str(dir / _)) for _ in names]
+
+
+class TestGitClient(GitClient):
+    def log(self, text):
+        """Print the logs to the standard output."""
+        print(text)
+
+
+@pytest.fixture(scope='class')
+def tmp_repo(request, tmpdir_factory) -> Tuple[str, GitClient]:
+    """
+    Initializes a GitClient for a test directory which is not tracked.
+
+    The client is initialized from a temporary copy of the input repo.
+    """
+    # behaves as a __init__ method for request.cls
+    marker = request.node.get_closest_marker('repo')
+    # marker is None if the test is not designed correctly
+    assert marker
+    path = marker.args[0]
+    tmp_repos = Path(tmpdir_factory.mktemp('repos'))
+    tmp_dir = tmp_repos / path.name
+    copytree(path, tmp_dir)
+
+    # get the instance of GitClient
+    git_client = TestGitClient()
+    status = git_client.get_init_status()
+    assert status
+    return tmp_dir, git_client
+
+
+@pytest.fixture(scope='class')
+def git_repo(request, tmp_repo) ->  Tuple[str, GitClient]:
+    """
+    Initializes a GitClient for a test repository.
+
+    Create a Git repository from the temporary directory and add all files.
+    """
+    tmp_dir, client = tmp_repo
+    # create git repo and add all files
+    run_git('init', '-b', 'main', str(tmp_dir))
+    # runt the next commands in the context of the git repo
+    run_git('add', str(tmp_dir), dir=tmp_dir)
+    run_git('commit', '-m', 'copy', dir=tmp_dir)
+
+    return tmp_dir, client

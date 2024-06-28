@@ -61,9 +61,15 @@ def cls_git_repo(request, git_repo: Tuple[str, GitClient]):
 @pytest.mark.usefixtures('cls_git_repo')
 class TestGitClientNominal:
     """Nominal tests for GitClient."""
+
     file_data = [
         (['Model.etp', CLEAN]),
-        (['C:/Program Files/ANSYS Inc/v241/SCADE/SCADE/libraries/SC65/libdigital/libdigital.etp', EXTERN]),
+        (
+            [
+                'C:/Program Files/ANSYS Inc/v241/SCADE/SCADE/libraries/SC65/libdigital/libdigital.etp',
+                EXTERN,
+            ]
+        ),
         (['Root.xscade', CLEAN]),
         (['Child/Child.xscade', CLEAN]),
         (['P.xscade', CLEAN]),
@@ -232,6 +238,7 @@ class TestGitClientRobustnessWrongArgs:
 
     Note: The tests are using absolute and relative paths.
     """
+
     def test_get_file_status(self):
         self.git_client.refresh(str(self.dir / 'Model.etp'))
         # unexisting file
@@ -281,6 +288,7 @@ class TestGitClientRobustnessWrongArgs:
 @pytest.mark.usefixtures('cls_tmp_repo')
 class TestGitClientRobustnessWrongRepo:
     """Verify GitClient does not raise exception with invalid repository."""
+
     def test_get_file_status(self):
         path = self.dir / 'Model.etp'
         self.git_client.refresh(str(path))

@@ -30,11 +30,11 @@ from ansys.scade.git.almgtmerge.almgtmerge3 import merge3
 
 def main():
     """Entry point."""
-    parser = ArgumentParser(description = 'merge3 for almgt files %s' % __version__)
-    parser.add_argument('-l', '--local', metavar = '<local>', help = 'local file', required = True)
-    parser.add_argument('-r', '--remote', metavar = '<remote>', help = 'remote file', required = True)
-    parser.add_argument('-b', '--base', metavar = '<base>', help = 'base file', required = True)
-    parser.add_argument('-m', '--merged', metavar = '<merged>', help = 'merged file', required = True)
+    parser = ArgumentParser(description='merge3 for almgt files %s' % __version__)
+    parser.add_argument('-l', '--local', metavar='<local>', help='local file', required=True)
+    parser.add_argument('-r', '--remote', metavar='<remote>', help='remote file', required=True)
+    parser.add_argument('-b', '--base', metavar='<base>', help='base file', required=True)
+    parser.add_argument('-m', '--merged', metavar='<merged>', help='merged file', required=True)
     options = parser.parse_args()
 
     status = merge3(options.local, options.remote, options.base, options.merged)

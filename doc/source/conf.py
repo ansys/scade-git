@@ -1,4 +1,5 @@
 """Sphinx documentation configuration file."""
+
 from datetime import datetime
 import os
 
@@ -77,9 +78,7 @@ numpydoc_validate = True
 numpydoc_validation_checks = {
     "GL06",  # Found unknown section
     "GL07",  # Sections are in the wrong order.
-    # Disabled the docstring validation as most of the methods doesn't have the docstring
-    # TODO: Add docstring and enable GL08 validation
-    # "GL08",  # The object does not have a docstring
+    "GL08",  # The object does not have a docstring
     "GL09",  # Deprecation warning should precede extended summary
     "GL10",  # reST directives {directives} must be followed by two colons
     "SS01",  # No summary found
@@ -114,5 +113,5 @@ linkcheck_ignore = [
     "https://pypi.org/project/ansys-scade-git",
     # The link below takes a long time to check
     "https://www.ansys.com/products/embedded-software/ansys-scade-suite",
-    "https://www.ansys.com/*"
+    "https://www.ansys.com/*",
 ]

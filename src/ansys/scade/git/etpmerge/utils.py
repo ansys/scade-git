@@ -1,5 +1,4 @@
-﻿# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
-
+# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -23,26 +22,26 @@
 
 """Provides helpers for reporting and computations."""
 
+from typing import Any
+
 import scade.model.project.stdproject as std
 
 
-def get_prop_key(prop: std.Prop, configuration=None):
+def get_prop_key(prop: std.Prop, configuration: std.Configuration = None) -> Any:
     """
     Return the key to find a prop by name: (name, configuration's id).
 
     Parameters
     ----------
-    configuration : Configuration
+    prop : std.Prop
+        Input property.
+    configuration : std.Configuration
         When not None, it is the configuration to consider instead of the one linked
         to the property. This is usually the property's configuration's local.
-    name : str
-        Name of the folder.
-    extensions : str
-        Optional filter for browsing for added files.
 
     Returns
     -------
-    Local key for the property
+    Local key for the property.
     """
     if not configuration:
         configuration = prop.configuration
@@ -68,11 +67,12 @@ def get_context(entity: std.ProjectEntity) -> str:
 
     Parameters
     ----------
-    entity : ProjectEntity
+    entity : std.ProjectEntity
 
     Returns
     -------
-    Readable description of the entity
+    str
+        Readable description of the entity
     """
     context = '%s "%d" ("%s")' % (type(entity).__name__, entity.id, get_name(entity))
     if isinstance(entity, std.Prop):
@@ -88,11 +88,12 @@ def get_name(entity: std.ProjectEntity) -> str:
 
     Parameters
     ----------
-    entity : ProjectEntity
+    entity : std.ProjectEntity
 
     Returns
     -------
-    Name of the entity
+    str
+        Name of the entity.
     """
     if isinstance(entity, std.Project):
         # path not meaningful, at least with Git
@@ -103,7 +104,7 @@ def get_name(entity: std.ProjectEntity) -> str:
         return entity.name
 
 
-def get_element_owner(element: std.Element):
+def get_element_owner(element: std.Element) -> std.ProjectEntity:
     """
     Return the owner of the element.
 
@@ -111,11 +112,12 @@ def get_element_owner(element: std.Element):
 
     Parameters
     ----------
-    entity : ProjectEntity
+    element : std.Element
 
     Returns
     -------
-    Owner of the entity
+    std.ProjectEntity
+        Owner of the entity.
     """
     # note: if/else rather than =/if/else for code coverage
     if element.folder:

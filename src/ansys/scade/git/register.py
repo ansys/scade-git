@@ -30,6 +30,7 @@ import sys
 APPDATA = os.getenv('APPDATA')
 USERPROFILE = os.getenv('USERPROFILE')
 
+
 def git_config() -> bool:
     """
     Update the global Git configuration.
@@ -37,6 +38,7 @@ def git_config() -> bool:
     * Declare merge tools
     * Register merge tools for targeted file extensions
     """
+
     def register_driver(id: str, name: str, path: str, trust_exit: bool) -> bool:
         status = True
         for param, value in [('name', name), ('driver', path), ('trustExitCode', trust_exit)]:

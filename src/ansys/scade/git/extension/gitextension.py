@@ -49,18 +49,19 @@ from ansys.scade.git.extension.ide import Ide
 
 class Studio(Ide):
     """Provide an implementation for SCADE IDE."""
+
     def create_browser(self, name: str, icon: str = None):
         """Redirect the call to SCADE IDE."""
         scade.create_browser(name, icon)
 
     def browser_report(
-            self,
-            item: Any,
-            parent: Any = None,
-            expanded: bool = False,
-            name: str = '',
-            icon_file: str = '',
-        ):
+        self,
+        item: Any,
+        parent: Any = None,
+        expanded: bool = False,
+        name: str = '',
+        icon_file: str = '',
+    ):
         """Redirect the call to SCADE IDE."""
         if icon_file:
             scade.browser_report(item, parent, expanded=expanded, name=name, icon_file=icon_file)
@@ -87,7 +88,8 @@ class Studio(Ide):
 
 class GitClient(AbsGitClient):
     """GitClient implementation to log the messages to the IDE."""
-    def log(self, text):
+
+    def log(self, text: str):
         """Print the logs to the SCADE Message output tab."""
         log(text)
 
@@ -109,6 +111,7 @@ def log(text: str):
 
 class SelectBranchDialog(Dialog):
     """Custom dialog for selecting a branch."""
+
     def __init__(self, name):
         super().__init__(name, 300, 200)
         self.branch = None
@@ -125,12 +128,12 @@ class SelectBranchDialog(Dialog):
         self.close()
 
     def on_cancel_click(self, button):
-        """"Cancel the dialog."""
+        """Cancel the dialog."""
         self.branch = None
         self.close()
 
     def on_list_branch_selection(self, list, index):
-        """"Store the selected branch."""
+        """Store the selected branch."""
         branch = list.get_selection()
         if len(branch) == 1:
             self.branch = str(branch[0])
@@ -140,6 +143,7 @@ class SelectBranchDialog(Dialog):
 
 class CommitDialog(Dialog):
     """Custom dialog for providing the commit message."""
+
     def __init__(self, name):
         super().__init__(name, 600, 200)
         self.commit_text = None
@@ -161,25 +165,27 @@ class CommitDialog(Dialog):
                 log('Error: commit text cannot be empty')
 
     def on_cancel_click(self, button):
-        """"Cancel the dialog."""
+        """Cancel the dialog."""
         self.close()
 
 
 class CmdResetAll(CoreCmdResetAll):
     """SCADE Command: Reset All."""
+
     def confirm_reset(self) -> bool:
         """Override default behavior."""
         confirm = message_box(
             'Confirm Reset',
             'Do you really want to reset the Git repo?',
             style='yesno',
-            icon='warning'
+            icon='warning',
         )
         return confirm == 6
 
 
 class CmdCommit(CoreCmdCommit):
     """SCADE Command: Commit."""
+
     def confirm_commit(self) -> bool:
         """Override default behavior."""
         confirm = message_box(
@@ -199,6 +205,7 @@ class CmdCommit(CoreCmdCommit):
 
 class CmdDiff(CoreCmdDiff):
     """SCADE Command: Diff."""
+
     def select_branch(self) -> str:
         """Override default behavior."""
         select_branch = SelectBranchDialog('Select Branch')

@@ -1,4 +1,4 @@
-Ansys SCADE Git Extensions
+Ansys SCADE Git extensions
 ==========================
 
 .. include:: ../../README.rst

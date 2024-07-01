@@ -38,9 +38,6 @@ source and enhance it.
       # Create a virtual environment
       python -m venv .venv
 
-      # Activate it in a POSIX system
-      source .venv/bin/activate
-
       # Activate it in Windows CMD environment
       .venv\Scripts\activate.bat
 

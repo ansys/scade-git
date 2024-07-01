@@ -43,7 +43,7 @@ Overview
 
 .. readme_common_begins
 
-Ansys SCADE Git extensions is a collection of utilities for `Git`_ in a SCADE environment.
+Ansys SCADE Git extensions are a collection of utilities for `Git`_ in a SCADE environment.
 
 Merge tools can be used with any version control system.
 

@@ -1,4 +1,4 @@
-GUI Extensions
+GUI extensions
 ==============
 
 Purpose
@@ -14,7 +14,7 @@ The Git extension supports several commands:
 
 * Refresh: Update the Git status of all project files.
 
-  Note: You must save the SCADE project before so that Git detects changes.
+  Note: You must save the SCADE project before so that Git can detect changes.
 
 * Stage selected files or all unstaged files: Add files to the Git staging area.
 * Unstage selected files or all staged files: Remove files from the Git staging area.
@@ -22,17 +22,17 @@ The Git extension supports several commands:
 * Commit: Commit files in the staging area.
 * Diff: Select a version of the project and copy it to a temporary folder to launch the SCADE Diff Merge tool.
 
-Git Browser
+Git browser
 ~~~~~~~~~~~
 
-It lists the Git status for each files of the SCADE project.
+It lists the Git status for each file of the SCADE project.
 The update (Refresh command) is not automatic and must be done after each save of the project.
 
 The name of the top-level folder mentions the current branch.
 
 .. figure:: /_static/Gittab.png
 
-Git Menu
+Git menu
 ~~~~~~~~
 
 All preceding actions are available in a Git menu or in the Git toolbar:
@@ -43,14 +43,14 @@ Actions on selected files are available in a Git contextual menu:
 
 .. figure:: /_static/Gittabcontext.png
 
-Git Commit
+Git commit
 ~~~~~~~~~~
 
 An edit box allows to enter the commit message:
 
 .. figure:: /_static/Gitcommit.png
 
-Git Diff Merge
+Git diff merge
 ~~~~~~~~~~~~~~
 
 A dialog lists all available branches in Git.

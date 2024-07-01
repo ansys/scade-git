@@ -1,4 +1,4 @@
-Merge Tools
+Merge tools
 -----------
 
 The Ansys SCADE Git Extension merge tools address Ansys SCADE files where

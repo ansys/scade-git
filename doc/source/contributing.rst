@@ -6,14 +6,14 @@ Contribute
 Overall guidance on contributing to a PyAnsys library appears in
 `Contributing <https://dev.docs.pyansys.com/how-to/contributing.html>`_
 in the *PyAnsys developer's guide*. Ensure that you are thoroughly familiar
-with this guide before attempting to contribute to Ansys SCADE Git Extensions.
+with this guide before attempting to contribute to Ansys SCADE Git extensions.
 
-The following contribution information is specific to Ansys SCADE Git Extensions.
+The following contribution information is specific to Ansys SCADE Git extensions.
 
 Install in developer mode
 -------------------------
 
-Installing Ansys SCADE Git Extensions in developer mode allows you to modify the
+Installing Ansys SCADE Git extensions in developer mode allows you to modify the
 source and enhance it.
 
 #. Clone the ``ansys-scade-git`` repository:
@@ -76,7 +76,7 @@ source and enhance it.
 
 Test
 ----
-Ansys SCADE Git Extensions uses `tox`_ for testing. This tool allows you to
+Ansys SCADE Git extensions use `tox`_ for testing. This tool allows you to
 automate common development tasks (similar to ``Makefile``), but it is oriented
 towards Python development.
 
@@ -103,7 +103,7 @@ isolated environment, which is the reason why tools like ``tox`` exist.
 
 Use ``pre-commit``
 ^^^^^^^^^^^^^^^^^^
-Ansys SCADE Git Extensions follows the PEP8 standard as outlined in
+Ansys SCADE Git extensions follow the PEP8 standard as outlined in
 `PEP 8 <https://dev.docs.pyansys.com/coding-style/pep8.html>`_ in
 the *PyAnsys developer's guide* and implements style checking using
 `pre-commit <https://pre-commit.com/>`_.
@@ -144,7 +144,7 @@ For building documentation, you can run the usual rules provided in the
     .\doc\make.bat html
     start .\doc\_build\html\index.html
 
-However, the recommended way of checking documentation integrity is to use
+However, the recommended way for checking documentation integrity is to use
 ``tox``:
 
 .. code:: bash

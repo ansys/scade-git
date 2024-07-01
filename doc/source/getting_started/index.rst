@@ -1,4 +1,4 @@
-Getting started
+Getting Started
 ===============
 To use Ansys SCADE Git Extensions, you must have a valid license for Ansys SCADE.
 
@@ -14,11 +14,10 @@ Ansys SCADE, starting from 2021 R2:
 * 2021 R2 through 2023 R1: Python 3.7
 * 2023 R2 and later: Python 3.10
 
-Install in user mode
+Install in User Mode
 --------------------
-The following steps are for installing Ansys SCADE Git Extensions in user mode. If you want to
-contribute to Ansys SCADE Git Extensions, see :ref:`contribute_scade_git` for the steps
-for installing in developer mode.
+The following steps are necessary for installing Ansys SCADE Git Extensions in user mode. If you want to
+contribute to Ansys SCADE Git Extensions, see :ref:`contribute_scade_git` for installing in developer mode.
 
 #. Before installing Ansys SCADE Git Extensions in user mode, run this command to ensure that
    you have the latest version of `pip`_:

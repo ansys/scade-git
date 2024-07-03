@@ -1,7 +1,7 @@
 Merge tools
 -----------
 
-The Ansys SCADE Git Extension merge tools address Ansys SCADE files where
+The Ansys SCADE Git Extensions merge tools address Ansys SCADE files where
 default textual merge is not appropriate.
 They merge files derived from a common ancestor, using the `merge 3`_
 technique, and are intended to be used as part of the merge feature of a

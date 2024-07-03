@@ -1,6 +1,6 @@
 Getting started
 ===============
-To use Ansys SCADE Git extensions, you must have a valid license for Ansys SCADE.
+To use Ansys SCADE Git Extensions, you must have a valid license for Ansys SCADE.
 
 For information on getting a licensed copy, see the
 `Ansys SCADE Suite <https://www.ansys.com/products/embedded-software/ansys-scade-suite>`_
@@ -16,17 +16,17 @@ Ansys SCADE, starting from 2021 R2:
 
 Install in user mode
 --------------------
-The following steps are necessary for installing Ansys SCADE Git extensions in user mode. If you want to
-contribute to Ansys SCADE Git extensions, see :ref:`contribute_scade_git` for installing in developer mode.
+The following steps are necessary for installing Ansys SCADE Git Extensions in user mode. If you want to
+contribute to Ansys SCADE Git Extensions, see :ref:`contribute_scade_git` for installing in developer mode.
 
-#. Before installing Ansys SCADE Git extensions in user mode, run this command to ensure that
+#. Before installing Ansys SCADE Git Extensions in user mode, run this command to ensure that
    you have the latest version of `pip`_:
 
    .. code:: bash
 
       python -m pip install -U pip
 
-#. Install Ansys SCADE Git extensions with this command:
+#. Install Ansys SCADE Git Extensions with this command:
 
    .. code:: bash
 

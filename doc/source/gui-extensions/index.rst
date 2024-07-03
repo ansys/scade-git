@@ -30,32 +30,37 @@ The update (Refresh command) is not automatic and must be done after each save o
 
 The name of the top-level folder mentions the current branch.
 
-.. figure:: /_static/Gittab.png
+.. image:: /_static/Gittab.png
+ :alt: Git browser
 
 Git menu
 ~~~~~~~~
 
 All preceding actions are available in a Git menu or in the Git toolbar:
 
-.. figure:: /_static/Gitmenu.png
+.. image:: /_static/Gitmenu.png
+  :alt: Git menu
 
 Actions on selected files are available in a Git contextual menu:
 
-.. figure:: /_static/Gittabcontext.png
+.. image:: /_static/Gittabcontext.png
+  :alt: Git contextual  menu
 
 Git commit
 ~~~~~~~~~~
 
 An edit box allows to enter the commit message:
 
-.. figure:: /_static/Gitcommit.png
+.. image:: /_static/Gitcommit.png
+  :alt: Git commit message
 
 Git diff merge
 ~~~~~~~~~~~~~~
 
 A dialog lists all available branches in Git.
 
-.. figure:: /_static/Gitdiff.png
+.. image:: /_static/Gitdiff.png
+  :alt: Git branches
 
 Once you select one branch and click Diff, the extension copies this project
 version in a temporary folder and lists the path in the Git messages window.
@@ -64,7 +69,8 @@ Diff Analyzer to start a diff merge session.
 There is no script access to this IDE command at this time to completely
 automate the process.
 
-.. figure:: /_static/Gitdifflog.png
+.. image:: /_static/Gitdifflog.png
+  :alt: Git diff log message
 
 The temporary folder must be manually cleaned (TBD: add an action to clean it from the IDE).
 It is located in ``%LOCALAPPDATA%\temp\SCADE\git-diff\<git repository name>\<branch name (only alpha num char, no spaces)>``

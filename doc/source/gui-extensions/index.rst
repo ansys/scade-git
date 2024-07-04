@@ -72,7 +72,7 @@ automate the process.
 .. image:: /_static/Gitdifflog.png
   :alt: Git diff log message
 
-The temporary folder must be manually cleaned if you need to free disk space. 
+The temporary folder must be manually cleaned if you need to free disk space.
 It is located in ``%LOCALAPPDATA%\temp\SCADE\git-diff\<git repository name>\<branch name (only alpha num char, no spaces)>``
 
 ..

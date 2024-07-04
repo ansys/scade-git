@@ -11,7 +11,7 @@ Ansys SCADE Git Extensions
 ..
   Contents
   --------
-  
+
    .. toctree::
       :maxdepth: 2
 

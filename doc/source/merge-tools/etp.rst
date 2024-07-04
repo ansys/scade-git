@@ -1,10 +1,10 @@
-Project File
+Project file
 ============
 
 Overview
 --------
 
-The project files (ETP) are XML files with local unique identifiers which
+The project files (ETP) are XML files with locally unique identifiers which
 must be considered for merging.
 
 The ``etpmerge`` utility merges two Ansys SCADE project files derived from a common ancestor.
@@ -13,25 +13,25 @@ Non-conflicting changes are merged automatically in the output file.
 Any conflicts are reported at the end of the file for manual analysis and resolution.
 This is most useful when models are versioned in a configuration management tool such as `Git`_.
 
-To minimize conflicts, the algorithm is aware of Identifiers and semantic properties,
+To minimize conflicts, the algorithm is aware of identifiers and semantic properties,
 such as the uniqueness of configuration names or file paths.
 
-Conflict Resolution
+Conflict resolution
 -------------------
 Conflicts are *always* resolved using current branch changes. Each conflict is
 also reported at the end of the file, after the XML tree, and includes the
 following information:
 
 * Context: ``tag``, ``id`` or ``name`` of the object. For clarity, this context
-  includes the context of the owner for properties.
-* Local attribute values.
-* Remote attribute values.
+  includes the context of the owner for properties
+* Local attribute values
+* Remote attribute values
 
 Each report must be manually analyzed. If remote changes are to be kept, the
 report includes enough information to manually apply these changes in the file.
 Then, deleting the conflict report block marks the conflict as resolved.
 
-Conflict Reporting Pattern
+Conflict reporting pattern
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code::
 
@@ -50,7 +50,7 @@ Conflict Reporting Pattern
 
 Below are some samples for different conflict types.
 
-Attribute Conflict
+Attribute conflict
 ^^^^^^^^^^^^^^^^^^
 XML attributes have conflicting values for a node in the model.
 
@@ -67,11 +67,11 @@ XML attributes have conflicting values for a node in the model.
   -> remote extensions = "cpp;c++"
   >>>>>>>
 
-Hierarchy Conflict
+Hierarchy conflict
 ^^^^^^^^^^^^^^^^^^
-An element has been moved to different places in both projects.
+An element was moved to different places in both projects.
 
-*E.g.:* The folder ``Runtime Files`` has been moved to folder ``C Files`` locally,
+*E.g.:* The folder ``Runtime Files`` was moved to folder ``C Files`` locally,
 and moved as a root folder of the project remotely:
 
 .. code::
@@ -83,7 +83,7 @@ and moved as a root folder of the project remotely:
   -> remote owner = "<project>" ("1")
   >>>>>>>
 
-Property Conflict
+Property conflict
 ^^^^^^^^^^^^^^^^^
 A property has conflicting values.
 

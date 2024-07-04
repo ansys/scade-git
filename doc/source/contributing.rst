@@ -38,9 +38,6 @@ source and enhance it.
       # Create a virtual environment
       python -m venv .venv
 
-      # Activate it in a POSIX system
-      source .venv/bin/activate
-
       # Activate it in Windows CMD environment
       .venv\Scripts\activate.bat
 
@@ -147,7 +144,7 @@ For building documentation, you can run the usual rules provided in the
     .\doc\make.bat html
     start .\doc\_build\html\index.html
 
-However, the recommended way of checking documentation integrity is to use
+However, the recommended way for checking documentation integrity is to use
 ``tox``:
 
 .. code:: bash

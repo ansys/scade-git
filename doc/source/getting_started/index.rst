@@ -16,9 +16,8 @@ Ansys SCADE, starting from 2021 R2:
 
 Install in user mode
 --------------------
-The following steps are for installing Ansys SCADE Git Extensions in user mode. If you want to
-contribute to Ansys SCADE Git Extensions, see :ref:`contribute_scade_git` for the steps
-for installing in developer mode.
+The following steps are necessary for installing Ansys SCADE Git Extensions in user mode. If you want to
+contribute to Ansys SCADE Git Extensions, see :ref:`contribute_scade_git` for installing in developer mode.
 
 #. Before installing Ansys SCADE Git Extensions in user mode, run this command to ensure that
    you have the latest version of `pip`_:

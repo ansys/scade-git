@@ -4,7 +4,7 @@ Project file
 Overview
 --------
 
-The project files (ETP) are XML files with local and unique identifiers which
+The project files (ETP) are XML files with locally unique identifiers which
 must be considered for merging.
 
 The ``etpmerge`` utility merges two Ansys SCADE project files derived from a common ancestor.

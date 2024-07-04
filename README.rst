@@ -1,4 +1,4 @@
-Ansys SCADE Git extensions
+Ansys SCADE Git Extensions
 ==========================
 |pyansys| |python| |pypi| |GH-CI| |codecov| |MIT| |black| |doc|
 
@@ -79,7 +79,7 @@ page on the Ansys Developer portal, you can post questions, share ideas, and get
 
 License
 -------
-Ansys SCADE Git Extensions are licensed under the MIT license.
+Ansys SCADE Git Extensions is licensed under the MIT license.
 
 This toolkit makes no commercial claim over Ansys whatsoever. The use of this toolkit
 requires a legally licensed copy of the Ansys SCADE Suite. For more information,

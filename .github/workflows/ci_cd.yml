@@ -23,7 +23,7 @@ jobs:
     name: "Code style"
     runs-on: ubuntu-latest
     steps:
-      - uses: ansys/actions/code-style@v6
+      - uses: ansys/actions/code-style@v7
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
@@ -31,7 +31,7 @@ jobs:
     name: "Documentation style"
     runs-on: ubuntu-latest
     steps:
-      - uses: ansys/actions/doc-style@v6
+      - uses: ansys/actions/doc-style@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -45,7 +45,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: ['3.7']
     steps:
-      - uses: ansys/actions/build-wheelhouse@v6
+      - uses: ansys/actions/build-wheelhouse@v7
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           operating-system: ${{ matrix.os }}
@@ -84,7 +84,7 @@ jobs:
     timeout-minutes: 30
     needs: [doc-style]
     steps:
-      - uses: ansys/actions/doc-build@v6
+      - uses: ansys/actions/doc-build@v7
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
@@ -106,7 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [tests, doc-build]
     steps:
-      - uses: ansys/actions/build-library@v6
+      - uses: ansys/actions/build-library@v7
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
@@ -126,7 +126,7 @@ jobs:
       #     twine-token: ${{ secrets.PYPI_TOKEN }}
 
       - name: "Release to GitHub"
-        uses: ansys/actions/release-github@v6
+        uses: ansys/actions/release-github@v7
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           additional-artifacts: 'examples'
@@ -138,7 +138,7 @@ jobs:
     needs: [build-library]
     if: github.event_name == 'push' && !contains(github.ref, 'refs/tags')
     steps:
-      - uses: ansys/actions/doc-deploy-dev@v6
+      - uses: ansys/actions/doc-deploy-dev@v7
         with:
           doc-artifact-name: 'documentation-html'
           cname: ${{ env.DOCUMENTATION_CNAME }}
@@ -151,7 +151,7 @@ jobs:
     needs: [release]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     steps:
-      - uses: ansys/actions/doc-deploy-stable@v6
+      - uses: ansys/actions/doc-deploy-stable@v7
         with:
           doc-artifact-name: 'documentation-html'
           cname: ${{ env.DOCUMENTATION_CNAME }}

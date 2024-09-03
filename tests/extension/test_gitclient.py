@@ -66,7 +66,7 @@ class TestGitClientNominal:
         (['Model.etp', CLEAN]),
         (
             [
-                'C:/Program Files/ANSYS Inc/v241/SCADE/SCADE/libraries/SC65/libdigital/libdigital.etp',
+                'C:/Program Files/ANSYS Inc/v241/SCADE/SCADE/libraries/SC65/libdigital/libdigital.etp',  # noqa: E501
                 EXTERN,
             ]
         ),

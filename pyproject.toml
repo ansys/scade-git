@@ -73,7 +73,7 @@ almgtmerge = "ansys.scade.git.almgtmerge.__main__:main"
 register_ansys_scade_git = "ansys.scade.git.register:main"
 
 [tool.ruff]
-line-length = 99
+line-length = 100
 select = [
     "E",    # pycodestyle, see https://beta.ruff.rs/docs/rules/#pycodestyle-e-w
     "D",    # pydocstyle, see https://beta.ruff.rs/docs/rules/#pydocstyle-d
@@ -82,7 +82,6 @@ select = [
     "N",    # pep8-naming, see https://beta.ruff.rs/docs/rules/#pep8-naming-n
 ]
 ignore = [
-    "E501",  # Line too long. Ignoring this so "ruff.formatter" manages line length.
     "D203",  # One blank line required before class docstring.
     "D204"  # One blank line required after class docstring.
 ]

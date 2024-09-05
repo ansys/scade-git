@@ -97,7 +97,7 @@ convention = "numpy"
 "tests/*.py" = ["D",]
 
 [tool.coverage.run]
-source = ["ansys.scade"]
+source = ["ansys.scade.git"]
 
 [tool.coverage.report]
 show_missing = true
@@ -108,4 +108,4 @@ exclude_also = [
 
 [tool.pytest.ini_options]
 testpaths = "tests"
-addopts = "-ra --cov=ansys.scade --cov-report html:.cov/html --cov-branch --cov-report xml:.cov/xml --cov-report term -vv"
+addopts = "-ra --cov=ansys.scade.git --cov-report html:.cov/html --cov-branch --cov-report xml:.cov/xml --cov-report term -vv"

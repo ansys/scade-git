@@ -24,4 +24,10 @@ from ansys.scade.git import __version__
 
 
 def test_pkg_version():
-    assert __version__ == "0.1.dev0"
+    try:
+        import importlib.metadata as importlib_metadata
+    except ModuleNotFoundError:  # pragma: no cover
+        import importlib_metadata
+
+    scade_git_version = importlib_metadata.version("ansys-scade-git")
+    assert __version__ == scade_git_version

@@ -49,6 +49,7 @@ see each of the following:
    gui-extensions/index
    merge-tools/index
    contributing
+   changelog
 
 Search
 ------

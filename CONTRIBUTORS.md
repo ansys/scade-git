@@ -2,7 +2,7 @@
 
 ## Project Lead
 
-* Frédéric Bessière
+* [Frédéric Bessière](https://github.com/ansfbessier)
 
 ## Individual Contributors
 

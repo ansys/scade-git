@@ -183,7 +183,7 @@ class CacheBase(Visit):
             Whether a corresponding entity has been found.
         """
         base = self.base._map_ids.get(project_entity.id)
-        if base and not isinstance(project_entity, type(base)):
+        if base and type(base) is not type(project_entity):
             # both projects are unrelated: garbage in...
             raise WrongBaseError(project_entity)
 

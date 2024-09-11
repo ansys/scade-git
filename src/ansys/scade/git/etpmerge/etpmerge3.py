@@ -515,8 +515,7 @@ class EtpMerge3:
                     elif self.is_moved(remote):
                         # keep the local ownership and issue a conflict
                         texts_local.append(
-                            '-> local owner = "%s" ("%d")'
-                            % (get_name(local_owner), local_owner.id)
+                            '-> local owner = "%s" ("%d")' % (get_name(local_owner), local_owner.id)
                         )
                         texts_remote.append(
                             '-> remote owner = "%s" ("%d")'

@@ -35,7 +35,15 @@ from ansys.scade.git.etpmerge.etpmerge3 import EtpMerge3
 
 
 def main():
-    """Entry point."""
+    """Entry point for the merge3 utility.
+
+    Arguments
+    ---------
+    -l, --local: local file
+    -r, --remote: remote file
+    -b, --base: base file
+    -m, --merged: merged file
+    """
     parser = ArgumentParser(description='merge3 for SCADE project files %s' % __version__)
     parser.add_argument('-l', '--local', metavar='<local>', help='local file', required=True)
     parser.add_argument('-r', '--remote', metavar='<remote>', help='remote file', required=True)

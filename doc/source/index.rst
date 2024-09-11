@@ -5,18 +5,6 @@ Ansys SCADE Git Extensions
    :start-after: .. readme_common_begins
    :end-before: .. readme_common_ends
 
-..
-   Changed Mixed presentation for 100% tiles as other PyAnsys products.
-
-..
-  Contents
-  --------
-
-   .. toctree::
-      :maxdepth: 2
-
-      getting_started/index
-      contributing
 
 .. grid:: 1 1 2 2
     :gutter: 2
@@ -32,13 +20,6 @@ Ansys SCADE Git Extensions
        :link-type: doc
 
        Learn how to contribute to SCADE Git Extensions documentation.
-
-.. toctree::
-   :hidden:
-   :maxdepth: 3
-
-   getting_started/index
-   contributing
 
 
 For information on available extensions and how to use them,
@@ -64,8 +45,11 @@ see each of the following:
    :hidden:
    :maxdepth: 3
 
+   getting_started/index
    gui-extensions/index
    merge-tools/index
+   contributing
+   changelog
 
 Search
 ------

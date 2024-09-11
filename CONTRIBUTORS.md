@@ -1,8 +1,9 @@
 # Contributors
+
 ## Project Lead
 
-* Frédéric Bessière
+* [Frédéric Bessière](https://github.com/ansfbessier)
 
 ## Individual Contributors
 
-* Jean Henry
+* [Jean Henry](https://github.com/ansjhenry)

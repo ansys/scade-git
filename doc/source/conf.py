@@ -6,7 +6,6 @@ import os
 from ansys_sphinx_theme import (
     ansys_favicon,
     get_version_match,
-    pyansys_logo_black,
 )
 
 from ansys.scade.git import __version__
@@ -16,9 +15,9 @@ project = "ansys-scade-git"
 copyright = f"(c) {datetime.now().year} ANSYS, Inc. All rights reserved"
 author = "ANSYS, Inc."
 release = version = __version__
+switcher_version = get_version_match(version)
 
 # Select desired logo, theme, and declare the html title
-html_logo = pyansys_logo_black
 html_theme = "ansys_sphinx_theme"
 html_short_title = html_title = "Ansys SCADE Git Extensions"
 
@@ -36,9 +35,10 @@ html_theme_options = {
     ],
     "switcher": {
         "json_url": f"https://{cname}/versions.json",
-        "version_match": get_version_match(version),
+        "version_match": switcher_version,
     },
     "check_switcher": False,
+    "logo": "pyansys",
 }
 
 # Sphinx extensions
@@ -105,7 +105,6 @@ source_suffix = ".rst"
 # The master toctree document.
 master_doc = "index"
 
-
 # TODO: remove ignore links after public release
 linkcheck_ignore = [
     "https://github.com/ansys/scade-git",
@@ -115,3 +114,6 @@ linkcheck_ignore = [
     "https://www.ansys.com/products/embedded-software/ansys-scade-suite",
     "https://www.ansys.com/*",
 ]
+
+if switcher_version != "dev":
+    linkcheck_ignore.append(f"https://github.com/ansys/scade-git/releases/tag/v{__version__}")

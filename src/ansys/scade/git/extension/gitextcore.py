@@ -459,7 +459,8 @@ class CmdDiff(GitRepoCommand):
                 tar_file.close()
                 # delete the tar archive"
                 archive_file.unlink()
-                # display the branch project to compare with the current project in the Git output tab
+                # display the branch project to compare with the current
+                # project in the Git output tab
                 if diff_project.exists():
                     self.ide.log(
                         'Launch the Diff Analyzer tool with the project\n   {0}'.format(

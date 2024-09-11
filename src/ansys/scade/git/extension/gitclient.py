@@ -160,7 +160,7 @@ class GitClient(metaclass=ABCMeta):
             ref_chain, _ = self.repo.refs.follow(b'HEAD')
             # active_branch not supported by dulwich prior 20
             self.branch = git.active_branch(self.repo).decode('utf-8')
-            # self.branch = str(Path(str(ref_chain[1].decode('utf-8'))).relative_to('refs/heads').as_posix())
+            # self.branch = str(Path(str(ref_chain[1].decode('utf-8'))).relative_to('refs/heads').as_posix()) # noqa: E501
 
             # git status for the current repo
             staged, unstaged, untracked = git.status(self.repo)

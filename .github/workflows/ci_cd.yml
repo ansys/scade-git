@@ -68,7 +68,6 @@ jobs:
       - uses: ansys/scade-actions/scade-tests-pytest@v1
         with:
           checkout: false
-          pytest-extra-args: "--cov=ansys --cov-report=term --cov-branch --cov-report=html:.cov/html --cov-report=xml:.cov/xml"
           scade-version: ${{ matrix.scade-version }}
 
       # - name: "Upload coverage reports to Codecov"
@@ -88,19 +87,6 @@ jobs:
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
-      # - name: "Zipping the examples directory"
-      #   run: |
-      #     sudo apt-get install zip
-      #     zip -r examples.zip ./examples
-#
-      # - name: "Upload zip to artifacts"
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: examples
-      #     path: ./examples.zip
-      #     retention-days: 7
-      #     if-no-files-found: error
-
   build-library:
     name: "Build library basic example"
     runs-on: ubuntu-latest
@@ -118,12 +104,12 @@ jobs:
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     steps:
 
-      # - name: "Release to public PyPI"
-      #   uses: ansys/actions/release-pypi-public@v6
-      #   with:
-      #     library-name: ${{ env.LIBRARY_NAME }}
-      #     twine-username: "__token__"
-      #     twine-token: ${{ secrets.PYPI_TOKEN }}
+      - name: "Release to public PyPI"
+        uses: ansys/actions/release-pypi-public@v6
+        with:
+          library-name: ${{ env.LIBRARY_NAME }}
+          twine-username: "__token__"
+          twine-token: ${{ secrets.PYPI_TOKEN }}
 
       - name: "Release to GitHub"
         uses: ansys/actions/release-github@v7

@@ -30,7 +30,7 @@ contribute to Ansys SCADE Git Extensions, see :ref:`contribute_scade_git` for in
 
    .. code:: bash
 
-      python -m pip install ansys-scade-git
+      python -m pip install --user ansys-scade-git
 
 #. Complete the installation with this command:
 

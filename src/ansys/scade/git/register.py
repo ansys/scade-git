@@ -110,6 +110,7 @@ def register_srg_file(srg: Path, install: Path):
     text = srg.open().read()
     text = text.replace('%TARGETDIR%', install.as_posix())
     dst = Path(APPDATA, 'SCADE', 'Customize', srg.name)
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.open('w').write(text)
 
 

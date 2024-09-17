@@ -50,7 +50,7 @@ jobs:
   smoke-tests:
     name: "Build and Smoke tests"
     runs-on: ${{ matrix.os }}
-    needs: [code-style]
+    needs: [code-style, update-changelog]
     strategy:
       fail-fast: false
       matrix:

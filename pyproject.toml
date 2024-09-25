@@ -63,6 +63,9 @@ Documentation = "https://git.scade.docs.pyansys.com"
 Releases = "https://github.com/ansys/scade-git/releases"
 Homepage = "https://www.ansys.com/products/embedded-software/ansys-scade-suite"
 
+[project.entry-points."ansys.scade.registry"]
+srg = "ansys.scade.git:srg"
+
 [project.scripts]
 etpmerge = "ansys.scade.git.etpmerge.__main__:main"
 almgtmerge = "ansys.scade.git.almgtmerge.__main__:main"

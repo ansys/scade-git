@@ -50,7 +50,7 @@ jobs:
   smoke-tests:
     name: "Build and Smoke tests"
     runs-on: ${{ matrix.os }}
-    needs: [code-style, update-changelog]
+    needs: [code-style]
     strategy:
       fail-fast: false
       matrix:
@@ -112,7 +112,7 @@ jobs:
   release:
     name: "Release project"
     runs-on: ubuntu-latest
-    needs: [build-library]
+    needs: [build-library, update-changelog]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     permissions:
       id-token: write

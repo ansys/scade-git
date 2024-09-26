@@ -1,0 +1,6 @@
+[Studio/Work Interfaces/ansys-scade-gitextension]
+"Pathname"="ETCUST.DLL"
+"Version"="24200"
+
+[Custom/Studio/Extensions/ansys-scade-gitextension]
+"Package"="ansys.scade.git.extension.gitextension"

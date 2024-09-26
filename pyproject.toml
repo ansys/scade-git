@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name="ansys-scade-git"
-version="0.1.2"
+version="0.1.3"
 description ="SCADE GUI extensions and command line utilities for Git."
 readme="README.rst"
 

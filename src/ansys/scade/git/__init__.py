@@ -26,9 +26,22 @@ try:
     import importlib.metadata as importlib_metadata
 except ModuleNotFoundError:
     import importlib_metadata
+from pathlib import Path
 
 try:
     __version__ = importlib_metadata.version(__name__.replace(".", "-"))
 except (importlib_metadata.PackageNotFoundError, AttributeError):
     # Handle the case where version cannot be determined
     __version__ = None
+
+
+def srg() -> str:
+    r"""
+    Return the path of the SCADE Studio registry file.
+
+    This function implements the entry point "ansys.scade.registry/srg"
+    introduced in SCADE 2024 R2. It avoids creating an explicit srg file
+    in ``%APPDATA%\Scade\Customize`` when the package is installed.
+    """
+    # the package's srg file is located in the same directory
+    return str(Path(__file__).parent / 'git.srg')

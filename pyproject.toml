@@ -35,14 +35,14 @@ keywords=["Scade", "Git", "CM", "Merge"]
 [project.optional-dependencies]
 build = [
     "build==1.2.2.post1",
-    "twine==5.1.1"
+    "twine==6.0.1"
 ]
 tests = [
     "pytest==8.3.3",
     "pytest-cov==6.0.0"
 ]
 doc = [
-    "ansys-sphinx-theme==1.2.0",
+    "ansys-sphinx-theme==1.2.2",
     "jupyter_sphinx==0.5.3",
     "nbsphinx==0.9.5",
     "numpydoc==1.8.0",

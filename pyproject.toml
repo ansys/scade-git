@@ -65,11 +65,15 @@ Homepage = "https://www.ansys.com/products/embedded-software/ansys-scade-suite"
 
 [project.entry-points."ansys.scade.registry"]
 srg = "ansys.scade.git:srg"
+register = "ansys.scade.git.register:register"
+unregister = "ansys.scade.git.unregister:unregister"
 
 [project.scripts]
 etpmerge = "ansys.scade.git.etpmerge.__main__:main"
 almgtmerge = "ansys.scade.git.almgtmerge.__main__:main"
+# backward compatibility
 register_ansys_scade_git = "ansys.scade.git.register:main"
+unregister_ansys_scade_git = "ansys.scade.git.unregister:main"
 
 [tool.ruff]
 line-length = 100

@@ -26,6 +26,9 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+from typing import Tuple
+
+from ansys.scade.git import get_srg_name
 
 APPDATA = os.getenv('APPDATA')
 USERPROFILE = os.getenv('USERPROFILE')
@@ -39,7 +42,7 @@ def git_config() -> bool:
     * Register merge tools for targeted file extensions
     """
 
-    def register_driver(id: str, name: str, path: str, trust_exit: bool) -> bool:
+    def register_driver(id: str, name: str, path: str, trust_exit: str) -> bool:
         status = True
         for param, value in [('name', name), ('driver', path), ('trustExitCode', trust_exit)]:
             cmd = ['git', 'config', '--global', 'merge.%s.%s' % (id, param), value]
@@ -57,6 +60,7 @@ def git_config() -> bool:
 
         return status
 
+    assert USERPROFILE
     # scripts directory in <python>/Scripts
     status = True
     exe = Path(sys.executable)
@@ -87,10 +91,7 @@ def git_config() -> bool:
     # set git attributes
     gitattributes = Path(USERPROFILE, '.config', 'git', 'attributes')
     gitattributes.parent.mkdir(parents=True, exist_ok=True)
-    contents = gitattributes.open().read().split('\n') if gitattributes.exists() else []
-    if contents and not contents[-1]:
-        # remove trailing blank line
-        contents = contents[:-1]
+    contents = gitattributes.read_text().strip('\n').split('\n') if gitattributes.exists() else []
     modified = False
     for extension in ['xscade', 'etp', 'almgt']:
         line = '*.{0} merge={0}merge'.format(extension)
@@ -100,13 +101,14 @@ def git_config() -> bool:
             modified = True
     if modified:
         contents.append('')
-        gitattributes.open('w').write('\n'.join(contents))
+        gitattributes.write_text('\n'.join(contents))
 
     return status
 
 
 def register_srg_file(srg: Path, install: Path):
     """Copy the srg file to Customize and patch it with the installation directory."""
+    assert APPDATA
     text = srg.open().read()
     text = text.replace('%TARGETDIR%', install.as_posix())
     dst = Path(APPDATA, 'SCADE', 'Customize', srg.name)
@@ -117,19 +119,24 @@ def register_srg_file(srg: Path, install: Path):
 def scade_config():
     """Register the SCADE extension srg files."""
     script_dir = Path(__file__).parent
-    # registrations depending on Python interpreter
-    python_version = str(sys.version_info.major) + str(sys.version_info.minor)
-    register_srg_file(script_dir / ('git-%s.srg' % python_version), script_dir)
-    # other registrations
-    # None for now
-    # register_srg_file(script_dir / 'git.srg', script_dir)
+    register_srg_file(script_dir / get_srg_name(), script_dir)
+
+
+def register() -> Tuple[int, str]:
+    """Implement the ``ansys.scade.registry/register`` entry point."""
+    git_config()
+    scade_config()
+    return (0, '')
 
 
 def main():
-    """Register package."""
-    git_config()
-    scade_config()
+    """Implement the ``ansys.scade.git.register`` packages's project script."""
+    code, message = register()
+    if message:
+        print(message, file=sys.stderr if code else sys.stdout)
+    return code
 
 
 if __name__ == '__main__':
-    main()
+    code = main()
+    sys.exit(code)

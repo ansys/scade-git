@@ -267,11 +267,17 @@ class GitClient(metaclass=ABCMeta):
             relative to the Git repository.
         """
         if self.repo:
-            try:
-                # porcelain.add accepts any paths, absolute or relative to the repo
-                return git.add(self.repo, files)
-            except BaseException as e:
-                self.log('Error stage: .{0}'.format(e))
+            for file in files:
+                try:
+                    # repo.stage only accepts relative paths to the repo path
+                    file_path = Path(file)
+                    if file_path.is_absolute():
+                        index_file = file_path.relative_to(self.repo_path).as_posix()
+                    else:
+                        index_file = file
+                    self.repo.stage([index_file])
+                except BaseException as e:
+                    self.log('Error stage: {0}'.format(e))
 
     def unstage(self, files: List[str]):
         """

@@ -107,6 +107,7 @@ class TestGitClientNominal:
 
     def test_status_added(self):
         project_path = str(self.dir / 'Model.etp')
+        self.git_client.refresh(project_path)
         # create a new file
         path = self.dir / 'new_file.txt'
         path.open('w').write('some content\n')

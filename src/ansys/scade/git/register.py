@@ -24,7 +24,7 @@
 
 import os
 from pathlib import Path
-import subprocess
+import subprocess  # nosec B404  # used to call git config
 import sys
 from typing import Tuple
 
@@ -51,7 +51,7 @@ def git_config() -> bool:
             log = cmd[:-1] + ['"%s"' % cmd[-1]]
             print(' '.join(log))
 
-            gitrun = subprocess.run(cmd, capture_output=True, text=True)
+            gitrun = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603  # inputs checked
             if gitrun.stdout:
                 print(gitrun.stdout)
             if gitrun.stderr:

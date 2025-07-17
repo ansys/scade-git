@@ -62,10 +62,12 @@ class LLR:
             Wrapped XML element.
         """
         self.elem = elem
-        self.id = self.elem.get('id')
+        # id attribute must exist, '0' provided for linter
+        self.id = self.elem.get('id', '0')
         self.path = self.elem.get('pathName', '')
-        for elem in self.elem.findall('requirement'):
-            req = elem.get('id')
+        for elem in self.elem.findall('requirement', namespaces=None):
+            # id attribute must exist, '0' provided for linter
+            req = elem.get('id', '0')
             self.edits[req] = elem
         return self
 
@@ -78,7 +80,7 @@ class LLR:
         parent : et._Element
             Containing XML element.
         """
-        self.elem = et.SubElement(parent, 'object', id=self.id, pathName=self.path)
+        self.elem = et.SubElement(parent, 'object', {'id': self.id, 'pathName': self.path}, None)
         return self
 
 
@@ -118,6 +120,7 @@ class GTFile:
         filename : str
             Input filename.
         """
+        assert self.tree is not None  # nosec B101  # addresses linter
         et.indent(self.tree.getroot(), space='    ')
         self.tree.write(
             filename, encoding='utf-8', standalone='yes', xml_declaration=True, pretty_print=True
@@ -134,6 +137,7 @@ class GTFile:
         base : GTFile
             Common ancestor file.
         """
+        assert self.tree is not None  # nosec B101  # addresses linter
         # self += other - base
         for otherllr in other.llrs.values():
             selfllr = self.llrs.get(otherllr.id)
@@ -152,11 +156,11 @@ class GTFile:
                 selfllr.create_elem(self.tree.getroot())
 
             for hlr, elem in otherllr.edits.items():
+                assert selfllr is not None  # nosec B101  # addresses linter
                 if hlr not in selfllr.edits:
                     # add the hlr edit
-                    et.SubElement(
-                        selfllr.elem, 'requirement', id=hlr, traceType=elem.get('traceType')
-                    )
+                    attrib = {'id': hlr, 'traceType': elem.get('traceType')}
+                    et.SubElement(selfllr.elem, 'requirement', attrib, None)
 
         # the remaining hlrs in base have been deleted on remote:
         # remove them locally if still present
@@ -200,5 +204,6 @@ def merge3(local: str, remote: str, base: str, merged: str) -> bool:
     else:
         status = gtlocal.merge(gtremote, gtbase)
     if status:
+        assert gtlocal is not None  # nosec B101  # addresses linter
         gtlocal.save(merged)
     return status

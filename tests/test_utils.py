@@ -23,15 +23,13 @@
 """Helpers for test_*.py."""
 
 import difflib
-from inspect import getsourcefile
-import os
 from pathlib import Path
 from subprocess import run
 
 
 def get_resources_dir() -> Path:
     """Return the directory ./resources relative to this file's directory."""
-    script_path = Path(os.path.abspath(getsourcefile(lambda: 0)))
+    script_path = Path(__file__)
     return script_path.parent
 
 

@@ -61,8 +61,8 @@ class CacheMaps(Visit):
 
     def __init__(self):
         """Declare global maps, to be accessed from any elements."""
-        self.map_ids = None
-        self.map_files = None
+        self.map_ids = {}
+        self.map_files = {}
 
     def visit_project(self, project: std.Project):
         """Add the attributes for a project."""

@@ -22,7 +22,6 @@
 
 """SCADE custom extension for Git."""
 
-from inspect import getsourcefile
 import os
 from pathlib import Path
 import shutil
@@ -95,14 +94,15 @@ def report_item(ide: Ide, item: Union[Project, FileRef, str]) -> str:
     item: Union[Project, FileRef, str]
         Element to add to the browser: Either a SCADE Python object or a string.
     """
+    assert _git_client is not None  # nosec B101  # addresses linter
     if isinstance(item, str):
         index_file_name, status = _git_client.get_file_status(item)
-        browser_cat, icon = status_data.get(status, GitStatus.extern)
+        browser_cat, icon = status_data.get(status, status_data[GitStatus.extern])
         project_files_status[browser_cat].append(index_file_name)
         ide.browser_report(index_file_name, browser_cat, icon_file=icon)
     else:
         index_file_name, status = _git_client.get_file_status(item.pathname)
-        browser_cat, icon = status_data.get(status, GitStatus.extern)
+        browser_cat, icon = status_data.get(status, status_data[GitStatus.extern])
         project_files_status[browser_cat].append(index_file_name)
         if isinstance(item, Project):
             name = index_file_name
@@ -121,6 +121,7 @@ def refresh_browser(ide: Ide):
     ide : Studio
         SCADE IDE environment.
     """
+    assert _git_client is not None  # nosec B101  # addresses linter
     active_project = ide.get_active_project()
     if active_project:
         # save project before Git refresh
@@ -201,6 +202,7 @@ class GitRepoCommand(Command):
 
     def on_enable(self) -> bool:
         """Enable the command if the Git repository exists and is refreshed."""
+        assert _git_client is not None  # nosec B101  # addresses linter
         return _git_client.repo is not None
 
 
@@ -225,6 +227,7 @@ class CmdStage(GitRepoCommand):
 
     def on_activate(self):
         """Run the command."""
+        assert _git_client is not None  # nosec B101  # addresses linter
         files_to_process = list()
         for item in self.ide.selection:
             if isinstance(item, FileRef) or isinstance(item, Project):
@@ -255,6 +258,7 @@ class CmdUnstage(GitRepoCommand):
 
     def on_activate(self):
         """Run the command."""
+        assert _git_client is not None  # nosec B101  # addresses linter
         files_to_process = list()
         for item in self.ide.selection:
             if isinstance(item, FileRef) or isinstance(item, Project):
@@ -285,6 +289,7 @@ class CmdReset(GitRepoCommand):
 
     def on_activate(self):
         """Run the command."""
+        assert _git_client is not None  # nosec B101  # addresses linter
         files_to_process = list()
         for item in self.ide.selection:
             if isinstance(item, FileRef) or isinstance(item, Project):
@@ -315,6 +320,7 @@ class CmdStageAll(GitRepoCommand):
 
     def on_activate(self):
         """Run the command."""
+        assert _git_client is not None  # nosec B101  # addresses linter
         refresh_browser(self.ide)
         _git_client.stage(project_files_status[BrowserCat['Unstaged']])
         refresh_browser(self.ide)
@@ -341,6 +347,7 @@ class CmdUnstageAll(GitRepoCommand):
 
     def on_activate(self):
         """Run the command."""
+        assert _git_client is not None  # nosec B101  # addresses linter
         refresh_browser(self.ide)
         _git_client.unstage(project_files_status[BrowserCat['Staged']])
         refresh_browser(self.ide)
@@ -367,6 +374,7 @@ class CmdResetAll(GitRepoCommand):
 
     def on_activate(self):
         """Run the command."""
+        assert _git_client is not None  # nosec B101  # addresses linter
         confirm = self.confirm_reset()
         if confirm:
             _git_client.reset()
@@ -398,6 +406,7 @@ class CmdCommit(GitRepoCommand):
 
     def on_activate(self):
         """Run the command."""
+        assert _git_client is not None  # nosec B101  # addresses linter
         refresh_browser(self.ide)
         if project_files_status[BrowserCat['Unstaged']]:
             confirm = self.confirm_commit()
@@ -439,6 +448,7 @@ class CmdDiff(GitRepoCommand):
 
     def on_activate(self):
         """Run the command."""
+        assert _git_client is not None  # nosec B101  # addresses linter
         branch = self.select_branch()
         if branch:
             branch_path = "".join([c for c in branch if c.isalnum() or c in "._-"])
@@ -451,7 +461,7 @@ class CmdDiff(GitRepoCommand):
             )
             # create a tar archive of the branch
             archive_file = tmp_dir.with_suffix('.tar')
-            _git_client.archive(branch, archive_file)
+            _git_client.archive(branch, str(archive_file))
             if archive_file.exists():
                 # untar the archive in tmp_dir
                 tar_file = tarfile.open(archive_file)
@@ -475,7 +485,7 @@ class CmdDiff(GitRepoCommand):
         return 'main'
 
 
-script_path = Path(os.path.abspath(getsourcefile(lambda: 0)))
+script_path = Path(__file__)
 script_dir = script_path.parent
 
 res = {

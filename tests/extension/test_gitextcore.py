@@ -22,7 +22,7 @@
 
 import json
 from pathlib import Path
-from typing import Any, List
+from typing import Any, Dict, List
 
 import pytest
 import scade.model.project.stdproject as std
@@ -61,7 +61,7 @@ class StubIde(Ide):
         self.project = None
         self._selection = []
         self.browser = None
-        self.browser_items = None
+        self.browser_items: Dict[Any, Any] = {}
 
     def create_browser(self, name: str, icon: str = ''):
         """Stub scade.create_browser."""
@@ -77,6 +77,7 @@ class StubIde(Ide):
         icon_file: str = '',
     ):
         """Stub scade.browser_report."""
+        assert self.browser_items is not None
         if isinstance(item, str):
             child = item
         else:
@@ -104,6 +105,7 @@ class StubIde(Ide):
 
     def get_active_project(self) -> std.Project:
         """Stub scade.active_project."""
+        assert self.project is not None
         return self.project
 
     def get_projects(self) -> List[Any]:
@@ -155,7 +157,8 @@ def model_repo(request, git_repo):
 
     core.set_git_client(client)
     project_path = tmp_dir / 'Model' / 'Model.etp'
-    _test_ide.project = scade.load_project(str(project_path))
+    # scade is a CPython module defined dynamically
+    _test_ide.project = scade.load_project(str(project_path))  # type: ignore
     client.refresh(str(path))
 
     return tmp_dir

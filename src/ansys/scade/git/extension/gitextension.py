@@ -50,9 +50,10 @@ from ansys.scade.git.extension.ide import Ide
 class Studio(Ide):
     """Provide an implementation for SCADE IDE."""
 
-    def create_browser(self, name: str, icon: str = None):
+    def create_browser(self, name: str, icon: str = ''):
         """Redirect the call to SCADE IDE."""
-        scade.create_browser(name, icon)
+        # scade is a CPython module defined dynamically
+        scade.create_browser(name, icon)  # type: ignore
 
     def browser_report(
         self,
@@ -63,19 +64,22 @@ class Studio(Ide):
         icon_file: str = '',
     ):
         """Redirect the call to SCADE IDE."""
+        # scade is a CPython module defined dynamically
         if icon_file:
-            scade.browser_report(item, parent, expanded=expanded, name=name, icon_file=icon_file)
+            scade.browser_report(item, parent, expanded=expanded, name=name, icon_file=icon_file)  # type: ignore
         else:
-            scade.browser_report(item, parent, expanded=expanded, name=name)
+            scade.browser_report(item, parent, expanded=expanded, name=name)  # type: ignore
 
     @property
     def selection(self) -> List[Any]:
         """Redirect the call to SCADE IDE."""
-        return scade.selection
+        # scade is a CPython module defined dynamically
+        return scade.selection  # type: ignore
 
     def get_active_project(self) -> Project:
         """Redirect the call to SCADE IDE."""
-        return scade.get_active_project()
+        # scade is a CPython module defined dynamically
+        return scade.get_active_project()  # type: ignore
 
     def get_projects(self) -> List[Any]:
         """Redirect the call to the API."""
@@ -106,7 +110,8 @@ def log(text: str):
         Message to display.
     """
     if text:
-        scade.tabput("LOG", "Git Extension - " + text + "\n")
+        # scade is a CPython module defined dynamically
+        scade.tabput("LOG", "Git Extension - " + text + "\n")  # type: ignore
 
 
 class SelectBranchDialog(Dialog):
@@ -114,7 +119,7 @@ class SelectBranchDialog(Dialog):
 
     def __init__(self, name):
         super().__init__(name, 300, 200)
-        self.branch = None
+        self.branch = ''
 
     def on_build(self):
         """Build the dialog."""
@@ -129,7 +134,7 @@ class SelectBranchDialog(Dialog):
 
     def on_cancel_click(self, button):
         """Cancel the dialog."""
-        self.branch = None
+        self.branch = ''
         self.close()
 
     def on_list_branch_selection(self, list, index):
@@ -146,7 +151,7 @@ class CommitDialog(Dialog):
 
     def __init__(self, name):
         super().__init__(name, 600, 200)
-        self.commit_text = None
+        self.commit_text = ''
 
     def on_build(self):
         """Build the dialog."""
@@ -157,7 +162,9 @@ class CommitDialog(Dialog):
     def on_close_click(self, button):
         """Close the dialog if the message is not empty."""
         if self.editbox:
-            commit_text = self.editbox.get_name().strip()
+            # Edit.get_name(): wrong typing annotation
+            value: str = self.editbox.get_name()  # type: ignore
+            commit_text = value.strip()
             if commit_text != '':
                 self.commit_text = commit_text
                 self.close()

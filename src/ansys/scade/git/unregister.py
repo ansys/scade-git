@@ -30,8 +30,10 @@ from typing import Tuple
 
 from ansys.scade.git import get_srg_name
 
-APPDATA = os.getenv('APPDATA')
-USERPROFILE = os.getenv('USERPROFILE')
+# APPDATA must be defined
+APPDATA = os.environ['APPDATA']
+# USERPROFILE must be defined
+USERPROFILE = os.environ['USERPROFILE']
 
 
 def git_config() -> bool:
@@ -60,7 +62,6 @@ def git_config() -> bool:
 
         return status
 
-    assert USERPROFILE
     status = True
 
     print('Git: unregister the etpmerge custom merge driver in Git global settings')
@@ -96,7 +97,6 @@ def git_config() -> bool:
 
 def unregister_srg_file(name: str):
     """Delete the srg file from Customize."""
-    assert APPDATA
     dst = Path(APPDATA, 'SCADE', 'Customize', name)
     dst.unlink(missing_ok=True)
 

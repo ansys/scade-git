@@ -30,8 +30,10 @@ from typing import Tuple
 
 from ansys.scade.git import get_srg_name
 
-APPDATA = os.getenv('APPDATA')
-USERPROFILE = os.getenv('USERPROFILE')
+# APPDATA must be defined
+APPDATA = os.environ['APPDATA']
+# USERPROFILE must be defined
+USERPROFILE = os.environ['USERPROFILE']
 
 
 def git_config() -> bool:
@@ -60,7 +62,6 @@ def git_config() -> bool:
 
         return status
 
-    assert USERPROFILE
     # scripts directory in <python>/Scripts
     status = True
     exe = Path(sys.executable)
@@ -108,7 +109,6 @@ def git_config() -> bool:
 
 def register_srg_file(srg: Path, install: Path):
     """Copy the srg file to Customize and patch it with the installation directory."""
-    assert APPDATA
     text = srg.open().read()
     text = text.replace('%TARGETDIR%', install.as_posix())
     dst = Path(APPDATA, 'SCADE', 'Customize', srg.name)

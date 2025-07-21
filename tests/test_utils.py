@@ -25,6 +25,7 @@
 import difflib
 from pathlib import Path
 from subprocess import run
+from typing import Optional
 
 
 def get_resources_dir() -> Path:
@@ -53,7 +54,7 @@ def cmp_file(fromfile: Path, tofile: Path, n=3, linejunk=None):
     return diff
 
 
-def run_git(command: str, *args: str, dir=None) -> bool:
+def run_git(command: str, *args: str, dir: Optional[Path] = None) -> bool:
     """Run a git command."""
     cmd = ['git']
     if dir:

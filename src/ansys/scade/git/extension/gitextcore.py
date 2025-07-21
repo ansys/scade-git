@@ -465,7 +465,9 @@ class CmdDiff(GitRepoCommand):
             if archive_file.exists():
                 # untar the archive in tmp_dir
                 tar_file = tarfile.open(archive_file)
-                tar_file.extractall(tmp_dir)
+                safe_members = self.safe_members(tmp_dir, tar_file)
+                # the archive is built on the same repo a few lines above: its content is known
+                tar_file.extractall(tmp_dir, members=safe_members)  # nosec B202
                 tar_file.close()
                 # delete the tar archive"
                 archive_file.unlink()
@@ -483,6 +485,38 @@ class CmdDiff(GitRepoCommand):
     def select_branch(self) -> str:
         """Provide a default behavior for command line tools."""
         return 'main'
+
+    def safe_members(self, base: Path, tar_file: tarfile.TarFile):
+        """
+        Filter the link members from an archive.
+
+        From https://stackoverflow.com/questions/10060069/safely-extract-zip-or-tar-using-python.
+        """
+        base = base.resolve()
+
+        for finfo in tar_file:
+            if badpath(finfo.name, base):
+                self.ide.log(f'{finfo.name} is blocked: illegal path')
+            elif finfo.issym() and badlink(finfo, base):
+                self.ide.log(f'{finfo.name} is blocked: symlink to {finfo.linkname}')
+            elif finfo.islnk() and badlink(finfo, base):
+                self.ide.log(f'{finfo.name} is blocked: hard link to {finfo.linkname}')
+            else:
+                yield finfo
+
+
+def badpath(path: str, base: Path) -> bool:
+    """Return whether a file is external to the base hierarchy."""
+    # joinpath will ignore base if path is absolute
+    target = (base / path).resolve()
+    return not str(target).startswith(str(base))
+
+
+def badlink(info: tarfile.TarInfo, base: Path) -> bool:
+    """Return whether a link is external to the base hierarchy."""
+    # links are interpreted relative to the directory containing the link
+    path = (base / info.name).parent / info.linkname
+    return badpath(str(path), base)
 
 
 script_path = Path(__file__)

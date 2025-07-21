@@ -67,7 +67,7 @@ class TestGitClient(GitClient):
 
 
 @pytest.fixture(scope='class')
-def tmp_repo(request, tmpdir_factory) -> Tuple[str, GitClient]:
+def tmp_repo(request, tmpdir_factory) -> Tuple[Path, GitClient]:
     """
     Initializes a GitClient for a test directory which is not tracked.
 
@@ -90,7 +90,7 @@ def tmp_repo(request, tmpdir_factory) -> Tuple[str, GitClient]:
 
 
 @pytest.fixture(scope='class')
-def git_repo(request, tmp_repo) -> Tuple[str, GitClient]:
+def git_repo(request, tmp_repo) -> Tuple[Path, GitClient]:
     """
     Initializes a GitClient for a test repository.
 

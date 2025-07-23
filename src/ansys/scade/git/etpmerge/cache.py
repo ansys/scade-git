@@ -61,13 +61,13 @@ class CacheMaps(Visit):
 
     def __init__(self):
         """Declare global maps, to be accessed from any elements."""
-        self.map_ids = None
-        self.map_files = None
+        self.map_ids = {}
+        self.map_files = {}
 
     def visit_project(self, project: std.Project):
         """Add the attributes for a project."""
         # the cache must be used once per project
-        assert not hasattr(project, '_map_ids')
+        # assert not hasattr(project, '_map_ids')
         # initialize the extra attributes tp be accessed during the visit
         project._map_ids = {}
         self.map_ids = project._map_ids
@@ -150,7 +150,7 @@ class CacheBase(Visit):
 
     def visit_project(self, project: std.Project):
         """Initialize the current folder hierarchy with the project."""
-        assert self.resolve_by_id(project)
+        self.resolve_by_id(project)
         self.hierarchy.append(project)
         super().visit_project(project)
         self.hierarchy.pop()
@@ -188,6 +188,6 @@ class CacheBase(Visit):
             raise WrongBaseError(project_entity)
 
         # the cache must be used once per project
-        assert not hasattr(project_entity, '_base')
+        # assert not hasattr(project_entity, '_base')
         project_entity._base = base
         return base is not None

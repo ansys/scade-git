@@ -56,6 +56,8 @@ GitStatus = Enum(
         'extern',
         # status used for paths not present in the file system nor in the index
         'error',
+        # internal error
+        'none',
     ],
 )
 
@@ -86,21 +88,21 @@ def find_git_repo(local_proj_path: str) -> str:
             return str(d)
         d = d.parent
 
-    return None
+    return ''
 
 
 class GitClient(metaclass=ABCMeta):
     """Provide access to Git commands."""
 
     def __init__(self):
-        self.repo_path = None
-        self.repo_name = None
+        self.repo_path = ''
+        self.repo_name = ''
         self.branch = ''
         self.repo = None
         self.files_status = {}
         # check Dulwich version
         dulwich_ver = dulwich.__version__
-        if dulwich_ver < min_dulwich_ver:
+        if dulwich_ver < min_dulwich_ver:  # pyright: ignore[reportOperatorIssue]
             self.log('Error: the Git extension is not correctly installed. It is disabled.')
             self.log(
                 '   Dulwich (Git Python module) min version required: {0}, installed: {1}'.format(
@@ -163,7 +165,8 @@ class GitClient(metaclass=ABCMeta):
             # self.branch = str(Path(str(ref_chain[1].decode('utf-8'))).relative_to('refs/heads').as_posix()) # noqa: E501
 
             # git status for the current repo
-            staged, unstaged, untracked = git.status(self.repo)
+            # typing annotation incorrect for git.status: str | Repo
+            staged, unstaged, untracked = git.status(self.repo)  # type: ignore
 
             # list files & status in git repo
             repo_files = git.ls_files(self.repo)
@@ -204,7 +207,7 @@ class GitClient(metaclass=ABCMeta):
 
             return True
         else:
-            self.repo_name = None
+            self.repo_name = ''
             self.branch = ''
             self.repo = None
             return False
@@ -254,7 +257,7 @@ class GitClient(metaclass=ABCMeta):
             except ValueError:
                 return file_path, GitStatus.extern
         else:
-            return None, None
+            return '', GitStatus.none
 
     def stage(self, files: List[str]):
         """
@@ -268,8 +271,9 @@ class GitClient(metaclass=ABCMeta):
         """
         if self.repo:
             try:
-                # porcelain.add accepts any paths, absolute or relative to the repo
-                return git.add(self.repo, files)
+                # porcelain.add accepts any paths, absolute or relative to the repo,
+                # as well as repos (incorrect typing annotation)
+                return git.add(self.repo, files)  # type: ignore
             except BaseException as e:
                 self.log('Error stage: .{0}'.format(e))
 
@@ -355,4 +359,5 @@ class GitClient(metaclass=ABCMeta):
             Message associated to the commit.
         """
         if self.repo:
-            git.commit(self.repo, message=commit_text)
+            # typing annotation incorrect for git.commit: str | Repo
+            git.commit(self.repo, message=commit_text)  # type: ignore

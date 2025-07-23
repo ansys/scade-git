@@ -22,12 +22,12 @@
 
 """Provides helpers for reporting and computations."""
 
-from typing import Any
+from typing import Any, Optional
 
 import scade.model.project.stdproject as std
 
 
-def get_prop_key(prop: std.Prop, configuration: std.Configuration = None) -> Any:
+def get_prop_key(prop: std.Prop, configuration: Optional[std.Configuration] = None) -> Any:
     """
     Return the key to find a prop by name: (name, configuration's id).
 
@@ -35,7 +35,7 @@ def get_prop_key(prop: std.Prop, configuration: std.Configuration = None) -> Any
     ----------
     prop : std.Prop
         Input property.
-    configuration : std.Configuration
+    configuration : std.Configuration | None
         When not None, it is the configuration to consider instead of the one linked
         to the property. This is usually the property's configuration's local.
 

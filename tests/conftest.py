@@ -56,7 +56,8 @@ def lrb(request):
     """Load and return the local, remote and base projects of a directory."""
     dir = Path(request.param)
     names = 'Local.etp', 'Remote.etp', 'Base.etp'
-    return [scade.load_project(str(dir / _)) for _ in names]
+    # scade is a CPython module defined dynamically
+    return [scade.load_project(str(dir / _)) for _ in names]  # type: ignore
 
 
 class TestGitClient(GitClient):
@@ -66,7 +67,7 @@ class TestGitClient(GitClient):
 
 
 @pytest.fixture(scope='class')
-def tmp_repo(request, tmpdir_factory) -> Tuple[str, GitClient]:
+def tmp_repo(request, tmpdir_factory) -> Tuple[Path, GitClient]:
     """
     Initializes a GitClient for a test directory which is not tracked.
 
@@ -89,7 +90,7 @@ def tmp_repo(request, tmpdir_factory) -> Tuple[str, GitClient]:
 
 
 @pytest.fixture(scope='class')
-def git_repo(request, tmp_repo) -> Tuple[str, GitClient]:
+def git_repo(request, tmp_repo) -> Tuple[Path, GitClient]:
     """
     Initializes a GitClient for a test repository.
 

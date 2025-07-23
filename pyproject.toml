@@ -19,7 +19,8 @@ maintainers = [
 ]
 dependencies=[
     "ansys-scade-apitools",
-    "dulwich>=0.21.3",
+    # recent versions of dulwich have a different behavior
+    "dulwich==0.21.3, < 0.21.4",
     "importlib-metadata >= 1.0; python_version < '3.8'",
     "importlib-metadata >= 4.0; python_version >= '3.8'",
     "lxml",
@@ -77,6 +78,8 @@ unregister_ansys_scade_git = "ansys.scade.git.unregister:main"
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
 select = [
     "E",    # pycodestyle, see https://beta.ruff.rs/docs/rules/#pycodestyle-e-w
     "D",    # pydocstyle, see https://beta.ruff.rs/docs/rules/#pydocstyle-d
@@ -92,7 +95,7 @@ ignore = [
 [tool.ruff.format]
 quote-style = "preserve"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = true
 known-first-party = ["ansys", "conftest", "test_utils"]

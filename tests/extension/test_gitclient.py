@@ -20,6 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# Design note: linter complains about unexisting git_client and dir attributes
+# for test classes: these attributes are added dynamically to the instances
+# by cls_tmp_repo and cls_git_repo fixtures
+# workaround: use 'getattr', or add 'type: ignore' pragma --> too verbose
+
 from pathlib import Path
 from typing import Tuple
 
@@ -38,6 +43,7 @@ UNTRACKED = GitStatus.untracked
 CLEAN = GitStatus.clean
 EXTERN = GitStatus.extern
 ERROR = GitStatus.error
+NONE = GitStatus.none
 
 
 def get_resources_dir() -> Path:
@@ -293,7 +299,7 @@ class TestGitClientRobustnessWrongRepo:
         path = self.dir / 'Model.etp'
         self.git_client.refresh(str(path))
         _, status = self.git_client.get_file_status(path)
-        assert status is None
+        assert status == NONE
 
     def test_stage(self):
         # add any file

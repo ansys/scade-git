@@ -24,14 +24,16 @@
 
 import os
 from pathlib import Path
-import subprocess
+import subprocess  # nosec B404  # used to call git config
 import sys
 from typing import Tuple
 
 from ansys.scade.git import get_srg_name
 
-APPDATA = os.getenv('APPDATA')
-USERPROFILE = os.getenv('USERPROFILE')
+# APPDATA must be defined
+APPDATA = os.environ['APPDATA']
+# USERPROFILE must be defined
+USERPROFILE = os.environ['USERPROFILE']
 
 
 def git_config() -> bool:
@@ -49,7 +51,7 @@ def git_config() -> bool:
             log = cmd[:-1] + ['"%s"' % cmd[-1]]
             print(' '.join(log))
 
-            gitrun = subprocess.run(cmd, capture_output=True, text=True)
+            gitrun = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603  # inputs checked
             if gitrun.stdout:
                 print(gitrun.stdout)
             if gitrun.stderr:
@@ -60,7 +62,6 @@ def git_config() -> bool:
 
         return status
 
-    assert USERPROFILE
     # scripts directory in <python>/Scripts
     status = True
     exe = Path(sys.executable)
@@ -108,7 +109,6 @@ def git_config() -> bool:
 
 def register_srg_file(srg: Path, install: Path):
     """Copy the srg file to Customize and patch it with the installation directory."""
-    assert APPDATA
     text = srg.open().read()
     text = text.replace('%TARGETDIR%', install.as_posix())
     dst = Path(APPDATA, 'SCADE', 'Customize', srg.name)

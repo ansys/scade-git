@@ -69,11 +69,13 @@ class Ide(metaclass=ABCMeta):
 
 
 try:
-    from scade.tool.suite.gui.commands import Command as _Command
+    # _Command defined hereafter is a stub, and thus can't match Command
+    from scade.tool.suite.gui.commands import Command as _Command  # type: ignore
 except ImportError:
     import scade
 
-    scade.output('fake activated\n')
+    # scade is a CPython module defined dynamically
+    scade.output('fake activated\n')  # type: ignore
 
     class _Command:
         """Stub for scade.tool.suite.gui.commands.Command."""
@@ -83,7 +85,7 @@ except ImportError:
             name: str,
             status_message: str,
             tooltip_message: str,
-            image_file: str = None,
+            image_file: str = '',
         ):
             self.name = name
             self.status_message = status_message
@@ -93,6 +95,10 @@ except ImportError:
         def on_enable(self) -> bool:
             """Return whether the command can be activated, `True` by default."""
             return True
+
+        def on_activate(self):
+            """Run the command."""
+            pass
 
 
 class Command(_Command):

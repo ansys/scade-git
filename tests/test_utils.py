@@ -23,15 +23,14 @@
 """Helpers for test_*.py."""
 
 import difflib
-from inspect import getsourcefile
-import os
 from pathlib import Path
 from subprocess import run
+from typing import Optional
 
 
 def get_resources_dir() -> Path:
     """Return the directory ./resources relative to this file's directory."""
-    script_path = Path(os.path.abspath(getsourcefile(lambda: 0)))
+    script_path = Path(__file__)
     return script_path.parent
 
 
@@ -55,7 +54,7 @@ def cmp_file(fromfile: Path, tofile: Path, n=3, linejunk=None):
     return diff
 
 
-def run_git(command: str, *args: str, dir=None) -> bool:
+def run_git(command: str, *args: str, dir: Optional[Path] = None) -> bool:
     """Run a git command."""
     cmd = ['git']
     if dir:

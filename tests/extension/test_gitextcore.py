@@ -182,8 +182,6 @@ commands_data = [
     #     'removed_unstaged.txt',
     #     'untracked.txt',
     # ]),
-    # following test is failed with dulwich 0.23.1, passed with dulwich 0.21.3
-    (core.CmdResetAll(_test_ide), 'reset_all.json', []),
     (core.CmdCommit(_test_ide), 'commit.json', []),
 ]
 

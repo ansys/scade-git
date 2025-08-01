@@ -12,7 +12,7 @@ updates:
           patterns:
             - "*"
     ignore:
-      - dependency_name: "dulwich:*"
+      - dependency-name: "dulwich:*"
         versions: [ ">0.21.3" ]
 
   - package-ecosystem: "github-actions"

@@ -353,38 +353,6 @@ class CmdUnstageAll(GitRepoCommand):
         refresh_browser(self.ide)
 
 
-class CmdResetAll(GitRepoCommand):
-    """
-    SCADE Command: Reset All.
-
-    Parameters
-    ----------
-    ide : Studio
-        SCADE IDE environment.
-    """
-
-    def __init__(self, ide: Ide):
-        super().__init__(
-            ide,
-            name='Reset All',
-            status_message='Reset all files',
-            tooltip_message='Reset all files',
-            image_file=res['reset'],
-        )
-
-    def on_activate(self):
-        """Run the command."""
-        assert _git_client is not None  # nosec B101  # addresses linter
-        confirm = self.confirm_reset()
-        if confirm:
-            _git_client.reset()
-            refresh_browser(self.ide)
-
-    def confirm_reset(self) -> bool:
-        """Provide a default behavior for command line tools."""
-        return True
-
-
 class CmdCommit(GitRepoCommand):
     """
     SCADE Command: Commit.

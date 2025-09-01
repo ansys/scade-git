@@ -37,7 +37,6 @@ from ansys.scade.git.extension.gitextcore import (
     CmdDiff as CoreCmdDiff,
     CmdRefresh,
     CmdReset,
-    CmdResetAll as CoreCmdResetAll,
     CmdStage,
     CmdStageAll,
     CmdUnstage,
@@ -176,20 +175,6 @@ class CommitDialog(Dialog):
         self.close()
 
 
-class CmdResetAll(CoreCmdResetAll):
-    """SCADE Command: Reset All."""
-
-    def confirm_reset(self) -> bool:
-        """Override default behavior."""
-        confirm = message_box(
-            'Confirm Reset',
-            'Do you really want to reset the Git repo?',
-            style='yesno',
-            icon='warning',
-        )
-        return confirm == 6
-
-
 class CmdCommit(CoreCmdCommit):
     """SCADE Command: Commit."""
 
@@ -240,7 +225,6 @@ if git_client.get_init_status():
     cmd_reset = CmdReset(studio)
     cmd_stage_all = CmdStageAll(studio)
     cmd_unstage_all = CmdUnstageAll(studio)
-    cmd_reset_all = CmdResetAll(studio)
     cmd_commit = CmdCommit(studio)
     cmd_diff = CmdDiff(studio)
 

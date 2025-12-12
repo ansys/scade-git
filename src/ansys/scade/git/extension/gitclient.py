@@ -216,6 +216,9 @@ class GitClient(metaclass=ABCMeta):
     def _walk_commits(self, commit_id, commits_dict):
         """
         Depth-first traversal, avoiding duplicates.
+
+        Returns
+        -------
         Fill commits_dict with commit_id: timestamp pairs.
         """
         if self.repo:
@@ -234,6 +237,9 @@ class GitClient(metaclass=ABCMeta):
     def get_commits_list(self) -> List[Tuple]:
         """
         Return the list of the repository's commits.
+
+        Parameters
+        ----------
         Commit is a tuple (commit_id, timestamp).
         Commits are sorted by timestamp, newest first.
 

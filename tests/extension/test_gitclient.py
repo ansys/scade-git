@@ -230,7 +230,7 @@ class TestGitClientNominal:
         self.git_client.refresh(str(self.dir / 'Model.etp'))
         # basic test: make sure the commit 'xxxx' is present
         commits = self.git_client.get_commits_list()
-        assert type(commits[0][0]) == bytes
+        assert type(commits[0][0]) is bytes
         assert len(commits[0][0]) == 40
         assert commits[0][1] > 1765471530
 

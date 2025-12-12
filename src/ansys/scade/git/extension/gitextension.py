@@ -22,14 +22,16 @@
 
 """SCADE custom extension for Git."""
 
-from typing import Any, List
+from typing import Any, List, Dict, Tuple
+from datetime import datetime
+#import ansys.scade.git.extension.debug_vsc
 
 # from scade.tool.suite.gui import register_load_model_callable, register_unload_model_callable
 import scade
 from scade.model.project.stdproject import Project, get_roots as get_projects
 from scade.tool.suite.gui.commands import ContextMenu, Menu, Toolbar
 from scade.tool.suite.gui.dialogs import Dialog, message_box
-from scade.tool.suite.gui.widgets import Button, EditBox, ListBox
+from scade.tool.suite.gui.widgets import Button, EditBox, ListBox, ComboBox
 
 from ansys.scade.git.extension.gitclient import GitClient as AbsGitClient
 from ansys.scade.git.extension.gitextcore import (
@@ -113,36 +115,52 @@ def log(text: str):
         scade.tabput("LOG", "Git Extension - " + text + "\n")  # type: ignore
 
 
-class SelectBranchDialog(Dialog):
-    """Custom dialog for selecting a branch."""
+class SelectDiffVersionDialog(Dialog):
+    """Custom dialog for selecting a version: branch, commit, ..."""
+    combobox_versions_types: ComboBox = None
+    list_versions: ListBox = None
+    versions: List[Tuple[str, List[str]]] = []
+    version_types: List[str] = []
+    # return the selected version type index and version id index
+    selected: List[int] = [0, -1]
 
-    def __init__(self, name):
-        super().__init__(name, 300, 200)
-        self.branch = ''
+    def __init__(self, name: str, versions: List[Tuple[str, List[str]]]):
+        super().__init__(name, 350, 300)
+        self.versions = versions
+        self.version_types = [v[0] for v in self.versions]
 
     def on_build(self):
         """Build the dialog."""
-        Button(self, 'Diff', 220, 15, 45, 25, self.on_close_click)
-        Button(self, 'Cancel', 220, 55, 45, 25, self.on_cancel_click)
-        branches = git_client.get_branch_list()
-        ListBox(self, branches, 15, 15, 200, 100, self.on_list_branch_selection, style=['sort'])
+        self.list_versions = ListBox(self, self.versions[0][1], 15, 15, 200, 200, self.on_list_versions_selection)
+        self.combobox_versions_types = ComboBox(self, self.version_types, 220, 15, 85, 25, 
+                                                on_change_selection = self.on_versions_type_change_selection,
+                                                selection = self.versions[0][0], style = ['visible', 'dropdownlist'])
+        Button(self, 'Diff', 220, 55, 85, 25, self.on_diff_click)
+        Button(self, 'Cancel', 220, 95, 85, 25, self.on_cancel_click)
 
-    def on_close_click(self, button):
+    def on_diff_click(self, button):
         """Close the dialog."""
         self.close()
 
     def on_cancel_click(self, button):
         """Cancel the dialog."""
-        self.branch = ''
+        self.selected = [-1, -1]
         self.close()
 
-    def on_list_branch_selection(self, list, index):
-        """Store the selected branch."""
-        branch = list.get_selection()
-        if len(branch) == 1:
-            self.branch = str(branch[0])
+    def on_list_versions_selection(self, list, index: List[int]):
+        """Store the selected version."""
+        selection = list.get_selection()
+        if len(selection) == 1:
+            self.selected[1] = index[0]
         else:
-            log('Error: select only one branch: {0}'.format(branch))
+            self.selected[1] = -1
+            log('Error: select only one branch: {0}'.format(selection))
+
+    def on_versions_type_change_selection(self, combo, index: int):
+        """Store the selected version type."""
+        self.selected[0] = index
+        self.selected[1] = -1
+        self.list_versions.set_items(self.versions[index][1])
 
 
 class CommitDialog(Dialog):
@@ -198,11 +216,11 @@ class CmdCommit(CoreCmdCommit):
 class CmdDiff(CoreCmdDiff):
     """SCADE Command: Diff."""
 
-    def select_branch(self) -> str:
+    def select_diff_version(self) -> List[int]:
         """Override default behavior."""
-        select_branch = SelectBranchDialog('Select Branch')
-        select_branch.do_modal()
-        return select_branch.branch
+        select_diff_version_dialog = SelectDiffVersionDialog('Select a version to diff', self.versions)
+        select_diff_version_dialog.do_modal()
+        return select_diff_version_dialog.selected
 
 
 # def on_load_model(project):

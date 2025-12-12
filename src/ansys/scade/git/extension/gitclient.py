@@ -39,6 +39,7 @@ if site_user in sys.path:
 import dulwich as dulwich  # noqa: E402
 from dulwich import porcelain as git  # noqa: E402
 from dulwich.repo import Repo  # noqa: E402
+from dulwich.objects import Commit, Tag  # noqa: E402
 
 # minimum Dulwich version
 min_dulwich_ver = (0, 21, 3)
@@ -212,6 +213,51 @@ class GitClient(metaclass=ABCMeta):
             self.repo = None
             return False
 
+    def _walk_commits(self, commit_id, commits_dict):
+        """
+        Depth-first traversal, avoiding duplicates.
+        Fill commits_dict with commit_id: timestamp pairs.
+        """
+        if self.repo:
+            if commit_id in commits_dict:
+                return
+            try:
+                obj = self.repo[commit_id]
+                # Check if it's a Commit object
+                if isinstance(obj, Commit):
+                    commits_dict[commit_id] = obj.commit_time
+                    for parent_id in obj.parents:
+                        self._walk_commits(parent_id, commits_dict)
+            except KeyError:
+                pass  # Commit not found (edge case)
+
+    def get_commits_list(self) -> List[Tuple]:
+        """
+        Return the list of the repository's commits.
+        Commit is a tuple (commit_id, timestamp).
+        Commits are sorted by timestamp, newest first.
+
+        Returns
+        -------
+        List[Tuple]
+        """
+        all_commits = {}  # Use dict
+        if self.repo:
+            # Walk all refs (branches, tags, etc.)
+            for refname, refvalue in self.repo.refs.as_dict().items():
+                if refvalue:
+                    self._walk_commits(refvalue, all_commits)
+            
+        # Sort by timestamp (descending)
+        all_commits_list = sorted(all_commits.items(), key=lambda x: x[1], reverse=True)
+        # for testing
+        # fill list until 1000 entries
+        #for i in range(len(all_commits_list), 1000):
+        #    all_commits_list.append(all_commits_list[-1])
+        
+        # return 1000 newest commits
+        return all_commits_list[:1000]
+
     def get_branch_list(self) -> List[str]:
         """
         Return the list of the repository's branches.
@@ -220,7 +266,7 @@ class GitClient(metaclass=ABCMeta):
         -------
         List[str]
         """
-        if self.repo_path:
+        if self.repo:
             branches = git.branch_list(self.repo)
             branches = [x.decode('utf-8') for x in branches]
         else:
@@ -329,21 +375,21 @@ class GitClient(metaclass=ABCMeta):
         if self.repo:
             git.reset(self.repo, 'hard')
 
-    def archive(self, branch: str, file: str) -> bool:
+    def archive(self, committish:  str | bytes | Commit | Tag | None, file: str) -> bool:
         """
-        Archive a branch to a target file.
+        Archive a committish to a target file.
 
         Parameters
         ----------
-        branch : str
-            Name of the branch to archive
+        committish : str
+            Name of the committish to archive
         file : str
             Output file.
         """
         if self.repo:
             try:
                 with Path(file).open('wb') as f:
-                    git.archive(self.repo, branch, f)
+                    git.archive(self.repo, committish, f)
                 return True
             except BaseException as e:
                 self.log('Error archive: {0}'.format(e))

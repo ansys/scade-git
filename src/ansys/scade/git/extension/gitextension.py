@@ -131,10 +131,12 @@ class SelectDiffVersionDialog(Dialog):
 
     def on_build(self):
         """Build the dialog."""
-        self.list_versions = ListBox(self, self.versions[0][1], 15, 15, 200, 200, self.on_list_versions_selection)
+        self.list_versions = ListBox(self, self.versions[0][1], 15, 15, 200, 200, 
+                                     self.on_list_versions_selection)
         self.combobox_versions_types = ComboBox(self, self.version_types, 220, 15, 85, 25, 
-                                                on_change_selection = self.on_versions_type_change_selection,
-                                                selection = self.versions[0][0], style = ['visible', 'dropdownlist'])
+                                        on_change_selection = self.on_type_change_selection,
+                                        selection = self.versions[0][0], 
+                                        style = ['visible', 'dropdownlist'])
         Button(self, 'Diff', 220, 55, 85, 25, self.on_diff_click)
         Button(self, 'Cancel', 220, 95, 85, 25, self.on_cancel_click)
 
@@ -156,7 +158,7 @@ class SelectDiffVersionDialog(Dialog):
             self.selected[1] = -1
             log('Error: select only one branch: {0}'.format(selection))
 
-    def on_versions_type_change_selection(self, combo, index: int):
+    def on_type_change_selection(self, combo, index: int):
         """Store the selected version type."""
         self.selected[0] = index
         self.selected[1] = -1
@@ -218,7 +220,8 @@ class CmdDiff(CoreCmdDiff):
 
     def select_diff_version(self) -> List[int]:
         """Override default behavior."""
-        select_diff_version_dialog = SelectDiffVersionDialog('Select a version to diff', self.versions)
+        select_diff_version_dialog = SelectDiffVersionDialog('Select a version to diff',
+                                                              self.versions)
         select_diff_version_dialog.do_modal()
         return select_diff_version_dialog.selected
 

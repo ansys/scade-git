@@ -421,7 +421,8 @@ class CmdDiff(GitRepoCommand):
     """
     # list of all commits of type Commit
     commits_id = []
-    # versions is a list of all data to identify all versions from a specific type Branches, Commits, Tags
+    # versions is a list of all data to identify all versions from 
+    # a specific type Branches, Commits, Tags
     # each data element is a list of two elements:
         # type of versions: str (Branches, Commits, Tags)
         # list of versions: List[str]

@@ -23,7 +23,6 @@
 """SCADE custom extension for Git."""
 
 from typing import Any, List, Dict, Tuple
-from datetime import datetime
 #import ansys.scade.git.extension.debug_vsc
 
 # from scade.tool.suite.gui import register_load_model_callable, register_unload_model_callable

@@ -1,0 +1,109 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name="ansys-scade-git"
+version="0.1.dev0"
+description ="SCADE GUI extensions and command line utilities for Git."
+readme="README.rst"
+
+# only 3.7. and 3.10
+requires-python = ">=3.7,!=3.8.*,!=3.9.*,<3.11"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Ansys, Inc.", email = "pyansys.core@ansys.com"},
+]
+maintainers = [
+    {name = "Ansys, Inc.", email = "pyansys.core@ansys.com"},
+]
+dependencies=[
+    "importlib-metadata >= 1.0; python_version < '3.8'",
+    "importlib-metadata >= 4.0; python_version >= '3.8'",
+]
+classifiers=[
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+]
+keywords=["Scade", "Git", "CM", "Merge"]
+
+[project.optional-dependencies]
+build = [
+    "build==1.0.3",
+    "twine==4.0.2"
+]
+tests = [
+    "pytest==7.4.4",
+    "pytest-cov==4.1.0"
+]
+doc = [
+    "ansys-sphinx-theme==0.13.2",
+    "autodoc_pydantic==2.0.1",
+    "jupyter_sphinx==0.5.3",
+    "nbsphinx==0.9.3",
+    "numpydoc==1.6.0",
+    "sphinx==7.2.6",
+    "sphinx-autoapi==3.1.a2",
+    "sphinx-autodoc-typehints==1.25.3",
+    "sphinxcontrib-globalsubs==0.1.1",
+    "sphinxcontrib-httpdomain==1.8.1",
+    "sphinx-copybutton==0.5.2",
+    "sphinx_design==0.5.0",
+    "sphinx-jinja==2.0.2",
+    "sphinxnotes-strike==1.2.1",
+]
+
+
+[tool.flit.module]
+name = "ansys.scade.git"
+
+[project.urls]
+Source = "https://github.com/ansys/scade-git"
+Issues = "https://github.com/ansys/scade-git/issues"
+Discussions = "https://github.com/ansys/scade-git/discussions"
+Documentation = "https://git.scade.docs.pyansys.com"
+Releases = "https://github.com/ansys/scade-git/releases"
+Homepage = "https://www.ansys.com/products/embedded-software/ansys-scade-suite"
+
+
+[tool.ruff]
+line-length = 99
+select = [
+    "E",    # pycodestyle, see https://beta.ruff.rs/docs/rules/#pycodestyle-e-w
+    "D",    # pydocstyle, see https://beta.ruff.rs/docs/rules/#pydocstyle-d
+    "F",    # pyflakes, see https://beta.ruff.rs/docs/rules/#pyflakes-f
+    "I",    # isort, see https://beta.ruff.rs/docs/rules/#isort-i
+    "N",    # pep8-naming, see https://beta.ruff.rs/docs/rules/#pep8-naming-n
+]
+ignore = [
+    "E501",  # Line too long. Ignoring this so "ruff.formatter" manages line length.
+    "D203",  # One blank line required before class docstring.
+    "D204"  # One blank line required after class docstring.
+]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "tab"
+
+[tool.ruff.isort]
+combine-as-imports = true
+force-sort-within-sections = true
+known-first-party = ["ansys", "conftest", "test_utils"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["D",]
+
+[tool.coverage.run]
+source = ["ansys.scade"]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+addopts = "-ra --cov=ansys.scade --cov-report html:.cov/html --cov-branch --cov-report xml:.cov/xml --cov-report term -vv"

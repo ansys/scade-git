@@ -20,11 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import json
 from pathlib import Path
 import subprocess
 import tarfile
-from typing import Any, Dict, List
+from typing import Any, List
 
 import pytest
 import scade.model.project.stdproject as std
@@ -32,7 +31,8 @@ import scade.model.project.stdproject as std
 from ansys.scade.apitools import scade
 from ansys.scade.git.extension.gitclient import GitStatus
 import ansys.scade.git.extension.gitextcore as core
-from ansys.scade.git.extension.ide import Command, Ide
+from ansys.scade.guitools.command import Command
+from ansys.scade.guitools.stubs import StubIde
 from test_utils import cmp_file, get_resources_dir as get_tests_dir, run_git
 
 # local constants for conciseness
@@ -46,6 +46,31 @@ CLEAN = GitStatus.clean
 EXTERN = GitStatus.extern
 
 
+class TestIde(StubIde):
+    """SCADE IDE instantiation for unit tests."""
+
+    def browser_report(
+        self,
+        child_object: Any,
+        parent_object: Any = None,
+        expanded: bool = False,
+        user_data: Any = None,
+        name: str = '',
+        icon_file: str = '',
+    ):
+        """Stub scade.browser_report."""
+        # redefine generic implementation to get more readable names
+        if isinstance(child_object, str):
+            child = child_object
+        else:
+            assert isinstance(child_object, std.Project) or isinstance(child_object, std.FileRef)
+            child = '<%s> %s' % (
+                type(child_object).__name__,
+                name if name else child_object.pathname,
+            )
+        super().browser_report(child, parent_object, expanded, user_data, name, icon_file)
+
+
 def get_resources_dir() -> Path:
     """Return the resources directory for these tests."""
     return get_tests_dir() / 'extension' / 'resources'
@@ -56,75 +81,7 @@ def get_ref_dir() -> Path:
     return get_tests_dir() / 'extension' / 'ref'
 
 
-class StubIde(Ide):
-    """SCADE IDE instantiation for unit tests."""
-
-    def __init__(self):
-        self.project = None
-        self._selection = []
-        self.browser = None
-        self.browser_items: Dict[Any, Any] = {}
-
-    def create_browser(self, name: str, icon: str = ''):
-        """Stub scade.create_browser."""
-        self.browser = {'name': name, 'icon': Path(icon).name if icon else '', 'children': []}
-        self.browser_items = {None: self.browser}
-
-    def browser_report(
-        self,
-        item: Any,
-        parent: Any = None,
-        expanded: bool = False,
-        name: str = '',
-        icon_file: str = '',
-    ):
-        """Stub scade.browser_report."""
-        assert self.browser_items is not None
-        if isinstance(item, str):
-            child = item
-        else:
-            assert isinstance(item, std.Project) or isinstance(item, std.FileRef)
-            child = '<%s> %s' % (type(item).__name__, name if name else item.pathname)
-        parent = self.browser_items[parent]
-        entry = {
-            'name': child,
-            'icon': Path(icon_file).name if icon_file else '',
-            'expanded': expanded,
-            'children': [],
-        }
-        parent['children'].append(entry)
-        self.browser_items[child] = entry
-
-    @property
-    def selection(self) -> List[Any]:
-        """Stub scade.selection."""
-        return self._selection
-
-    @selection.setter
-    def selection(self, selection: List[Any]):
-        """Stub scade.selection."""
-        self._selection = selection
-
-    def get_active_project(self) -> std.Project:
-        """Stub scade.active_project."""
-        assert self.project is not None
-        return self.project
-
-    def get_projects(self) -> List[Any]:
-        """Stub scade.model.project.stdproject.get_roots."""
-        return [self.get_active_project()]
-
-    def log(self, text: str):
-        """Stub scade.tabput."""
-        print(text)
-
-    def save_browser(self, path: Path):
-        """Store the current browser as a json file."""
-        with path.open('w') as f:
-            json.dump(self.browser, f, indent='   ', sort_keys=True)
-
-
-_test_ide = StubIde()
+_test_ide = TestIde()
 
 
 @pytest.fixture(scope='function')

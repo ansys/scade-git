@@ -33,7 +33,8 @@ import scade
 from scade.model.project.stdproject import FileRef, Project
 
 from ansys.scade.git.extension.gitclient import GitClient, GitStatus
-from ansys.scade.git.extension.ide import Command, Ide
+from ansys.scade.guitools.command import Command
+from ansys.scade.guitools.ide import Ide
 
 # configuration parameters
 BrowserCat = {

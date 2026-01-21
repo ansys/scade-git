@@ -22,11 +22,8 @@
 
 """SCADE custom extension for Git."""
 
-from typing import Any, List
-
 # from scade.tool.suite.gui import register_load_model_callable, register_unload_model_callable
 import scade
-from scade.model.project.stdproject import Project, get_roots as get_projects
 from scade.tool.suite.gui.commands import ContextMenu, Menu, Toolbar
 from scade.tool.suite.gui.dialogs import Dialog, message_box
 from scade.tool.suite.gui.widgets import Button, EditBox, ListBox
@@ -43,50 +40,7 @@ from ansys.scade.git.extension.gitextcore import (
     CmdUnstageAll,
     set_git_client,
 )
-from ansys.scade.git.extension.ide import Ide
-
-
-class Studio(Ide):
-    """Provide an implementation for SCADE IDE."""
-
-    def create_browser(self, name: str, icon: str = ''):
-        """Redirect the call to SCADE IDE."""
-        # scade is a CPython module defined dynamically
-        scade.create_browser(name, icon)  # type: ignore
-
-    def browser_report(
-        self,
-        item: Any,
-        parent: Any = None,
-        expanded: bool = False,
-        name: str = '',
-        icon_file: str = '',
-    ):
-        """Redirect the call to SCADE IDE."""
-        # scade is a CPython module defined dynamically
-        if icon_file:
-            scade.browser_report(item, parent, expanded=expanded, name=name, icon_file=icon_file)  # type: ignore
-        else:
-            scade.browser_report(item, parent, expanded=expanded, name=name)  # type: ignore
-
-    @property
-    def selection(self) -> List[Any]:
-        """Redirect the call to SCADE IDE."""
-        # scade is a CPython module defined dynamically
-        return scade.selection  # type: ignore
-
-    def get_active_project(self) -> Project:
-        """Redirect the call to SCADE IDE."""
-        # scade is a CPython module defined dynamically
-        return scade.get_active_project()  # type: ignore
-
-    def get_projects(self) -> List[Any]:
-        """Redirect the call to the API."""
-        return get_projects()
-
-    def log(self, text: str):
-        """Redirect the call to the locall log function."""
-        log(text)
+from ansys.scade.guitools.studio import studio
 
 
 class GitClient(AbsGitClient):
@@ -218,7 +172,6 @@ set_git_client(git_client)
 
 if git_client.get_init_status():
     log('Loaded Git extension')
-    studio = Studio()
     cmd_refresh = CmdRefresh(studio)
     cmd_stage = CmdStage(studio)
     cmd_unstage = CmdUnstage(studio)

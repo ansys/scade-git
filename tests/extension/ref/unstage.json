@@ -7,129 +7,150 @@
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "removed.ico",
-                     "name": "<FileRef> Model/removed_staged.txt"
+                     "icon_file": "removed.ico",
+                     "name": "<FileRef> Model/removed_staged.txt",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "added.ico",
-                     "name": "<FileRef> Model/new.txt"
+                     "icon_file": "added.ico",
+                     "name": "<FileRef> Model/new.txt",
+                     "user_data": null
                   }
                ],
                "expanded": true,
-               "icon": "",
-               "name": "Staged files"
+               "icon_file": "",
+               "name": "Staged files",
+               "user_data": null
             },
             {
                "children": [
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "removed.ico",
-                     "name": "<FileRef> Model/removed_unstaged.txt"
+                     "icon_file": "removed.ico",
+                     "name": "<FileRef> Model/removed_unstaged.txt",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "modified.ico",
-                     "name": "<FileRef> Model/modified_unstaged.txt"
+                     "icon_file": "modified.ico",
+                     "name": "<FileRef> Model/modified_unstaged.txt",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "modified.ico",
-                     "name": "<FileRef> Model/modified_staged.txt"
+                     "icon_file": "modified.ico",
+                     "name": "<FileRef> Model/modified_staged.txt",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "untracked.ico",
-                     "name": "<FileRef> Model/untracked.txt"
+                     "icon_file": "untracked.ico",
+                     "name": "<FileRef> Model/untracked.txt",
+                     "user_data": null
                   }
                ],
                "expanded": true,
-               "icon": "",
-               "name": "Unstaged files"
+               "icon_file": "",
+               "name": "Unstaged files",
+               "user_data": null
             },
             {
                "children": [
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "clean.ico",
-                     "name": "<Project> Model/Model.etp"
+                     "icon_file": "clean.ico",
+                     "name": "<Project> Model/Model.etp",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "clean.ico",
-                     "name": "<FileRef> Model/Child/Child.xscade"
+                     "icon_file": "clean.ico",
+                     "name": "<FileRef> Model/Child/Child.xscade",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "clean.ico",
-                     "name": "<FileRef> Model/Root.xscade"
+                     "icon_file": "clean.ico",
+                     "name": "<FileRef> Model/Root.xscade",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "clean.ico",
-                     "name": "<FileRef> Model/P.xscade"
+                     "icon_file": "clean.ico",
+                     "name": "<FileRef> Model/P.xscade",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "clean.ico",
-                     "name": "Model/P.ann"
+                     "icon_file": "clean.ico",
+                     "name": "Model/P.ann",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "clean.ico",
-                     "name": "<FileRef> Model/Model.l4"
+                     "icon_file": "clean.ico",
+                     "name": "<FileRef> Model/Model.l4",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "clean.ico",
-                     "name": "<FileRef> Sibling/Macros.h"
+                     "icon_file": "clean.ico",
+                     "name": "<FileRef> Sibling/Macros.h",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "clean.ico",
-                     "name": "<FileRef> Model/commit.txt"
+                     "icon_file": "clean.ico",
+                     "name": "<FileRef> Model/commit.txt",
+                     "user_data": null
                   },
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "clean.ico",
-                     "name": "<FileRef> Model/reset.txt"
+                     "icon_file": "clean.ico",
+                     "name": "<FileRef> Model/reset.txt",
+                     "user_data": null
                   }
                ],
                "expanded": false,
-               "icon": "",
-               "name": "Clean files"
+               "icon_file": "",
+               "name": "Clean files",
+               "user_data": null
             },
             {
                "children": [
                   {
                      "children": [],
                      "expanded": false,
-                     "icon": "extern.ico",
-                     "name": "<FileRef> $(SCADE)\\libraries\\SC65\\libdigital\\libdigital.etp"
+                     "icon_file": "extern.ico",
+                     "name": "<FileRef> $(SCADE)\\libraries\\SC65\\libdigital\\libdigital.etp",
+                     "user_data": null
                   }
                ],
                "expanded": false,
-               "icon": "",
-               "name": "Extern files"
+               "icon_file": "",
+               "name": "Extern files",
+               "user_data": null
             }
          ],
          "expanded": true,
-         "icon": "",
-         "name": "branch: tests"
+         "icon_file": "",
+         "name": "branch: tests",
+         "user_data": null
       }
    ],
    "icon": "git.ico",

@@ -22,12 +22,13 @@
 
 """SCADE custom extension for Git."""
 
+from datetime import datetime
 import os
 from pathlib import Path
 import shutil
 import tarfile
 import tempfile
-from typing import Union
+from typing import List, Tuple, Union
 
 import scade
 from scade.model.project.stdproject import FileRef, Project
@@ -43,6 +44,20 @@ BrowserCat = {
     'Clean': 'Clean files',
     'Extern': 'Extern files',
 }
+
+
+def badpath(path: str, base: Path) -> bool:
+    """Return whether a file is external to the base hierarchy."""
+    # joinpath will ignore base if path is absolute
+    target = (base / path).resolve()
+    return not str(target).startswith(str(base))
+
+
+def badlink(info: tarfile.TarInfo, base: Path) -> bool:
+    """Return whether a link is external to the base hierarchy."""
+    # links are interpreted relative to the directory containing the link
+    path = (base / info.name).parent / info.linkname
+    return badpath(str(path), base)
 
 
 def create_temp_dir(folder: str):
@@ -406,6 +421,15 @@ class CmdDiff(GitRepoCommand):
         SCADE IDE environment.
     """
 
+    # list of all commits of type Commit
+    commits_id = []
+    # versions is a list of all data to identify all versions from
+    # a specific type Branches, Commits, Tags
+    # each data element is a list of two elements:
+    #   type of versions: str (Branches, Commits, Tags)
+    #   list of versions: List[str]
+    versions: List[Tuple[str, List[str]]] = []
+
     def __init__(self, ide: Ide):
         super().__init__(
             ide,
@@ -418,42 +442,80 @@ class CmdDiff(GitRepoCommand):
     def on_activate(self):
         """Run the command."""
         assert _git_client is not None  # nosec B101  # addresses linter
-        branch = self.select_branch()
-        if branch:
-            branch_path = "".join([c for c in branch if c.isalnum() or c in "._-"])
-            tmp_dir = create_temp_dir(
-                os.path.join('SCADE', 'git-diff', _git_client.repo_name, branch_path)
-            )
-            active_project = self.ide.get_projects()[0]
-            diff_project = tmp_dir / Path(active_project.pathname).relative_to(
-                _git_client.repo_path
-            )
-            # create a tar archive of the branch
-            archive_file = tmp_dir.with_suffix('.tar')
-            _git_client.archive(branch, str(archive_file))
-            if archive_file.exists():
-                # untar the archive in tmp_dir
-                tar_file = tarfile.open(archive_file)
-                safe_members = self.safe_members(tmp_dir, tar_file)
-                # the archive is built on the same repo a few lines above: its content is known
-                tar_file.extractall(tmp_dir, members=safe_members)  # nosec B202
-                tar_file.close()
-                # delete the tar archive"
-                archive_file.unlink()
-                # display the branch project to compare with the current
-                # project in the Git output tab
-                if diff_project.exists():
-                    self.ide.log(
-                        'Launch the Diff Analyzer tool with the project\n   {0}'.format(
-                            str(diff_project)
-                        )
-                    )
-                    # self.ide.log('module scade: {0}'.format(getmembers(scade.tool.suite.diff)))
-                    # scade.tool.suite.diff_analyze(active_project.pathname, diff_project.asposix())
+        # reset versions list
+        self.versions.clear()
+        self.commits_id.clear()
+        # get all branches
+        self.versions.append(("Branches", _git_client.get_branch_list()))
 
-    def select_branch(self) -> str:
+        # get all commits
+        self.versions.append(("Commits", []))
+        commits_id_date = _git_client.get_commits_list()
+        for commit_id, timestamp in commits_id_date:
+            self.commits_id.append(commit_id)
+            # Decode bytes to string
+            commit_id_str = commit_id.decode('utf-8') if isinstance(commit_id, bytes) else commit_id
+            date_str = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+            self.versions[-1][1].append(f"{commit_id_str[:8].ljust(10)}    {date_str}")
+
+        # get all tags
+        # TBD
+
+        selected = self.select_diff_version()
+        version_type_idx = selected[0]
+        version_id_idx = selected[1]
+        # check for cancel
+        if version_type_idx == -1 or version_id_idx == -1:
+            self.ide.log('Diff cancelled, no version selected')
+            return
+
+        version_type = self.versions[version_type_idx][0]
+        if version_type == "Branches":
+            version = self.versions[version_type_idx][1][version_id_idx]
+            version_path = "".join([c for c in version if c.isalnum() or c in "._-"])
+        elif version_type == "Commits":
+            version = self.commits_id[version_id_idx]
+            version_str = self.versions[version_type_idx][1][version_id_idx]
+            version_path = "".join([c for c in version_str[:8] if c.isalnum() or c in "._-"])
+        # elif version_type == "Tags":
+        #   TBD
+        else:
+            self.ide.log('Diff cancelled: version type not handled')
+            return
+
+        tmp_dir = create_temp_dir(
+            os.path.join('SCADE', 'git-diff', _git_client.repo_name, version_path)
+        )
+        active_project = self.ide.get_projects()[0]
+        diff_project = tmp_dir / Path(active_project.pathname).relative_to(_git_client.repo_path)
+
+        # create a tar archive of the version
+        archive_file = tmp_dir.with_suffix('.tar')
+        _git_client.archive(version, str(archive_file))
+        if archive_file.exists():
+            # untar the archive in tmp_dir
+            tar_file = tarfile.open(archive_file)
+            safe_members = self.safe_members(tmp_dir, tar_file)
+            # the archive is built on the same repo a few lines above: its content is known
+            tar_file.extractall(tmp_dir, members=safe_members)  # nosec B202
+            tar_file.close()
+            # delete the tar archive"
+            archive_file.unlink()
+            # display the version project to compare with the current
+            # project in the Git output tab
+            if diff_project.exists():
+                self.ide.log(
+                    'Launch the Diff Analyzer tool with the project\n   {0}'.format(
+                        str(diff_project)
+                    )
+                )
+                # self.ide.log('module scade: {0}'.format(getmembers(scade.tool.suite.diff)))
+                # scade.tool.suite.diff_analyze(active_project.pathname, diff_project.asposix())
+
+    def select_diff_version(self) -> List[int]:
         """Provide a default behavior for command line tools."""
-        return 'main'
+        # default value used by tests
+        return [0, 0]
 
     def safe_members(self, base: Path, tar_file: tarfile.TarFile):
         """
@@ -472,20 +534,6 @@ class CmdDiff(GitRepoCommand):
                 self.ide.log(f'{finfo.name} is blocked: hard link to {finfo.linkname}')
             else:
                 yield finfo
-
-
-def badpath(path: str, base: Path) -> bool:
-    """Return whether a file is external to the base hierarchy."""
-    # joinpath will ignore base if path is absolute
-    target = (base / path).resolve()
-    return not str(target).startswith(str(base))
-
-
-def badlink(info: tarfile.TarInfo, base: Path) -> bool:
-    """Return whether a link is external to the base hierarchy."""
-    # links are interpreted relative to the directory containing the link
-    path = (base / info.name).parent / info.linkname
-    return badpath(str(path), base)
 
 
 script_path = Path(__file__)

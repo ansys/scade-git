@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -38,8 +38,8 @@ if site_user in sys.path:
 
 import dulwich as dulwich  # noqa: E402
 from dulwich import porcelain as git  # noqa: E402
-from dulwich.repo import Repo  # noqa: E402
 from dulwich.objects import Commit, Tag  # noqa: E402
+from dulwich.repo import Repo  # noqa: E402
 
 # minimum Dulwich version
 min_dulwich_ver = (0, 21, 3)
@@ -253,14 +253,14 @@ class GitClient(metaclass=ABCMeta):
             for refname, refvalue in self.repo.refs.as_dict().items():
                 if refvalue:
                     self._walk_commits(refvalue, all_commits)
-            
+
         # Sort by timestamp (descending)
         all_commits_list = sorted(all_commits.items(), key=lambda x: x[1], reverse=True)
         # for testing
         # fill list until 1000 entries
-        #for i in range(len(all_commits_list), 1000):
+        # for i in range(len(all_commits_list), 1000):
         #    all_commits_list.append(all_commits_list[-1])
-        
+
         # return 1000 newest commits
         return all_commits_list[:1000]
 
@@ -381,7 +381,7 @@ class GitClient(metaclass=ABCMeta):
         if self.repo:
             git.reset(self.repo, 'hard')
 
-    def archive(self, committish:  str | bytes | Commit | Tag | None, file: str) -> bool:
+    def archive(self, committish: str | bytes | Commit | Tag | None, file: str) -> bool:
         """
         Archive a committish to a target file.
 

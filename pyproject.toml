@@ -18,8 +18,9 @@ maintainers = [
     {name = "Ansys, Inc.", email = "pyansys.core@ansys.com"},
 ]
 dependencies=[
-    "ansys-scade-apitools",
-    "dulwich==0.24.1",
+    "ansys-scade-apitools==0.6.2",
+    "ansys-scade-guitools==2.3.4",
+    "dulwich==0.24.10",
     "importlib-metadata >= 1.0; python_version < '3.8'",
     "importlib-metadata >= 4.0; python_version >= '3.8'",
     "lxml",
@@ -34,17 +35,17 @@ keywords=["Scade", "Git", "CM", "Merge"]
 
 [project.optional-dependencies]
 build = [
-    "build==1.3.0",
-    "twine==6.1.0"
+    "build==1.4.0",
+    "twine==6.2.0"
 ]
 tests = [
-    "pytest==8.4.1",
-    "pytest-cov==6.2.1"
+    "pytest==8.4.2",
+    "pytest-cov==7.0.0"
 ]
 doc = [
     "ansys-sphinx-theme==1.3.2",
     "jupyter_sphinx==0.5.3",
-    "nbsphinx==0.9.7",
+    "nbsphinx==0.9.8",
     "numpydoc==1.9.0",
     "sphinx==8.1.3",
     "sphinx-autodoc-typehints==3.0.1",

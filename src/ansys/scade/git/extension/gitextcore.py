@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -22,19 +22,20 @@
 
 """SCADE custom extension for Git."""
 
+from datetime import datetime
 import os
 from pathlib import Path
 import shutil
 import tarfile
 import tempfile
-from typing import Union, List, Tuple
-from datetime import datetime
+from typing import List, Tuple, Union
 
 import scade
 from scade.model.project.stdproject import FileRef, Project
 
 from ansys.scade.git.extension.gitclient import GitClient, GitStatus
-from ansys.scade.git.extension.ide import Command, Ide
+from ansys.scade.guitools.command import Command
+from ansys.scade.guitools.ide import Ide
 
 # configuration parameters
 BrowserCat = {
@@ -419,13 +420,14 @@ class CmdDiff(GitRepoCommand):
     ide : Studio
         SCADE IDE environment.
     """
+
     # list of all commits of type Commit
     commits_id = []
-    # versions is a list of all data to identify all versions from 
+    # versions is a list of all data to identify all versions from
     # a specific type Branches, Commits, Tags
     # each data element is a list of two elements:
-        # type of versions: str (Branches, Commits, Tags)
-        # list of versions: List[str]
+    #   type of versions: str (Branches, Commits, Tags)
+    #   list of versions: List[str]
     versions: List[Tuple[str, List[str]]] = []
 
     def __init__(self, ide: Ide):
@@ -464,9 +466,9 @@ class CmdDiff(GitRepoCommand):
         version_id_idx = selected[1]
         # check for cancel
         if version_type_idx == -1 or version_id_idx == -1:
-            self.ide.log('Diff cancelled, no version selected') 
+            self.ide.log('Diff cancelled, no version selected')
             return
-        
+
         version_type = self.versions[version_type_idx][0]
         if version_type == "Branches":
             version = self.versions[version_type_idx][1][version_id_idx]
@@ -475,19 +477,17 @@ class CmdDiff(GitRepoCommand):
             version = self.commits_id[version_id_idx]
             version_str = self.versions[version_type_idx][1][version_id_idx]
             version_path = "".join([c for c in version_str[:8] if c.isalnum() or c in "._-"])
-        #elif version_type == "Tags":
-            # TBD
+        # elif version_type == "Tags":
+        #   TBD
         else:
             self.ide.log('Diff cancelled: version type not handled')
             return
-        
+
         tmp_dir = create_temp_dir(
             os.path.join('SCADE', 'git-diff', _git_client.repo_name, version_path)
-            )
+        )
         active_project = self.ide.get_projects()[0]
-        diff_project = tmp_dir / Path(active_project.pathname).relative_to(
-            _git_client.repo_path
-            )
+        diff_project = tmp_dir / Path(active_project.pathname).relative_to(_git_client.repo_path)
 
         # create a tar archive of the version
         archive_file = tmp_dir.with_suffix('.tar')

@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -353,4 +353,3 @@ class TestGitClientRobustnessWrongRepo:
     def test_commit_list(self):
         commits = self.git_client.get_commits_list()
         assert commits == []
-

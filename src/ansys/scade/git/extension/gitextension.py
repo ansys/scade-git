@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -22,15 +22,14 @@
 
 """SCADE custom extension for Git."""
 
-from typing import Any, List, Dict, Tuple
-#import ansys.scade.git.extension.debug_vsc
+from typing import List, Tuple
 
+# import ansys.scade.git.extension.debug_vsc
 # from scade.tool.suite.gui import register_load_model_callable, register_unload_model_callable
 import scade
-from scade.model.project.stdproject import Project, get_roots as get_projects
 from scade.tool.suite.gui.commands import ContextMenu, Menu, Toolbar
 from scade.tool.suite.gui.dialogs import Dialog, message_box
-from scade.tool.suite.gui.widgets import Button, EditBox, ListBox, ComboBox
+from scade.tool.suite.gui.widgets import Button, ComboBox, EditBox, ListBox
 
 from ansys.scade.git.extension.gitclient import GitClient as AbsGitClient
 from ansys.scade.git.extension.gitextcore import (
@@ -44,50 +43,7 @@ from ansys.scade.git.extension.gitextcore import (
     CmdUnstageAll,
     set_git_client,
 )
-from ansys.scade.git.extension.ide import Ide
-
-
-class Studio(Ide):
-    """Provide an implementation for SCADE IDE."""
-
-    def create_browser(self, name: str, icon: str = ''):
-        """Redirect the call to SCADE IDE."""
-        # scade is a CPython module defined dynamically
-        scade.create_browser(name, icon)  # type: ignore
-
-    def browser_report(
-        self,
-        item: Any,
-        parent: Any = None,
-        expanded: bool = False,
-        name: str = '',
-        icon_file: str = '',
-    ):
-        """Redirect the call to SCADE IDE."""
-        # scade is a CPython module defined dynamically
-        if icon_file:
-            scade.browser_report(item, parent, expanded=expanded, name=name, icon_file=icon_file)  # type: ignore
-        else:
-            scade.browser_report(item, parent, expanded=expanded, name=name)  # type: ignore
-
-    @property
-    def selection(self) -> List[Any]:
-        """Redirect the call to SCADE IDE."""
-        # scade is a CPython module defined dynamically
-        return scade.selection  # type: ignore
-
-    def get_active_project(self) -> Project:
-        """Redirect the call to SCADE IDE."""
-        # scade is a CPython module defined dynamically
-        return scade.get_active_project()  # type: ignore
-
-    def get_projects(self) -> List[Any]:
-        """Redirect the call to the API."""
-        return get_projects()
-
-    def log(self, text: str):
-        """Redirect the call to the locall log function."""
-        log(text)
+from ansys.scade.guitools.studio import studio
 
 
 class GitClient(AbsGitClient):
@@ -116,6 +72,7 @@ def log(text: str):
 
 class SelectDiffVersionDialog(Dialog):
     """Custom dialog for selecting a version: branch, commit, ..."""
+
     combobox_versions_types: ComboBox = None
     list_versions: ListBox = None
     versions: List[Tuple[str, List[str]]] = []
@@ -130,12 +87,20 @@ class SelectDiffVersionDialog(Dialog):
 
     def on_build(self):
         """Build the dialog."""
-        self.list_versions = ListBox(self, self.versions[0][1], 15, 15, 200, 200, 
-                                     self.on_list_versions_selection)
-        self.combobox_versions_types = ComboBox(self, self.version_types, 220, 15, 85, 25, 
-                                        on_change_selection = self.on_type_change_selection,
-                                        selection = self.versions[0][0], 
-                                        style = ['visible', 'dropdownlist'])
+        self.list_versions = ListBox(
+            self, self.versions[0][1], 15, 15, 200, 200, self.on_list_versions_selection
+        )
+        self.combobox_versions_types = ComboBox(
+            self,
+            self.version_types,
+            220,
+            15,
+            85,
+            25,
+            on_change_selection=self.on_type_change_selection,
+            selection=self.versions[0][0],
+            style=['visible', 'dropdownlist'],
+        )
         Button(self, 'Diff', 220, 55, 85, 25, self.on_diff_click)
         Button(self, 'Cancel', 220, 95, 85, 25, self.on_cancel_click)
 
@@ -219,8 +184,9 @@ class CmdDiff(CoreCmdDiff):
 
     def select_diff_version(self) -> List[int]:
         """Override default behavior."""
-        select_diff_version_dialog = SelectDiffVersionDialog('Select a version to diff',
-                                                              self.versions)
+        select_diff_version_dialog = SelectDiffVersionDialog(
+            'Select a version to diff', self.versions
+        )
         select_diff_version_dialog.do_modal()
         return select_diff_version_dialog.selected
 
@@ -238,7 +204,6 @@ set_git_client(git_client)
 
 if git_client.get_init_status():
     log('Loaded Git extension')
-    studio = Studio()
     cmd_refresh = CmdRefresh(studio)
     cmd_stage = CmdStage(studio)
     cmd_unstage = CmdUnstage(studio)

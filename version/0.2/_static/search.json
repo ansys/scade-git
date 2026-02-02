@@ -1,0 +1,268 @@
+[
+    {
+        "objectID": "getting_started/index",
+        "href": "getting_started/index.html#getting-started",
+        "title": "Getting started",
+        "section": "Getting started",
+        "text": "To use Ansys SCADE Git Extensions, you must have a valid license for Ansys SCADE.\nFor information on getting a licensed copy, see the\nAnsys SCADE Suite\npage on the Ansys website.\nGetting started"
+    },
+    {
+        "objectID": "getting_started/index",
+        "href": "getting_started/index.html#requirements",
+        "title": "Getting started > Requirements",
+        "section": "Requirements",
+        "text": "The ansys-scade-git package supports only the versions of Python delivered with\nAnsys SCADE, starting from 2021 R2:\n2021 R2 through 2023 R1: Python 3.7\n2023 R2 and later: Python 3.10\nRequirements\nansys-scade-git"
+    },
+    {
+        "objectID": "getting_started/index",
+        "href": "getting_started/index.html#install-in-user-mode",
+        "title": "Getting started > Install in user mode",
+        "section": "Install in user mode",
+        "text": "The following steps are necessary for installing Ansys SCADE Git Extensions in user mode. If you want to\ncontribute to Ansys SCADE Git Extensions, see contribute_scade_git for installing in developer mode.\nBefore installing Ansys SCADE Git Extensions in user mode, run this command to ensure that\nyou have the latest version of pip:\nInstall Ansys SCADE Git Extensions with this command:\nComplete the installation with this command:\nInstall in user mode"
+    },
+    {
+        "objectID": "merge-tools/etp",
+        "href": "merge-tools/etp.html#project-file",
+        "title": "Project file",
+        "section": "Project file",
+        "text": "Project file"
+    },
+    {
+        "objectID": "merge-tools/etp",
+        "href": "merge-tools/etp.html#overview",
+        "title": "Project file > Overview",
+        "section": "Overview",
+        "text": "The project files (ETP) are XML files with locally unique identifiers which\nmust be considered for merging.\nThe etpmerge utility merges two Ansys SCADE project files derived from a common ancestor.\nNon-conflicting changes are merged automatically in the output file.\nAny conflicts are reported at the end of the file for manual analysis and resolution.\nThis is most useful when models are versioned in a configuration management tool such as Git.\nTo minimize conflicts, the algorithm is aware of identifiers and semantic properties,\nsuch as the uniqueness of configuration names or file paths.\nOverview\netpmerge"
+    },
+    {
+        "objectID": "merge-tools/etp",
+        "href": "merge-tools/etp.html#conflict-resolution",
+        "title": "Project file > Conflict resolution",
+        "section": "Conflict resolution",
+        "text": "Conflicts are always resolved using current branch changes. Each conflict is\nalso reported at the end of the file, after the XML tree, and includes the\nfollowing information:\nContext: tag, id or name of the object. For clarity, this context\nincludes the context of the owner for properties\nLocal attribute values\nRemote attribute values\nEach report must be manually analyzed. If remote changes are to be kept, the\nreport includes enough information to manually apply these changes in the file.\nThen, deleting the conflict report block marks the conflict as resolved.\nConflict resolution\ntag\nid\nname"
+    },
+    {
+        "objectID": "merge-tools/etp",
+        "href": "merge-tools/etp.html#conflict-reporting-pattern",
+        "title": "Project file > Conflict reporting pattern",
+        "section": "Conflict reporting pattern",
+        "text": "Below are some samples for different conflict types.\nConflict reporting pattern"
+    },
+    {
+        "objectID": "merge-tools/etp",
+        "href": "merge-tools/etp.html#attribute-conflict",
+        "title": "Project file > Attribute conflict",
+        "section": "Attribute conflict",
+        "text": "XML attributes have conflicting values for a node in the model.\nE.g.: Attributes name and extensions are in conflict:\nAttribute conflict\nname\nextensions"
+    },
+    {
+        "objectID": "merge-tools/etp",
+        "href": "merge-tools/etp.html#hierarchy-conflict",
+        "title": "Project file > Hierarchy conflict",
+        "section": "Hierarchy conflict",
+        "text": "An element was moved to different places in both projects.\nE.g.: The folder Runtime Files was moved to folder C Files locally,\nand moved as a root folder of the project remotely:\nHierarchy conflict\nRuntime Files\nC Files"
+    },
+    {
+        "objectID": "merge-tools/etp",
+        "href": "merge-tools/etp.html#property-conflict",
+        "title": "Project file > Property conflict",
+        "section": "Property conflict",
+        "text": "A property has conflicting values.\nE.g.: The value of property @GENERATOR:ROOTNODE is in conflict:\nNote: The context contains the owner of the property, which is the project in this example.\nProperty conflict\n@GENERATOR:ROOTNODE"
+    },
+    {
+        "objectID": "index",
+        "href": "index.html#ansys-scade-git-extensions",
+        "title": "Ansys SCADE Git Extensions",
+        "section": "Ansys SCADE Git Extensions",
+        "text": "Ansys SCADE Git Extensions is a collection of utilities for Git in a SCADE environment.\nMerge tools can be used with any version control system.\nLearn how to install SCADE Git Extensions.\nLearn how to contribute to SCADE Git Extensions documentation.\nFor information on available extensions and how to use them,\nsee each of the following:\nUnderstand how to use SCADE Suite custom extensions for Git.\nUnderstand how to use command line merge tools for Git or other configuration\nmanagement tools.\nAnsys SCADE Git Extensions"
+    },
+    {
+        "objectID": "index",
+        "href": "index.html#search",
+        "title": "Ansys SCADE Git Extensions > Search",
+        "section": "Search",
+        "text": "search\nSearch"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#contribute",
+        "title": "Contribute",
+        "section": "Contribute",
+        "text": "Overall guidance on contributing to a PyAnsys library appears in\nContributing\nin the PyAnsys developer’s guide. Ensure that you are thoroughly familiar\nwith this guide before attempting to contribute to Ansys SCADE Git Extensions.\nThe following contribution information is specific to Ansys SCADE Git Extensions.\nContribute"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#install-in-developer-mode",
+        "title": "Contribute > Install in developer mode",
+        "section": "Install in developer mode",
+        "text": "Installing Ansys SCADE Git Extensions in developer mode allows you to modify the\nsource and enhance it.\nClone the ansys-scade-git repository:\nAccess the scade-git directory where the repository has been cloned:\nCreate a clean Python 3.10 environment and activate it:\nYou should use the interpreter delivered with Ansys SCADE. For example,\nC:\\Program Files\\ANSYS Inc\\v241\\SCADE\\contrib\\Python310\\python.exe.\nMake sure that you have the latest required build system, documentation, testing,\nand CI tools:\nInstall the project in editable mode:\nConfigure the project:\nUse tox to verify your development installation:\nInstall in developer mode\nansys-scade-git\nscade-git\nC:\\Program Files\\ANSYS Inc\\v241\\SCADE\\contrib\\Python310\\python.exe"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#test",
+        "title": "Contribute > Test",
+        "section": "Test",
+        "text": "Ansys SCADE Git Extensions uses tox for testing. This tool allows you to\nautomate common development tasks (similar to Makefile), but it is oriented\ntowards Python development.\nTest\nMakefile"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#use-tox",
+        "title": "Contribute > Use tox",
+        "section": "Use tox",
+        "text": "While Makefile has rules, tox has environments. In fact, tox creates its\nown virtual environment so that anything being tested is isolated from the project\nto guarantee the project’s integrity.\nThe following tox commands are provided:\ntox -e style: Checks for coding style quality.\ntox -e py: Checks for unit tests.\ntox -e py-coverage: Checks for unit testing and code coverage.\ntox -e doc-html: Checks for the documentation-building process.\nUse tox\ntox\nMakefile\ntox\ntox\ntox\ntox -e style\ntox -e py\ntox -e py-coverage\ntox -e doc-html"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#use-raw-testing",
+        "title": "Contribute > Use raw testing",
+        "section": "Use raw testing",
+        "text": "If required, from the command line, you can call style commands like\nblack, isort, and flake8. You can also call unit testing commands like pytest.\nHowever, running these commands does not guarantee that your project is being tested in an\nisolated environment, which is the reason why tools like tox exist.\nUse raw testing\ntox"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#use-pre-commit",
+        "title": "Contribute > Use pre-commit",
+        "section": "Use pre-commit",
+        "text": "Ansys SCADE Git Extensions follows the PEP8 standard as outlined in\nPEP 8 in\nthe PyAnsys developer’s guide and implements style checking using\npre-commit.\nTo ensure your code meets minimum code styling standards, run these commands:\nYou can also install this as a pre-commit hook by running this command:\nThis way, it’s not possible for you to push code that fails the style checks:\nUse pre-commit\npre-commit"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#build-documentation",
+        "title": "Contribute > Build documentation",
+        "section": "Build documentation",
+        "text": "For building documentation, you can run the usual rules provided in the\nSphinx make file. Here are some examples:\nHowever, the recommended way for checking documentation integrity is to use\ntox:\nBuild documentation\nmake\ntox"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#distribute",
+        "title": "Contribute > Distribute",
+        "section": "Distribute",
+        "text": "If you would like to create either source or wheel files, start by installing\nthe building requirements and then executing the build module:\nDistribute"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#post-issues",
+        "title": "Contribute > Post issues",
+        "section": "Post issues",
+        "text": "Use the Ansys SCADE Git Extensions Issues\npage to submit questions, report bugs, and request new features. When possible, use\nthese templates:\nBug, problem, error: For filing a bug report\nDocumentation error: For requesting modifications to the documentation\nAdding an example: For proposing a new example\nNew feature: For requesting enhancements to the code\nIf your issue does not fit into one of these template categories, click\nthe link for opening a blank issue.\nTo reach the project support team, email pyansys.core@ansys.com.\nPost issues"
+    },
+    {
+        "objectID": "gui-extensions/index",
+        "href": "gui-extensions/index.html#gui-extensions",
+        "title": "GUI extensions",
+        "section": "GUI extensions",
+        "text": "GUI extensions"
+    },
+    {
+        "objectID": "gui-extensions/index",
+        "href": "gui-extensions/index.html#purpose",
+        "title": "GUI extensions > Purpose",
+        "section": "Purpose",
+        "text": "This is a demonstrator for Git support in SCADE.\nIt adds Git commands to the SCADE IDE.\nPurpose"
+    },
+    {
+        "objectID": "gui-extensions/index",
+        "href": "gui-extensions/index.html#features",
+        "title": "GUI extensions > Features",
+        "section": "Features",
+        "text": "The Git extension supports several commands:\nRefresh: Update the Git status of all project files.\nNote: You must save the SCADE project before so that Git can detect changes.\nStage selected files or all unstaged files: Add files to the Git staging area.\nUnstage selected files or all staged files: Remove files from the Git staging area.\nReset All: Discard all changes and reset the Git repository to the last commit of the current branch.\nCommit: Commit files in the staging area.\nDiff: Select a version of the project and copy it to a temporary folder to launch the SCADE Diff Merge tool.\nFeatures"
+    },
+    {
+        "objectID": "gui-extensions/index",
+        "href": "gui-extensions/index.html#git-browser",
+        "title": "GUI extensions > Git browser",
+        "section": "Git browser",
+        "text": "It lists the Git status for each file of the SCADE project.\nThe update (Refresh command) is not automatic and must be done after each save of the project.\nThe name of the top-level folder mentions the current branch.\nGit browser"
+    },
+    {
+        "objectID": "gui-extensions/index",
+        "href": "gui-extensions/index.html#git-menu",
+        "title": "GUI extensions > Git menu",
+        "section": "Git menu",
+        "text": "All preceding actions are available in a Git menu or in the Git toolbar:\nActions on selected files are available in a Git contextual menu:\nGit menu"
+    },
+    {
+        "objectID": "gui-extensions/index",
+        "href": "gui-extensions/index.html#git-commit",
+        "title": "GUI extensions > Git commit",
+        "section": "Git commit",
+        "text": "An edit box allows to enter the commit message:\nGit commit"
+    },
+    {
+        "objectID": "gui-extensions/index",
+        "href": "gui-extensions/index.html#git-diff-merge",
+        "title": "GUI extensions > Git diff merge",
+        "section": "Git diff merge",
+        "text": "A dialog lists all available branches in Git.\nOnce you select one branch and click Diff, the extension copies this project\nversion in a temporary folder and lists the path in the Git messages window.\nYou must add this project to the workspace and manually launch the\nDiff Analyzer to start a diff merge session.\nThere is no script access to this IDE command at this time to completely\nautomate the process.\nThe temporary folder must be manually cleaned if you need to free disk space.\nIt is located in %LOCALAPPDATA%\\temp\\SCADE\\git-diff\\<git repository name>\\<branch name (only alpha num char, no spaces)>\nGit diff merge\n%LOCALAPPDATA%\\temp\\SCADE\\git-diff\\<git repository name>\\<branch name (only alpha num char, no spaces)>"
+    },
+    {
+        "objectID": "changelog",
+        "href": "changelog.html#release-notes",
+        "title": "Release notes",
+        "section": "Release notes",
+        "text": "This document contains the release notes for the project.\nRelease notes"
+    },
+    {
+        "objectID": "changelog",
+        "href": "changelog.html#020---march-21-2025",
+        "title": "Release notes > 0.2.0 - March 21, 2025",
+        "section": "0.2.0 - March 21, 2025",
+        "text": "feat: Add register and unregister entry points for Extensions Manager\n#49\nfix: Limit flit version\n#48\nbuild(deps): bump the dependencies group with 4 updates\n#40\nbuild(deps): bump the dependencies group with 5 updates\n#41\nbuild(deps): bump the dependencies group with 2 updates\n#43\nbuild(deps): bump the dependencies group with 3 updates\n#45\nbuild(deps): bump ansys-sphinx-theme from 1.2.6 to 1.3.2 in the dependencies group\n#46\nchore: update CHANGELOG for v0.1.3\n#38\nci: Upload the coverage results\n#28\nbuild(deps): bump codecov/codecov-action from 4 to 5 in the actions group\n#42\nci: Fix steps for creating a release\n#47\nbuild(deps): bump the dependencies group with 3 updates\n#44\n0.2.0 - March 21, 2025"
+    },
+    {
+        "objectID": "changelog",
+        "href": "changelog.html#013---2024-09-26",
+        "title": "Release notes > 0.1.3 - 2024-09-26",
+        "section": "0.1.3 - 2024-09-26",
+        "text": "0.1.3 - 2024-09-26"
+    },
+    {
+        "objectID": "changelog",
+        "href": "changelog.html#fixed",
+        "title": "Release notes > Fixed",
+        "section": "Fixed",
+        "text": "fix: Make sure the directory %APPDATA%SCADECustomize exists when registering the package #31\nfix:add changelog action in cicd #34\nfix: The package is not loaded by SCADE 2024 R2 #36\nfix: Update the change log only when creating a new release #37\nFixed"
+    },
+    {
+        "objectID": "changelog",
+        "href": "changelog.html#documentation",
+        "title": "Release notes > Documentation",
+        "section": "Documentation",
+        "text": "maint: technical review #25\ndocs: Add the parameter –user in the pip install command line #33\nDocumentation"
+    },
+    {
+        "objectID": "changelog",
+        "href": "changelog.html#maintenance",
+        "title": "Release notes > Maintenance",
+        "section": "Maintenance",
+        "text": "ci: use trusted publishers #26\nci: remove the artifact examples #27\nMaintenance"
+    },
+    {
+        "objectID": "merge-tools/almgt",
+        "href": "merge-tools/almgt.html#alm-gateway-files-for-non-exported-traceability-links",
+        "title": "ALM Gateway files for non-exported traceability links",
+        "section": "ALM Gateway files for non-exported traceability links",
+        "text": "ALM Gateway files for non-exported traceability links"
+    },
+    {
+        "objectID": "merge-tools/almgt",
+        "href": "merge-tools/almgt.html#overview",
+        "title": "ALM Gateway files for non-exported traceability links > Overview",
+        "section": "Overview",
+        "text": "The ALM Gateway files (ALMGT) about non-exported traceability links are temporary XML\nfiles that store traceability edits not yet exported to an ALM tool.\nThey are usually not tracked in version control systems, but there may exist\nsome use cases where this is required. The XML syntax does not allow automatic\nmerging: The almgtmerge utility merges two ALMGT files derived from a\ncommon ancestor.\nOverview\nalmgtmerge"
+    },
+    {
+        "objectID": "merge-tools/almgt",
+        "href": "merge-tools/almgt.html#conflict-resolution",
+        "title": "ALM Gateway files for non-exported traceability links > Conflict resolution",
+        "section": "Conflict resolution",
+        "text": "N/A: The semantics of ALMGT files prevents any conflict when merging two files.\nConflict resolution"
+    },
+    {
+        "objectID": "merge-tools/index",
+        "href": "merge-tools/index.html#merge-tools",
+        "title": "Merge tools",
+        "section": "Merge tools",
+        "text": "The Ansys SCADE Git Extensions merge tools address Ansys SCADE files where\ndefault textual merge is not appropriate.\nThey merge files derived from a common ancestor, using the merge 3\ntechnique, and are intended to be used as part of the merge feature of a\nversion control system such as Git.\nThe post-installation step of this package registers the tools to Git.\nIf you are using a different version control system, please refer to its\ndocumentation for declaring the merge tools. They all have the following\ninterface:\nMerge tools"
+    }
+]

@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -22,11 +22,8 @@
 
 """SCADE custom extension for Git."""
 
-from typing import Any, List
-
 # from scade.tool.suite.gui import register_load_model_callable, register_unload_model_callable
 import scade
-from scade.model.project.stdproject import Project, get_roots as get_projects
 from scade.tool.suite.gui.commands import ContextMenu, Menu, Toolbar
 from scade.tool.suite.gui.dialogs import Dialog, message_box
 from scade.tool.suite.gui.widgets import Button, EditBox, ListBox
@@ -37,53 +34,13 @@ from ansys.scade.git.extension.gitextcore import (
     CmdDiff as CoreCmdDiff,
     CmdRefresh,
     CmdReset,
-    CmdResetAll as CoreCmdResetAll,
     CmdStage,
     CmdStageAll,
     CmdUnstage,
     CmdUnstageAll,
     set_git_client,
 )
-from ansys.scade.git.extension.ide import Ide
-
-
-class Studio(Ide):
-    """Provide an implementation for SCADE IDE."""
-
-    def create_browser(self, name: str, icon: str = None):
-        """Redirect the call to SCADE IDE."""
-        scade.create_browser(name, icon)
-
-    def browser_report(
-        self,
-        item: Any,
-        parent: Any = None,
-        expanded: bool = False,
-        name: str = '',
-        icon_file: str = '',
-    ):
-        """Redirect the call to SCADE IDE."""
-        if icon_file:
-            scade.browser_report(item, parent, expanded=expanded, name=name, icon_file=icon_file)
-        else:
-            scade.browser_report(item, parent, expanded=expanded, name=name)
-
-    @property
-    def selection(self) -> List[Any]:
-        """Redirect the call to SCADE IDE."""
-        return scade.selection
-
-    def get_active_project(self) -> Project:
-        """Redirect the call to SCADE IDE."""
-        return scade.get_active_project()
-
-    def get_projects(self) -> List[Any]:
-        """Redirect the call to the API."""
-        return get_projects()
-
-    def log(self, text: str):
-        """Redirect the call to the locall log function."""
-        log(text)
+from ansys.scade.guitools.studio import studio
 
 
 class GitClient(AbsGitClient):
@@ -106,7 +63,8 @@ def log(text: str):
         Message to display.
     """
     if text:
-        scade.tabput("LOG", "Git Extension - " + text + "\n")
+        # scade is a CPython module defined dynamically
+        scade.tabput("LOG", "Git Extension - " + text + "\n")  # type: ignore
 
 
 class SelectBranchDialog(Dialog):
@@ -114,7 +72,7 @@ class SelectBranchDialog(Dialog):
 
     def __init__(self, name):
         super().__init__(name, 300, 200)
-        self.branch = None
+        self.branch = ''
 
     def on_build(self):
         """Build the dialog."""
@@ -129,7 +87,7 @@ class SelectBranchDialog(Dialog):
 
     def on_cancel_click(self, button):
         """Cancel the dialog."""
-        self.branch = None
+        self.branch = ''
         self.close()
 
     def on_list_branch_selection(self, list, index):
@@ -146,7 +104,7 @@ class CommitDialog(Dialog):
 
     def __init__(self, name):
         super().__init__(name, 600, 200)
-        self.commit_text = None
+        self.commit_text = ''
 
     def on_build(self):
         """Build the dialog."""
@@ -157,7 +115,9 @@ class CommitDialog(Dialog):
     def on_close_click(self, button):
         """Close the dialog if the message is not empty."""
         if self.editbox:
-            commit_text = self.editbox.get_name().strip()
+            # Edit.get_name(): wrong typing annotation
+            value: str = self.editbox.get_name()  # type: ignore
+            commit_text = value.strip()
             if commit_text != '':
                 self.commit_text = commit_text
                 self.close()
@@ -167,20 +127,6 @@ class CommitDialog(Dialog):
     def on_cancel_click(self, button):
         """Cancel the dialog."""
         self.close()
-
-
-class CmdResetAll(CoreCmdResetAll):
-    """SCADE Command: Reset All."""
-
-    def confirm_reset(self) -> bool:
-        """Override default behavior."""
-        confirm = message_box(
-            'Confirm Reset',
-            'Do you really want to reset the Git repo?',
-            style='yesno',
-            icon='warning',
-        )
-        return confirm == 6
 
 
 class CmdCommit(CoreCmdCommit):
@@ -226,14 +172,12 @@ set_git_client(git_client)
 
 if git_client.get_init_status():
     log('Loaded Git extension')
-    studio = Studio()
     cmd_refresh = CmdRefresh(studio)
     cmd_stage = CmdStage(studio)
     cmd_unstage = CmdUnstage(studio)
     cmd_reset = CmdReset(studio)
     cmd_stage_all = CmdStageAll(studio)
     cmd_unstage_all = CmdUnstageAll(studio)
-    cmd_reset_all = CmdResetAll(studio)
     cmd_commit = CmdCommit(studio)
     cmd_diff = CmdDiff(studio)
 

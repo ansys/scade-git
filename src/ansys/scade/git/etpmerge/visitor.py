@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -30,7 +30,8 @@ class Visit:
 
     def visit(self, project_entity: std.ProjectEntity):
         """Entry point of the visit."""
-        eval("self.%s(project_entity)" % _map_visit_functions[type(project_entity)])
+        fct = getattr(type(self), _map_visit_functions[type(project_entity)])
+        fct(self, project_entity)
 
     def visit_annotable(self, annotable: std.Annotable):
         """Visit function for Annotable."""

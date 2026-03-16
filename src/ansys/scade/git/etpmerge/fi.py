@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -132,7 +132,8 @@ def copy_prop(prop: std.Prop, owner: std.Annotable) -> std.Prop:
         configuration = prop.configuration._local
     else:
         configuration = None
-    copy = create_prop(owner, configuration, prop.name, prop.values)
+    # typing annotation incorrect for configuration
+    copy = create_prop(owner, configuration, prop.name, prop.values)  # type: ignore
     copy._base = prop._base
     prop._local = copy
     return copy

@@ -49,6 +49,8 @@ EXTERN = GitStatus.extern
 class TestIde(StubIde):
     """SCADE IDE instantiation for unit tests."""
 
+    __test__ = False
+
     def browser_report(
         self,
         child_object: Any,
@@ -245,8 +247,9 @@ def test_safe_members(tmpdir_factory, capsys):
     archive = tree_dir / 'archive.zip'
     tar_file = tarfile.open(archive, 'w:gz')
     for path in root_dir.glob('*'):
-        tar_file.add(path, arcname=path.name)
-    tar_file.add(extern_txt, arcname='../extern.txt')
+        # 3.7 does not accept path-like objects
+        tar_file.add(str(path), arcname=path.name)
+    tar_file.add(str(extern_txt), arcname='../extern.txt')
     tar_file.close()
 
     # read the outputs issued before the test, if any

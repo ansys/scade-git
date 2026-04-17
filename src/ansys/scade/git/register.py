@@ -45,6 +45,7 @@ def git_config() -> bool:
     """
 
     def register_driver(id: str, name: str, path: str, trust_exit: str) -> bool:
+        """Register a diff driver to Git."""
         status = True
         for param, value in [('name', name), ('driver', path), ('trustExitCode', trust_exit)]:
             cmd = ['git', 'config', '--global', 'merge.%s.%s' % (id, param), value]

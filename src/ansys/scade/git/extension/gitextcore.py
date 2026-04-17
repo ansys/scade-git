@@ -22,7 +22,6 @@
 
 """SCADE custom extension for Git."""
 
-import os
 from pathlib import Path
 import shutil
 import tarfile
@@ -159,7 +158,7 @@ def refresh_browser(ide: Ide):
             # not possible as the repo can contain several SCADE projects
 
             return
-            # todo: symbol file has no absolute path, relative to the project ?
+            # symbol file has no absolute path, relative to the project ?
             for session in scade.model.suite.get_roots():
                 # symbols files
                 model = session.model
@@ -421,9 +420,7 @@ class CmdDiff(GitRepoCommand):
         branch = self.select_branch()
         if branch:
             branch_path = "".join([c for c in branch if c.isalnum() or c in "._-"])
-            tmp_dir = create_temp_dir(
-                os.path.join('SCADE', 'git-diff', _git_client.repo_name, branch_path)
-            )
+            tmp_dir = create_temp_dir(f'SCADE/git-diff/{_git_client.repo_name}/{branch_path})')
             active_project = self.ide.get_projects()[0]
             diff_project = tmp_dir / Path(active_project.pathname).relative_to(
                 _git_client.repo_path

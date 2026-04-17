@@ -92,7 +92,7 @@ line-length = 100
 fix = true
 
 [tool.ruff.format]
-quote-style = "single"
+quote-style = "preserve"  # sync: skip
 indent-style = "space"
 
 [tool.ruff.lint]

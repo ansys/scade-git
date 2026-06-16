@@ -34,13 +34,6 @@ def get_resources_dir() -> Path:
     return script_path.parent
 
 
-def cmp_log(log_file, lines) -> bool:
-    """Return True if the file is identical to a list of strings."""
-    log_lines = list(open(log_file))
-    log_lines = [line.strip('\n') for line in log_lines]
-    return log_lines == lines
-
-
 def cmp_file(fromfile: Path, tofile: Path, n=3, linejunk=None):
     """Return the differences between two files."""
     with fromfile.open() as fromf, tofile.open() as tof:

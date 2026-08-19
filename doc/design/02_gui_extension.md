@@ -2,8 +2,8 @@
 
 ## Component Overview
 
-**Component:** SCADE IDE Git Extension  
-**Modules:** `ansys.scade.git.extension.gitextcore`, `ansys.scade.git.extension.gitextension`  
+**Component:** SCADE IDE Git Extension
+**Modules:** `ansys.scade.git.extension.gitextcore`, `ansys.scade.git.extension.gitextension`
 **Primary Files:**
 - `src/ansys/scade/git/extension/gitextcore.py` - Core command implementations
 - `src/ansys/scade/git/extension/gitextension.py` - IDE-specific integration
@@ -88,17 +88,17 @@ Ide (Abstract Base Class)
 **Structure:**
 ```python
 class Command(metaclass=ABCMeta):
-    def __init__(self, ide: Ide, name: str, status_message: str, 
+    def __init__(self, ide: Ide, name: str, status_message: str,
                  tooltip_message: str, image_file: str):
         self.ide = ide
         self.name = name
         # ...
-    
+
     @abstractmethod
     def on_activate(self):
         """Execute the command"""
         pass
-    
+
     def on_enable(self) -> bool:
         """Determine if command should be enabled"""
         return True
@@ -125,19 +125,19 @@ class Command(metaclass=ABCMeta):
 class Ide(metaclass=ABCMeta):
     @abstractmethod
     def log(self, text: str): pass
-    
+
     @abstractmethod
     def get_active_project(self) -> Project: pass
-    
+
     @abstractmethod
     def get_projects(self) -> List[Project]: pass
-    
+
     @abstractmethod
     def create_browser(self, name: str, icon: str): pass
-    
+
     @abstractmethod
     def browser_report(self, item, category, **kwargs): pass
-    
+
     # ... other abstract methods
 ```
 
@@ -275,32 +275,32 @@ FOR EACH Project in SCADE workspace:
 1. Validate preconditions:
    - Active project exists
    - Git repository found
-   
+
 2. Initialize GitClient:
    - Call gitclient.refresh(project_path)
    - Get current branch name
-   
+
 3. Create/clear browser:
    - Create "Git" browser if not exists
    - Create branch node and categories
    - Clear all file status lists
-   
+
 4. Collect SCADE project files:
    projects = []
    FOR EACH project in workspace:
        a. Add project file to browser
        b. Get git status for project file
        c. Categorize and add to appropriate category
-       
+
        FOR EACH file_ref in project:
            i. Add file to browser
            ii. Get git status for file
            iii. Categorize and add to appropriate category
-           
+
            iv. IF file is .xscade:
                - Check for .ann file
                - IF exists: Add .ann to browser with status
-   
+
 5. Update browser UI:
    - Expand staged/unstaged categories
    - Collapse clean/extern categories
@@ -501,7 +501,7 @@ Extension Lifecycle:
 Initialize → Register → Activate → [Operations] → Deactivate
 
 Operations Cycle:
-Idle → Refresh → Display Status → User Action → Update Git → 
+Idle → Refresh → Display Status → User Action → Update Git →
 Refresh → Display Status → Idle
 ```
 
@@ -637,10 +637,10 @@ class MockIde(Ide):
     def __init__(self):
         self.log_messages = []
         self.browser_items = []
-    
+
     def log(self, text):
         self.log_messages.append(text)
-    
+
     def browser_report(self, item, category, **kwargs):
         self.browser_items.append((item, category))
 ```

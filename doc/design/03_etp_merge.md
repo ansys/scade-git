@@ -2,8 +2,8 @@
 
 ## Component Overview
 
-**Component:** ETP Three-Way Merge Tool  
-**Module:** `ansys.scade.git.etpmerge`  
+**Component:** ETP Three-Way Merge Tool
+**Module:** `ansys.scade.git.etpmerge`
 **Primary Files:**
 - `src/ansys/scade/git/etpmerge/etpmerge3.py` - Main merge algorithm
 - `src/ansys/scade/git/etpmerge/cache.py` - Entity caching and base resolution
@@ -171,11 +171,11 @@ Save & Report
 ```
 FOR EACH entity in remote:
     base_entity = find_base_by_id(entity.id)
-    
+
     IF base_entity exists:
         # Entity existed in base
         local_entity = find_local_by_id(base_entity.id)
-        
+
         IF local_entity exists:
             # Modified in both → Merge or conflict
             merge_entity(local_entity, entity, base_entity)
@@ -185,7 +185,7 @@ FOR EACH entity in remote:
     ELSE:
         # Created in remote
         local_entity = find_local_by_name(entity.name)
-        
+
         IF local_entity exists AND local_entity._base is None:
             # Created in both with same name → Conflict
             report_conflict("Created in both branches")
@@ -272,19 +272,19 @@ class Visit:
         # Dynamic dispatch to appropriate visit method
         fct = getattr(type(self), _map_visit_functions[type(project_entity)])
         fct(self, project_entity)
-    
+
     def visit_project(self, project):
         # Process project-level attributes
         for configuration in project.configurations:
             self.visit(configuration)
         for root in project.roots:
             self.visit(root)
-    
+
     def visit_folder(self, folder):
         # Process folder
         for element in folder.elements:
             self.visit(element)
-    
+
     # ... other visit methods
 ```
 
@@ -337,8 +337,8 @@ class Visit:
 conflicts = [
     (context, local_change, remote_change),
     # Example:
-    ("FileRef 'model.xscade' (id=100)", 
-     "→ local: deleted", 
+    ("FileRef 'model.xscade' (id=100)",
+     "→ local: deleted",
      "→ remote: property 'checked' added")
 ]
 ```
@@ -405,15 +405,15 @@ def copy_folder(folder, owner):
 1. **Configurations** (top-level)
    - Independent of file structure
    - Needed before property merges
-   
+
 2. **Folders** (recursive, depth-first)
    - Establish hierarchy first
    - Creates folders before adding files
-   
+
 3. **File References**
    - Add/delete files after folder structure ready
    - Move files to correct folders
-   
+
 4. **Properties** (recursive)
    - Merge after all entities exist
    - Configuration references must be valid
@@ -462,7 +462,7 @@ def copy_folder(folder, owner):
 
 3. Merge folder hierarchy (recursive):
    local_folders = merge_folders(remote)
-   
+
 4. Delete obsolete folders:
    FOR EACH local_folder:
        IF local_folder not in local_folders AND local_folder._base exists:
@@ -490,7 +490,7 @@ def copy_folder(folder, owner):
 ```
 merge_folders(remote_owner) → Set[local_folders]:
     locals = Set()
-    
+
     FOR EACH remote_folder IN remote_owner.folders (sorted by name):
         # Resolve local folder
         IF remote_folder._base exists:
@@ -501,13 +501,13 @@ merge_folders(remote_owner) → Set[local_folders]:
         ELSE:
             # Created in remote
             local_folder = find_local_by_name(remote_folder.name)
-        
+
         # Apply changes
         IF local_folder exists:
             # Link remote to local
             remote_folder._local = local_folder
             locals.add(local_folder)
-            
+
             # Merge attributes
             IF remote_folder.name != local_folder.name:
                 IF local_folder._base.name == local_folder.name:
@@ -519,7 +519,7 @@ merge_folders(remote_owner) → Set[local_folders]:
                 ELSE:
                     # Both renamed → conflict
                     report_conflict(...)
-            
+
             # Recurse into subfolders
             child_locals = merge_folders(remote_folder)
             locals.update(child_locals)
@@ -535,7 +535,7 @@ merge_folders(remote_owner) → Set[local_folders]:
                 locals.add(local_folder)
                 # Recurse to copy children
                 merge_folders(remote_folder)
-    
+
     RETURN locals
 ```
 
@@ -553,11 +553,11 @@ merge_folders(remote_owner) → Set[local_folders]:
 ```
 FOR EACH remote_folder IN remote.all_folders:
     local_folder = remote_folder._local
-    
+
     IF local_folder is None:
         # Folder deleted locally, skip files
         CONTINUE
-    
+
     FOR EACH remote_file IN remote_folder.file_refs:
         # Resolve local file
         IF remote_file._base exists:
@@ -568,12 +568,12 @@ FOR EACH remote_folder IN remote.all_folders:
         ELSE:
             # Created in remote
             local_file = find_local_by_pathname(remote_file.pathname)
-        
+
         # Apply changes
         IF local_file exists:
             # Link
             remote_file._local = local_file
-            
+
             # Check if moved
             IF local_file.owner != local_folder:
                 # File moved
@@ -586,10 +586,10 @@ FOR EACH remote_folder IN remote.all_folders:
                 ELSE:
                     # Both moved to different locations → conflict
                     report_conflict(...)
-            
+
             # Merge pathname
             merge_attribute(remote_file, local_file, 'pathname')
-            
+
             # Merge other attributes
             merge_attribute(remote_file, local_file, 'persist_as')
             # ... etc
@@ -601,7 +601,7 @@ FOR EACH remote_folder IN remote.all_folders:
             ELSE:
                 # Added in remote → copy
                 copy_file_ref(remote_file, local_folder)
-    
+
     # Handle deletions
     FOR EACH local_file IN local_folder.file_refs:
         IF local_file._base exists:
@@ -621,13 +621,13 @@ FOR EACH remote_folder IN remote.all_folders:
 ```
 merge_properties(remote_entity):
     local_entity = remote_entity._local
-    
+
     IF local_entity is None:
         RETURN  # Entity deleted locally
-    
+
     FOR EACH remote_prop IN remote_entity.props:
         prop_key = (remote_prop.name, remote_prop.configuration.id)
-        
+
         # Resolve local property
         IF remote_prop._base exists:
             local_prop = find_local_by_id(remote_prop._base.id)
@@ -636,7 +636,7 @@ merge_properties(remote_entity):
         ELSE:
             # Created in remote
             local_prop = local_entity._map_props.get(prop_key)
-        
+
         # Apply changes
         IF local_prop exists:
             # Merge value
@@ -658,7 +658,7 @@ merge_properties(remote_entity):
             ELSE:
                 # Added in remote → copy
                 copy_prop(remote_prop, local_entity)
-    
+
     # Handle deletions
     FOR EACH local_prop IN local_entity.props:
         IF local_prop._base exists:
@@ -666,7 +666,7 @@ merge_properties(remote_entity):
             IF not remote_prop:
                 # Deleted in remote → delete locally
                 delete_prop(local_prop)
-    
+
     # Recurse for entities with children
     IF remote_entity is Folder:
         FOR EACH remote_child IN remote_entity.elements:
@@ -685,11 +685,11 @@ merge_attribute(remote, local, attr_name):
     remote_value = getattr(remote, attr_name)
     local_value = getattr(local, attr_name)
     base_value = getattr(remote._base, attr_name)
-    
+
     IF remote_value == local_value:
         # No conflict (same or both unchanged)
         RETURN
-    
+
     IF base_value == local_value:
         # Only remote changed
         setattr(local, attr_name, remote_value)
@@ -780,7 +780,7 @@ def merge3(self, pathname: str) -> bool:
         context += '\nManual merge required\n'
         context += traceback.format_exc()
         self.conflicts.append((context, '→ local <unknown>', '→ remote <unknown>'))
-    
+
     self.save(pathname)
     return len(self.conflicts) == 0
 ```
@@ -869,30 +869,30 @@ If conflicts:
    - Verify ID mappings built correctly
    - Verify base linkage established
    - Test with missing entities
-   
+
 2. **Configuration Merge Tests**
    - Add configuration in remote
    - Delete configuration in local
    - Rename configuration in both
-   
+
 3. **Folder Merge Tests**
    - Create folder in remote
    - Move folder in local
    - Rename folder in both
    - Delete folder in one branch
-   
+
 4. **File Merge Tests**
    - Add file in remote
    - Delete file in local
    - Move file between folders
    - Modify file properties
-   
+
 5. **Property Merge Tests**
    - Modify property value
    - Add property in remote
    - Delete property in local
    - Change property in both
-   
+
 6. **Conflict Tests**
    - Delete-modify conflicts
    - Rename-rename conflicts
@@ -925,15 +925,15 @@ def test_merge_case(case_dir):
     base = load_project(case_dir / 'base.etp')
     local = load_project(case_dir / 'local.etp')
     remote = load_project(case_dir / 'remote.etp')
-    
+
     # Perform merge
     merger = EtpMerge3(local, remote, base)
     success = merger.merge3(case_dir / 'result.etp')
-    
+
     # Validate
     expected = load_project(case_dir / 'expected.etp')
     assert projects_equal(local, expected)
-    
+
     if (case_dir / 'expected.conflicts').exists():
         assert not success
         assert conflicts_match(merger.conflicts, case_dir / 'expected.conflicts')

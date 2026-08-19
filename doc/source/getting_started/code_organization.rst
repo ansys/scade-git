@@ -95,10 +95,10 @@ Component Overview
 
    Ide (Abstract)
    └── Studio (SCADE implementation)
-   
+
    GitClient (Abstract)
    └── StudioGitClient (SCADE implementation)
-   
+
    Command (Abstract)
    ├── CmdRefresh
    └── GitRepoCommand (Abstract)
@@ -191,7 +191,7 @@ Component Overview
 .. code-block:: text
 
    Merged = (Local - Base) ∪ (Remote - Base)
-   
+
    1. Parse XML files
    2. Build dictionaries:
       - Object ID → Requirements
@@ -223,7 +223,7 @@ Package configuration using modern Python packaging:
        "dulwich==0.24.1",
        "lxml",
    ]
-   
+
    [project.scripts]
    etpmerge = "ansys.scade.git.etpmerge.__main__:main"
    almgtmerge = "ansys.scade.git.almgtmerge.__main__:main"
@@ -342,7 +342,7 @@ GUI Extension
    → Create Studio instance
    → Register Git browser
    → Add menus and commands
-   
+
    User Action (e.g., "Stage All")
    → Command.on_activate()
    → CmdStageAll.on_activate()
@@ -425,10 +425,10 @@ Example:
 
    def stage(self, files: List[str]) -> None:
        """Stage files for commit.
-       
+
        Args:
            files: List of file paths to stage.
-           
+
        Raises:
            GitError: If files cannot be staged.
        """
@@ -470,11 +470,11 @@ All Git commands follow this pattern:
    class CmdMyCommand(GitRepoCommand):
        def __init__(self, ide: Ide, *args, **kwargs):
            super().__init__(ide, *args, **kwargs)
-       
+
        def on_enable(self) -> bool:
            """Return True if command should be enabled."""
            return super().on_enable()  # Checks for valid repo
-       
+
        def on_activate(self):
            """Execute the command."""
            # Implementation here

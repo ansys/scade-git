@@ -2,9 +2,9 @@
 
 ## Component Overview
 
-**Component:** Git Client  
-**Module:** `ansys.scade.git.extension.gitclient`  
-**Primary File:** `src/ansys/scade/git/extension/gitclient.py`  
+**Component:** Git Client
+**Module:** `ansys.scade.git.extension.gitclient`
+**Primary File:** `src/ansys/scade/git/extension/gitclient.py`
 **Purpose:** Provides a Python abstraction layer for Git operations using the Dulwich library to manage SCADE project repositories.
 
 ## Responsibilities
@@ -104,13 +104,13 @@ def find_git_repo(local_proj_path: str) -> str:
     d = Path(local_proj_path)
     root = Path(d.root)
     disk = d.anchor
-    
+
     while d != root and str(d) != disk:
         repo_path = d / '.git'
         if repo_path.is_dir():
             return str(d)
         d = d.parent
-    
+
     return ''
 ```
 
@@ -227,7 +227,7 @@ def __init__(self):
 
 **Purpose:** Create a new commit with staged changes.
 
-**Input:** 
+**Input:**
 - message: Commit message text
 - author: Author name and email
 - committer: Committer name and email
@@ -338,12 +338,12 @@ SCADE IDE → GitExtension → GitClient → Dulwich → .git/
 1. **Initialization Errors**
    - Dulwich version mismatch → Disable extension, log error
    - Repository not found → Return empty status, log info
-   
+
 2. **Operation Errors**
    - File outside repository → Mark as extern, continue
    - Permission denied → Log error, skip file
    - Disk full → Fail operation, rollback if possible
-   
+
 3. **State Errors**
    - Merge conflicts → Disable certain operations, show warning
    - Detached HEAD → Allow read operations, warn on write

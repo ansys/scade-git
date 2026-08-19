@@ -70,10 +70,10 @@ Run tests by directory:
 
    # Extension tests
    pytest tests/extension/
-   
+
    # ETP merge tests
    pytest tests/etpmerge/
-   
+
    # ALMGT merge tests
    pytest tests/almgtmerge/
 
@@ -101,7 +101,7 @@ View the report:
 
    # Windows
    start htmlcov/index.html
-   
+
    # Linux/Mac
    open htmlcov/index.html
 
@@ -181,15 +181,15 @@ Example:
 .. code-block:: python
 
    # tests/extension/test_gitclient.py
-   
+
    def test_find_git_repo():
        """Test repository discovery."""
        pass
-   
+
    def test_get_file_status():
        """Test file status retrieval."""
        pass
-   
+
    class TestGitClient:
        def test_init(self):
            """Test GitClient initialization."""
@@ -206,10 +206,10 @@ Follow the **Arrange-Act-Assert** pattern:
        # Arrange: Set up test data
        client = MockGitClient()
        file_path = "test.etp"
-       
+
        # Act: Execute the operation
        client.stage([file_path])
-       
+
        # Assert: Verify the result
        status = client.get_file_status(file_path)
        assert status == GitStatus.added
@@ -244,7 +244,7 @@ Git client tests use real Git repositories in temporary directories:
    import pytest
    from pathlib import Path
    from ansys.scade.git.extension.gitclient import find_git_repo, GitStatus
-   
+
    def test_find_git_repo(tmp_path):
        """Test Git repository discovery."""
        # Create repo structure
@@ -252,11 +252,11 @@ Git client tests use real Git repositories in temporary directories:
        repo_path.mkdir()
        git_dir = repo_path / ".git"
        git_dir.mkdir()
-       
+
        # Test discovery
        project_path = repo_path / "subdir" / "project.etp"
        project_path.parent.mkdir()
-       
+
        found = find_git_repo(str(project_path))
        assert found == str(repo_path)
 
@@ -268,16 +268,16 @@ Since SCADE API requires SCADE Suite, mock it in tests:
 .. code-block:: python
 
    from unittest.mock import Mock, MagicMock
-   
+
    def test_ide_integration():
        # Mock SCADE IDE
        mock_ide = Mock()
        mock_ide.get_active_project.return_value = Mock(pathname="/path/to/project.etp")
-       
+
        # Test with mock
        command = CmdRefresh(mock_ide, "Refresh", "", "", "")
        command.on_activate()
-       
+
        # Verify interactions
        mock_ide.log.assert_called()
 
@@ -315,7 +315,7 @@ Basic merge test structure:
    import pytest
    from pathlib import Path
    from ansys.scade.git.etpmerge.etpmerge3 import merge3
-   
+
    def test_nominal_merge():
        """Test merge of non-conflicting changes."""
        # Arrange: Get test files
@@ -323,10 +323,10 @@ Basic merge test structure:
        local = "tests/etpmerge/resources/Nominal/local.etp"
        remote = "tests/etpmerge/resources/Nominal/remote.etp"
        expected = "tests/etpmerge/resources/Nominal/expected.etp"
-       
+
        # Act: Perform merge
        result = merge3(base, local, remote)
-       
+
        # Assert: Check result
        assert result == 0  # Success
        assert files_equal(local, expected)
@@ -343,7 +343,7 @@ Test merge conflict detection:
        base = "tests/etpmerge/resources/DelBoth/base.etp"
        local = "tests/etpmerge/resources/DelBoth/local.etp"
        remote = "tests/etpmerge/resources/DelBoth/remote.etp"
-       
+
        # Merge should report conflict
        result = merge3(base, local, remote)
        assert result == 1  # Conflict detected
@@ -370,13 +370,13 @@ Writing ALMGT Tests
 .. code-block:: python
 
    from ansys.scade.git.almgtmerge.almgtmerge3 import merge3
-   
+
    def test_almgt_merge():
        """Test ALMGT traceability merge."""
        base = "tests/almgtmerge/resources/Nominal/base.almgt"
        local = "tests/almgtmerge/resources/Nominal/local.almgt"
        remote = "tests/almgtmerge/resources/Nominal/remote.almgt"
-       
+
        result = merge3(base, local, remote)
        assert result == 0  # Always succeeds (conflict-free)
 
@@ -419,7 +419,7 @@ Write Clear Tests
        client = create_test_client()
        client.stage(["file.etp"])
        assert client.get_file_status("file.etp") == GitStatus.added
-   
+
    # Bad: Unclear test
    def test_stage():
        c = get_client()
@@ -437,11 +437,11 @@ Each test should verify one behavior:
    def test_stage_file():
        client.stage(["file.etp"])
        assert client.get_file_status("file.etp") == GitStatus.added
-   
+
    def test_unstage_file():
        client.unstage(["file.etp"])
        assert client.get_file_status("file.etp") == GitStatus.modified_unstaged
-   
+
    # Bad: Tests multiple things
    def test_stage_and_unstage():
        client.stage(["file.etp"])
@@ -456,12 +456,12 @@ Use Descriptive Assertions
 
    # Good: Clear assertion message
    assert result == expected, f"Expected {expected}, got {result}"
-   
+
    # Good: Use specific assertions
    assert len(files) == 3
    assert "test.etp" in files
    assert files[0].startswith("/path")
-   
+
    # Bad: Generic assertion
    assert x
 
@@ -504,10 +504,10 @@ Run tests as CI does:
 
    # Run all tests with coverage
    pytest --cov=ansys.scade.git --cov-report=term-missing
-   
+
    # Check code style
    ruff check src/
-   
+
    # Format code
    ruff format src/
 
@@ -521,7 +521,7 @@ Verbose Output
 
    # Show print statements
    pytest -s
-   
+
    # Show full diff on assertion failures
    pytest -vv
 

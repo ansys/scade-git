@@ -155,11 +155,13 @@ def refresh_browser(ide: Ide):
             for project in ide.get_projects():
                 project_path = Path(project.pathname).resolve()
 
-                # for project file already added as a library in another project, do not report it again
+                # for project file already added as a library in another project,
+                # do not report it again
                 if not is_already_reported(project_path):
                     project_files.append(report_item(ide, project))
 
-                # for files registered in the project, do not report files that are part of a submodule
+                # for files registered in the project,
+                # do not report files that are part of a submodule
                 if _git_client.is_submodule_file(project_path):
                     continue
 
@@ -500,7 +502,9 @@ class CmdDiff(GitRepoCommand):
             os.path.join('SCADE', 'git-diff', _git_client.repo_name, version_path)
         )
         active_project = self.ide.get_projects()[0]
-        diff_project = tmp_dir / Path(os.path.relpath(active_project.pathname, _git_client.repo_path))
+        diff_project = tmp_dir / Path(
+            os.path.relpath(active_project.pathname, _git_client.repo_path)
+        )
 
         # create a tar archive of the version
         archive_file = tmp_dir.with_suffix('.tar')

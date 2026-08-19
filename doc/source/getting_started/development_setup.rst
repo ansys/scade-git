@@ -9,7 +9,7 @@ Prerequisites
 Before setting up the development environment:
 
 * **Python**: Version 3.7 or 3.10 (matching your SCADE version)
-  
+
   - SCADE 2021 R2 through 2023 R1: Python 3.7
   - SCADE 2023 R2 and later: Python 3.10
 
@@ -39,7 +39,7 @@ Create a virtual environment with the correct Python version:
 
    # For Python 3.7 (SCADE 2021 R2 - 2023 R1)
    python3.7 -m venv .venv37
-   
+
    # For Python 3.10 (SCADE 2023 R2+)
    python3.10 -m venv .venv310
 
@@ -67,7 +67,7 @@ Alternatively, use Conda:
    # For Python 3.7
    conda create -n scade-git-dev python=3.7
    conda activate scade-git-dev
-   
+
    # For Python 3.10
    conda create -n scade-git-dev python=3.10
    conda activate scade-git-dev
@@ -98,11 +98,11 @@ Verify the installation:
 
    # Check package is installed
    python -m pip show ansys-scade-git
-   
+
    # Verify merge tools are available
    python -m ansys.scade.git.etpmerge --version
    python -m ansys.scade.git.almgtmerge --version
-   
+
    # Check entry points
    etpmerge --version
    almgtmerge --version
@@ -203,7 +203,7 @@ To test merge tools without Git:
    python -m ansys.scade.git.etpmerge tests/etpmerge/resources/Nominal/base.etp \
        tests/etpmerge/resources/Nominal/local.etp \
        tests/etpmerge/resources/Nominal/remote.etp
-   
+
    # Test ALMGT merge
    python -m ansys.scade.git.almgtmerge tests/almgtmerge/resources/Nominal/base.almgt \
        tests/almgtmerge/resources/Nominal/local.almgt \
@@ -231,10 +231,10 @@ Run specific test files:
 
    # Test Git client
    pytest tests/extension/test_gitclient.py
-   
+
    # Test ETP merge
    pytest tests/etpmerge/test_merge.py
-   
+
    # Test ALMGT merge
    pytest tests/almgtmerge/test_almgt_merge.py
 
@@ -307,7 +307,7 @@ View the documentation:
 
    # Windows
    start _build/html/index.html
-   
+
    # Linux/Mac
    open _build/html/index.html
 

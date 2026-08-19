@@ -44,10 +44,10 @@ Create a ``.gitattributes`` file in your SCADE project repository root to config
 
    # SCADE project files
    *.etp merge=etpmerge
-   
+
    # SCADE traceability files
    *.almgt merge=almgtmerge
-   
+
    # Prevent Git from treating these as binary
    *.etp -binary
    *.almgt -binary
@@ -58,7 +58,7 @@ Configure Git to use the custom merge tools:
 
    git config merge.etpmerge.name "SCADE ETP Merge Tool"
    git config merge.etpmerge.driver "etpmerge %O %A %B"
-   
+
    git config merge.almgtmerge.name "SCADE ALMGT Merge Tool"
    git config merge.almgtmerge.driver "almgtmerge %O %A %B"
 
@@ -128,7 +128,7 @@ Once files are staged:
 #. A dialog appears with three fields:
 
    * **Message**: Describe your changes (required)
-   * **Author**: Name and email (e.g., "John Doe <john@example.com>")
+   * **Author**: Name and email (for example: "John Doe <john@example.com>")
    * **Committer**: Usually same as author
 
 #. Fill in the commit message
@@ -139,7 +139,7 @@ Example commit message:
 .. code-block:: text
 
    Add safety monitoring operator
-   
+
    - Implemented threshold checking
    - Added alarm states
    - Updated project configuration
@@ -210,7 +210,7 @@ To compare branches or commits:
 #. Select **Tools → Git → Diff**
 #. A dialog prompts for:
 
-   * **Branch/Commit**: What to compare (e.g., ``main``, ``HEAD~1``)
+   * **Branch/Commit**: What to compare (for example: ``main``, ``HEAD~1``)
    * **Export Path**: Where to export the files
 
 #. Click **OK**
@@ -240,13 +240,13 @@ Feature Branch Workflow
 
    # Create feature branch
    git checkout -b feature/my-feature
-   
+
    # Make changes in SCADE
    # Use Git browser to stage and commit
-   
+
    # Push feature branch
    git push -u origin feature/my-feature
-   
+
    # Merge via pull request or locally:
    git checkout main
    git merge feature/my-feature
@@ -258,11 +258,11 @@ Collaborative Workflow
 
    # Update from remote
    git pull origin main
-   
+
    # If merge conflicts in .etp/.almgt files:
    # - Merge tools automatically resolve most conflicts
    # - Manual conflicts are reported in console
-   
+
    # Continue working in SCADE
    # Stage and commit your changes
 
@@ -304,7 +304,7 @@ Merge Tool Not Working
 If merge tools aren't invoked:
 
 #. Verify ``.gitattributes`` configuration
-#. Check Git config:
+#. Check Git configuration:
 
    .. code-block:: bash
 

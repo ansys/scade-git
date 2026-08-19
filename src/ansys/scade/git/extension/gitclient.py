@@ -322,7 +322,7 @@ class GitClient(metaclass=ABCMeta):
                     abspath = Path(self.repo_path) / path
                 status = self.files_status.get(index_file_name, None)
                 if not status:
-                    #self.log("not status: %s %s" % (abspath, abspath.exists()))
+                    # self.log("not status: %s %s" % (abspath, abspath.exists()))
                     if abspath.exists():
                         if self.is_submodule_file(abspath):
                             status = GitStatus.extern
@@ -336,7 +336,9 @@ class GitClient(metaclass=ABCMeta):
         else:
             return '', GitStatus.none
 
-    def get_submodule_paths(self, committish: str | bytes | Commit | Tag | None = None) -> List[str]:
+    def get_submodule_paths(
+        self, committish: str | bytes | Commit | Tag | None = None
+    ) -> List[str]:
         """Return the list of absolute submodule paths for a commit."""
         if not self.repo or not self.repo_path:
             return []
@@ -354,12 +356,12 @@ class GitClient(metaclass=ABCMeta):
         ]
 
     def is_submodule_file(self, path: Path) -> bool:
+        """Return whether a path is a submodule or belongs to one."""
         normalized = os.path.normcase(str(path.resolve()))
         for submodule_path in self.submodules_paths:
             normalized_submodule = os.path.normcase(str(submodule_path))
-            if (
-                normalized == normalized_submodule
-                or normalized.startswith(normalized_submodule + os.sep)
+            if normalized == normalized_submodule or normalized.startswith(
+                normalized_submodule + os.sep
             ):
                 return True
         return False

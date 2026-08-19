@@ -2,9 +2,9 @@
 
 ## Component Overview
 
-**Component:** ALMGT Three-Way Merge Tool  
-**Module:** `ansys.scade.git.almgtmerge`  
-**Primary File:** `src/ansys/scade/git/almgtmerge/almgtmerge3.py`  
+**Component:** ALMGT Three-Way Merge Tool
+**Module:** `ansys.scade.git.almgtmerge`
+**Primary File:** `src/ansys/scade/git/almgtmerge/almgtmerge3.py`
 **Purpose:** Perform automatic three-way merges of SCADE traceability files (.almgt) during Git merge operations, with conflict-free resolution.
 
 ## Responsibilities
@@ -238,7 +238,7 @@ class LLR:
         self.id = id          # Cached OID
         self.path = path      # Cached SCADE path
         self.edits = {}       # requirement_id → XML element
-    
+
     def parse(self, elem):
         """Parse XML element and build edits dictionary"""
         self.elem = elem
@@ -248,7 +248,7 @@ class LLR:
             req_id = req_elem.get('id', '0')
             self.edits[req_id] = req_elem
         return self
-    
+
     def is_empty(self):
         """Check if LLR has any traceability links"""
         return len(self.edits) == 0
@@ -281,31 +281,31 @@ Traceability links have no dependencies:
 ```python
 def merge(self, other, base):
     # Modify self (local) to include changes from other (remote)
-    
+
     # Phase 1: Add remote additions
     for otherllr in other.llrs.values():
         selfllr = self.llrs.get(otherllr.id)
         basellr = base.llrs.get(otherllr.id)
-        
+
         # Compute remote additions: other - base
         if basellr:
             for hlr in list(otherllr.edits.keys()):
                 if hlr in basellr.edits:
                     otherllr.edits.pop(hlr)  # Remove base links
-        
+
         # Apply remote additions to local
         if not selfllr and not otherllr.is_empty():
             selfllr = LLR(otherllr.id, otherllr.path)
             selfllr.create_elem(self.tree.getroot())
             self.llrs[selfllr.id] = selfllr
-        
+
         if selfllr:
             for hlr, elem in otherllr.edits.items():
                 if hlr not in selfllr.edits:
                     # Add new link to XML
-                    et.SubElement(selfllr.elem, 'requirement', 
+                    et.SubElement(selfllr.elem, 'requirement',
                                   {'id': hlr, 'traceType': elem.get('traceType')})
-    
+
     # Phase 2: Remove base deletions (items in base but not in remote)
     for basellr in base.llrs.values():
         selfllr = self.llrs.get(basellr.id)
@@ -314,12 +314,12 @@ def merge(self, other, base):
                 elem = selfllr.edits.pop(hlr, None)
                 if elem is not None:
                     selfllr.elem.remove(elem)  # Remove from XML
-            
+
             # Remove empty LLR objects
             if selfllr.is_empty():
                 self.llrs.pop(selfllr.id)
                 self.tree.getroot().remove(selfllr.elem)
-    
+
     return True  # Always successful
 ```
 
@@ -349,21 +349,21 @@ def merge(self, other, base):
 1. FOR EACH object in remote.llrs:
    a. Get corresponding local object (by ID)
    b. Get corresponding base object (by ID)
-   
+
    c. IF base object exists:
       # Compute actual remote changes
       FOR EACH requirement in remote object:
           IF requirement in base object:
               # Not a change, remove from consideration
               remote.edits.remove(requirement)
-   
+
    d. IF local object doesn't exist AND remote has links:
       # Object created in remote or deleted locally
       # Create local object
       local_object = LLR(remote.id, remote.path)
       local_object.create_elem(local.tree.root)
       local.llrs[local_object.id] = local_object
-   
+
    e. IF local object exists:
       # Add remote's new links to local
       FOR EACH requirement in remote.edits:
@@ -373,7 +373,7 @@ def merge(self, other, base):
 
 2. FOR EACH object in base.llrs:
    a. Get corresponding local object (by ID)
-   
+
    b. IF local object exists:
       # Remove links that were in base but not in remote (deleted remotely)
       FOR EACH requirement in base object:
@@ -381,7 +381,7 @@ def merge(self, other, base):
               # Remove link from local XML
               local.edits.remove(requirement)
               remove <requirement> element from XML
-      
+
       # Clean up empty objects
       IF local object has no links:
           local.llrs.remove(object)
@@ -437,11 +437,11 @@ for basellr in base.llrs.values():
 def parse(self, filename):
     parser = et.XMLParser(remove_blank_text=True)
     self.tree = et.parse(filename, parser)
-    
+
     for elem in self.tree.getroot().findall('object'):
         llr = LLR().parse(elem)
         self.llrs[llr.id] = llr
-    
+
     return self
 ```
 
@@ -449,8 +449,8 @@ def parse(self, filename):
 ```python
 def create_elem(self, parent):
     self.elem = et.SubElement(
-        parent, 
-        'object', 
+        parent,
+        'object',
         {'id': self.id, 'pathName': self.path}
     )
     return self
@@ -564,15 +564,15 @@ def merge3(local: str, remote: str, base: str, merged: str) -> bool:
     gtbase = GTFile().parse(base)
     gtremote = GTFile().parse(remote)
     gtlocal = GTFile().parse(local)
-    
+
     if not gtbase or not gtremote or not gtlocal:
         return False  # Parse error
-    
+
     status = gtlocal.merge(gtremote, gtbase)
-    
+
     if status:
         gtlocal.save(merged)
-    
+
     return status
 ```
 
@@ -608,7 +608,7 @@ def parse(self, filename: str):
     except OSError as e:
         print(e)
         return None
-    
+
     # Continue with parsing...
     return self
 ```
@@ -713,11 +713,11 @@ def test_merge_case(case_dir):
     remote = str(case_dir / 'Remote.almgt')
     result = str(case_dir / 'Result.almgt')
     expected = str(case_dir / 'Expected.almgt')
-    
+
     # Perform merge
     success = merge3(local, remote, base, result)
     assert success
-    
+
     # Validate result
     assert files_equal(result, expected)
 ```
@@ -732,7 +732,7 @@ def test_merge_case(case_dir):
 | **Algorithm** | Set union/difference | Three-way entity merge |
 | **Performance** | O(n×m) | O(n) with caching |
 | **File Size** | Typically < 1 MB | Typically < 100 KB |
-| **Entity Count** | 100s to 1000s | 10s to 100s |
+| **Entity Count** | 100 s to 1000 s | 10 s to 100 s |
 | **Merge Time** | < 1 second | < 5 seconds |
 | **Manual Resolution** | Never needed | Sometimes needed |
 

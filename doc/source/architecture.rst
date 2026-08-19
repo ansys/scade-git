@@ -4,9 +4,9 @@ Architecture
 Overview
 --------
 
-The Ansys SCADE Git Extensions package provides a comprehensive integration between 
-Ansys SCADE Suite and Git version control. The architecture is composed of three main 
-components that work together to enable Git operations within the SCADE IDE and provide 
+The Ansys SCADE Git Extensions package provides a comprehensive integration between
+Ansys SCADE Suite and Git version control. The architecture is composed of three main
+components that work together to enable Git operations within the SCADE IDE and provide
 specialized merge tools for SCADE-specific file formats.
 
 System Architecture
@@ -23,35 +23,35 @@ The following diagram illustrates the overall architecture of the SCADE Git Exte
            GUI["GUI Extension<br/>(gitextension.py)<br/>• Menus, Toolbars, Context Menus<br/>• Git Browser UI<br/>• Dialogs (Commit, Diff, Reset)"]
            CORE["Extension Core<br/>(gitextcore.py)<br/>• Command Handlers<br/>• Browser Management<br/>• File Status Tracking"]
            IDEINTF["IDE Interface<br/>(ide.py)<br/>• Abstract IDE operations<br/>• Studio implementation"]
-           
+
            GUI --> CORE
            CORE --> IDEINTF
        end
-       
+
        GITCLIENT["Git Client<br/>(gitclient.py)<br/>• Dulwich wrapper<br/>• Repository operations<br/>• Status management"]
        SCADEAPI["SCADE API<br/>• Project API<br/>• Model API"]
-       
+
        IDEINTF --> GITCLIENT
        IDEINTF --> SCADEAPI
-       
+
        DULWICH["Dulwich Library<br/>• Pure Python Git impl<br/>• Repository access<br/>• Porcelain commands"]
        GITREPO["Git Repository<br/>• .git directory<br/>• Working tree<br/>• Index/staging area"]
-       
+
        GITCLIENT --> DULWICH
        DULWICH --> GITREPO
-       
+
        subgraph MERGE["Command-Line Merge Tools"]
            ETPMERGE["ETP Merge<br/>(etpmerge/)<br/>• etpmerge3.py<br/>• cache.py<br/>• visitor.py<br/>• fi.py (FileInfo)<br/>• utils.py<br/><br/>Merges SCADE project<br/>files (.etp)"]
            ALMGTMERGE["ALMGT Merge<br/>(almgtmerge/)<br/>• almgtmerge3.py<br/><br/>Merges SCADE ALMGW<br/>traceability files (.almgt)"]
        end
-       
+
        GITINVOKE["Git merge drivers<br/>(configured via .gitattributes)"]
-       
+
        GITREPO -.-> GITINVOKE
        GITINVOKE -.-> ETPMERGE
        GITINVOKE -.-> ALMGTMERGE
        ETPMERGE -.-> SCADEAPI
-       
+
        style IDE fill:#e1e1e1,stroke:#666,stroke-width:2px
        style MERGE fill:#e1e1e1,stroke:#666,stroke-width:2px
        style GUI fill:#add8e6,stroke:#333
@@ -78,14 +78,14 @@ The GUI extension integrates directly with the SCADE Suite IDE through the SCADE
 It consists of the following key components:
 
 * **gitextension.py**: Main entry point for the SCADE IDE extension
-  
+
   - Implements ``Studio`` class that provides SCADE IDE-specific functionality
   - Creates Git browser, menus, toolbars, and context menus
   - Handles user interactions and delegates to command handlers
   - Implements ``GitClient`` subclass for IDE-specific logging
 
 * **gitextcore.py**: Core command implementations
-  
+
   - ``CmdRefresh``: Updates Git status for all project files
   - ``CmdStage`` / ``CmdStageAll``: Stages files for commit
   - ``CmdUnstage`` / ``CmdUnstageAll``: Unstages files
@@ -93,14 +93,14 @@ It consists of the following key components:
   - ``CmdReset``: Resets repository to last commit
   - ``CmdDiff``: Exports a branch to temporary folder for diff/merge
   - Manages the Git browser UI with status categories:
-    
+
     - Staged files
     - Unstaged files
     - Clean files
     - External files
 
 * **ide.py**: Abstract interface layer
-  
+
   - Defines ``Ide`` abstract base class for IDE operations
   - Defines ``Command`` abstract base class for commands
   - Allows potential support for other IDEs in the future
@@ -113,7 +113,7 @@ Git Client Layer
 The Git client provides a Python interface to Git operations using the Dulwich library:
 
 * **GitClient class**: Wraps Dulwich for Git operations
-  
+
   - Repository discovery (``find_git_repo()``)
   - File status tracking (``get_file_status()``)
   - Staging operations (``stage()``, ``unstage()``)
@@ -121,9 +121,9 @@ The Git client provides a Python interface to Git operations using the Dulwich l
   - Branch management (``get_branches()``)
   - Diff operations (``checkout_to_dir()``)
   - Uses Dulwich (pure Python Git implementation) for platform independence
-  
+
 * **GitStatus enum**: Defines file status states
-  
+
   - ``added``: File added to index
   - ``modified_staged``: Modified and staged
   - ``modified_unstaged``: Modified but not staged
@@ -157,25 +157,25 @@ ETP Merge (Project Files)
 Handles SCADE project files (``.etp``):
 
 * **etpmerge3.py**: Main merge logic using SCADE Project API
-  
+
   - ``EtpMerge3`` class performs semantic merge of project structures
   - Handles configurations, file references, tools, properties
   - Detects and reports conflicts (duplicate IDs, incompatible changes)
   - Preserves project structure and relationships
 
 * **cache.py**: Caching mechanism for project elements
-  
+
   - ``CacheBase``: Base class for element caching
   - ``CacheMaps``: Maps for quick lookup by ID and path
   - Optimizes merge performance for large projects
 
 * **visitor.py**: Project tree traversal
-  
+
   - Implements visitor pattern for project elements
   - Collects all elements for comparison
 
 * **fi.py**: File information management
-  
+
   - Tracks file references and their attributes
   - Manages relative/absolute path conversions
 
@@ -187,7 +187,7 @@ ALMGT Merge (Traceability Files)
 Handles SCADE ALMGW traceability files (``.almgt``):
 
 * **almgtmerge3.py**: XML-based merge for requirements traceability
-  
+
   - Uses ``lxml`` for XML parsing and manipulation
   - Merges traceability links between requirements (HLR) and model elements (LLR)
   - ``LLR`` class: Represents a model element with traceability links
@@ -249,11 +249,11 @@ These files register the extension with SCADE Suite IDE, enabling:
 Registration Mechanism
 ^^^^^^^^^^^^^^^^^^^^^^
 
-SCADE 2025 R1 and later use the ``ansys.scade.registry`` entry point defined in 
-``pyproject.toml``. Earlier versions require explicit ``.srg`` file placement in 
+SCADE 2025 R1 and later use the ``ansys.scade.registry`` entry point defined in
+``pyproject.toml``. Earlier versions require explicit ``.srg`` file placement in
 ``%APPDATA%\Scade\Customize``.
 
-The ``srg()`` function in ``__init__.py`` implements the entry point, returning the 
+The ``srg()`` function in ``__init__.py`` implements the entry point, returning the
 path to the appropriate registry file based on Python version.
 
 Data Flow
@@ -322,7 +322,7 @@ The ``GitClient.get_file_status()`` method determines file status through:
 3. Compare file hash with Git index
 4. Check if file is staged (in Git index)
 5. Determine file status based on:
-   
+
    - Not in repo and not in filesystem → ``error``
    - Not in repo → ``untracked``
    - Outside repo → ``extern``
@@ -336,7 +336,7 @@ Security Considerations
 Path Traversal Protection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``badpath()`` and ``badlink()`` functions in ``gitextcore.py`` protect against 
+The ``badpath()`` and ``badlink()`` functions in ``gitextcore.py`` protect against
 path traversal attacks when extracting tarballs for diff operations:
 
 - Validates that extracted paths remain within intended base directory
@@ -346,8 +346,8 @@ path traversal attacks when extracting tarballs for diff operations:
 Dependency Management
 ~~~~~~~~~~~~~~~~~~~~~
 
-The package uses ``site.getusersitepackages()`` to ensure user-installed modules 
-take precedence over system Python installations, allowing users to upgrade 
+The package uses ``site.getusersitepackages()`` to ensure user-installed modules
+take precedence over system Python installations, allowing users to upgrade
 dependencies like Dulwich without admin privileges.
 
 Extension Points
@@ -355,16 +355,16 @@ Extension Points
 
 The architecture supports extension through:
 
-1. **Multiple IDEs**: The abstract ``Ide`` class allows implementing support for 
+1. **Multiple IDEs**: The abstract ``Ide`` class allows implementing support for
    other SCADE environments or IDEs beyond SCADE Suite.
 
-2. **Additional Merge Tools**: New merge tools can be added for other SCADE file 
+2. **Additional Merge Tools**: New merge tools can be added for other SCADE file
    formats by following the established interface pattern.
 
-3. **Custom Commands**: New Git commands can be added by implementing the ``Command`` 
+3. **Custom Commands**: New Git commands can be added by implementing the ``Command``
    abstract class and registering them in the extension.
 
-4. **Alternative Git Backends**: While Dulwich is currently used, the ``GitClient`` 
+4. **Alternative Git Backends**: While Dulwich is currently used, the ``GitClient``
    abstraction allows switching to other Git implementations if needed.
 
 Design Rationale
@@ -401,9 +401,9 @@ Instead of line-based textual merge, the ETP and ALMGT merge tools:
   - Parse files into semantic structures (using SCADE API and lxml)
   - Merge at the element level (projects, configurations, traceability links)
   - Preserve semantic validity of SCADE files
-  - Detect semantic conflicts (e.g., duplicate element IDs)
+  - Detect semantic conflicts (for example: duplicate element IDs)
 
-This prevents corruption of binary-like or structured XML files that 
+This prevents corruption of binary-like or structured XML files that
 textual merge would produce.
 
 Limitations and Future Enhancements
@@ -412,14 +412,14 @@ Limitations and Future Enhancements
 Current Limitations
 ~~~~~~~~~~~~~~~~~~~
 
-1. **Manual Diff Launch**: The Diff command exports to a temporary folder, but 
-   the user must manually launch the SCADE Diff Analyzer due to lack of script 
+1. **Manual Diff Launch**: The Diff command exports to a temporary folder, but
+   the user must manually launch the SCADE Diff Analyzer due to lack of script
    access to this IDE command.
 
-2. **No Auto-Refresh**: The Git browser does not automatically refresh on file 
+2. **No Auto-Refresh**: The Git browser does not automatically refresh on file
    changes; users must save the project and click Refresh.
 
-3. **Single Repository**: The extension assumes one Git repository per SCADE 
+3. **Single Repository**: The extension assumes one Git repository per SCADE
    project workspace.
 
 4. **Limited History**: No GUI access to Git history, blame, or log visualization.
@@ -438,8 +438,8 @@ Potential Enhancements
 Conclusion
 ----------
 
-The Ansys SCADE Git Extensions architecture provides a robust, modular integration 
-between SCADE Suite and Git version control. By separating concerns across layers, 
-using pure Python implementations, and providing semantic merge capabilities for 
-SCADE-specific file formats, the package enables effective version control workflows 
+The Ansys SCADE Git Extensions architecture provides a robust, modular integration
+between SCADE Suite and Git version control. By separating concerns across layers,
+using pure Python implementations, and providing semantic merge capabilities for
+SCADE-specific file formats, the package enables effective version control workflows
 for SCADE projects while maintaining the integrity of SCADE models and configurations.

@@ -20,11 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import json
 from pathlib import Path
 import subprocess
 import tarfile
 from typing import Any, List
-import json
 
 import pytest
 import scade.model.project.stdproject as std
@@ -326,7 +326,7 @@ def test_git_ext_core_refresh_submodule_paths_detected(capsys):
     # In the model_repo fixture, LibSubModule is just a regular directory
     # This test verifies the submodule detection mechanism works
     assert core._git_client is not None
-    
+
     # Get the submodule paths (will be empty in model_repo since it's not a real submodule)
     submodule_paths = core._git_client.submodules_paths
     # Just verify that the property exists and can be accessed

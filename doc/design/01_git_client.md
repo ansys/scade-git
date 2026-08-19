@@ -83,7 +83,7 @@ Defines all possible file states in a Git repository:
 - Allows different logging implementations (IDE output pane vs console)
 - Separates concerns: Git operations from display/logging
 - Enables testing without IDE dependencies
-- Supports future extensions (GUI, CLI, web interface)
+- Supports future extensions (GUI, command-line tool, web interface)
 
 **Implementation:**
 ```python
@@ -155,7 +155,7 @@ min_dulwich_ver = (0, 21, 3)
 def __init__(self):
     dulwich_ver = dulwich.__version__
     if dulwich_ver < min_dulwich_ver:
-        self.log('Error: Git extension turn offd- incompatible Dulwich version')
+        self.log('Error: Git extension turn off - incompatible Dulwich version')
         self.dulwich_ok = False
     else:
         self.dulwich_ok = True
@@ -173,7 +173,7 @@ def __init__(self):
 
 **Purpose:** Determine the current Git status of a file.
 
-**Input:** File pathname (absolute or relative)
+**Input:** path (absolute or relative)
 
 **Output:** Tuple of (normalized_path, GitStatus)
 
@@ -303,7 +303,7 @@ def __init__(self):
 SCADE IDE → GitExtension → GitClient → Dulwich → .git/
 ```
 
-**File Path Handling:**
+**Path Handling:**
 - SCADE uses absolute paths
 - Git uses repository-relative paths
 - Conversion happens in GitClient methods
@@ -356,7 +356,7 @@ SCADE IDE → GitExtension → GitClient → Dulwich → .git/
 **Levels:**
 - Info: Repository not found, no changes to commit
 - Warning: File skipped, operation partially succeeded
-- Error: Operation failed, extension turn offd
+- Error: Operation failed, extension turn off
 
 ## Testing Strategy
 

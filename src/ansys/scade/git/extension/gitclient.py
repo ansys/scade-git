@@ -47,7 +47,7 @@ from dulwich.repo import Repo  # noqa: E402
 min_dulwich_ver = (0, 21, 3)
 tree_mode = 0o040000
 gitlink_mode = 0o160000
-Commitish = Union[str, bytes, Commit, Tag]
+Committish = Union[str, bytes, Commit, Tag]
 
 GitStatus = Enum(
     'GitStatus',
@@ -338,7 +338,7 @@ class GitClient(metaclass=ABCMeta):
         else:
             return '', GitStatus.none
 
-    def get_submodule_paths(self, committish: Optional[Commitish] = None) -> List[str]:
+    def get_submodule_paths(self, committish: Optional[Committish] = None) -> List[str]:
         """Return the list of absolute submodule paths for a commit."""
         if not self.repo or not self.repo_path:
             return []
@@ -436,7 +436,7 @@ class GitClient(metaclass=ABCMeta):
         if self.repo:
             git.reset(self.repo, 'hard')
 
-    def archive(self, committish: Optional[Commitish], file: str) -> bool:
+    def archive(self, committish: Optional[Committish], file: str) -> bool:
         """
         Archive a committish to a target file.
 
@@ -456,7 +456,7 @@ class GitClient(metaclass=ABCMeta):
                 self.log('Error archive: {0}'.format(e))
         return False
 
-    def _resolve_commit(self, repo: Repo, committish: Optional[Commitish]) -> Commit:
+    def _resolve_commit(self, repo: Repo, committish: Optional[Committish]) -> Commit:
         """Resolve a commit-like reference into a Commit object."""
         if isinstance(committish, Commit):
             return committish
@@ -605,7 +605,7 @@ class GitClient(metaclass=ABCMeta):
 
         return True
 
-    def export_to_directory(self, committish: Optional[Commitish], output_dir: str) -> bool:
+    def export_to_directory(self, committish: Optional[Committish], output_dir: str) -> bool:
         """
         Export a version to a plain directory, including submodules.
 

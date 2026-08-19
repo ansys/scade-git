@@ -950,7 +950,7 @@ def test_merge_case(case_dir):
 
 2. **Semantic Merging**
    - Merge SCADE model files (.xscade) semantically
-   - Detect semantic conflicts (e.g., type mismatches)
+   - Detect semantic conflicts (for example type mismatches)
    - Integrate with SCADE Suite diff tools
 
 3. **Performance Improvements**
@@ -959,7 +959,7 @@ def test_merge_case(case_dir):
    - Streaming for very large projects
 
 4. **Enhanced Conflict Detection**
-   - Detect dependent changes (e.g., rename + references)
+   - Detect dependent changes (for example rename + references)
    - Suggest automatic resolutions
    - Rank conflicts by severity
 

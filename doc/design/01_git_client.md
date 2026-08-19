@@ -146,7 +146,7 @@ files_status = {
 
 ### 5. Version Validation
 
-**Decision:** Check Dulwich version at initialization and disable operations if incompatible.
+**Decision:** Check Dulwich version at initialization and turn off operations if incompatible.
 
 **Implementation:**
 ```python
@@ -155,7 +155,7 @@ min_dulwich_ver = (0, 21, 3)
 def __init__(self):
     dulwich_ver = dulwich.__version__
     if dulwich_ver < min_dulwich_ver:
-        self.log('Error: Git extension disabled - incompatible Dulwich version')
+        self.log('Error: Git extension turn offd - incompatible Dulwich version')
         self.dulwich_ok = False
     else:
         self.dulwich_ok = True
@@ -336,7 +336,7 @@ SCADE IDE → GitExtension → GitClient → Dulwich → .git/
 ### Error Categories
 
 1. **Initialization Errors**
-   - Dulwich version mismatch → Disable extension, log error
+   - Dulwich version mismatch → turn off extension, log error
    - Repository not found → Return empty status, log info
 
 2. **Operation Errors**
@@ -345,9 +345,9 @@ SCADE IDE → GitExtension → GitClient → Dulwich → .git/
    - Disk full → Fail operation, rollback if possible
 
 3. **State Errors**
-   - Merge conflicts → Disable certain operations, show warning
+   - Merge conflicts → turn off certain operations, show warning
    - Detached HEAD → Allow read operations, warn on write
-   - Corrupt repository → Disable extension, suggest repair
+   - Corrupt repository → turn off extension, suggest repair
 
 ### Error Reporting
 
@@ -356,7 +356,7 @@ SCADE IDE → GitExtension → GitClient → Dulwich → .git/
 **Levels:**
 - Info: Repository not found, no changes to commit
 - Warning: File skipped, operation partially succeeded
-- Error: Operation failed, extension disabled
+- Error: Operation failed, extension turn offd
 
 ## Testing Strategy
 

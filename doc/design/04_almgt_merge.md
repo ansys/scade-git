@@ -786,7 +786,7 @@ def test_merge_case(case_dir):
 
 1. **XML Parsing Safety**
    - Use lxml with secure defaults
-   - Disable entity expansion (XXE attacks)
+   - turn off entity expansion (XXE attacks)
    - Limit parse depth and size
 
 2. **File System Safety**

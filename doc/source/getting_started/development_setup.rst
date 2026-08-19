@@ -344,7 +344,7 @@ To debug the SCADE extension:
       import pdb; pdb.set_trace()
 
    .. note::
-      Debugger will pause SCADE. Use with caution.
+      Debugger pauses SCADE. Use with caution.
 
 Debugging Merge Tools
 ~~~~~~~~~~~~~~~~~~~~~

@@ -32,14 +32,14 @@ The source code is organized under ``src/ansys/scade/git/``:
    │   ├── gitextension.py          # SCADE-specific IDE integration
    │   └── ide.py                   # IDE abstraction layer
    ├── etpmerge/                     # ETP merge tool
-   │   ├── __main__.py              # CLI entry point
+   │   ├── __main__.py              # command-line tool entry point
    │   ├── etpmerge3.py             # Three-way merge algorithm
    │   ├── cache.py                 # Entity caching for merge
    │   ├── visitor.py               # Project tree traversal
    │   ├── fi.py                    # File manipulation utilities
    │   └── utils.py                 # General utilities
    ├── almgtmerge/                   # ALMGT merge tool
-   │   ├── __main__.py              # CLI entry point
+   │   ├── __main__.py              # command-line tool entry point
    │   └── almgtmerge3.py           # Three-way merge algorithm
    ├── register.py                   # Extension registration script
    ├── unregister.py                 # Extension cleanup script

@@ -374,7 +374,7 @@ Unstage Operation:
 
 **Error Handling:**
 - Empty message → Show error, don't close dialog
-- No staged files → Show warning, abort
+- No staged files → Show warning, exit
 - Git error → Show error message with details
 
 ### Diff/Export Operation

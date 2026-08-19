@@ -155,7 +155,7 @@ min_dulwich_ver = (0, 21, 3)
 def __init__(self):
     dulwich_ver = dulwich.__version__
     if dulwich_ver < min_dulwich_ver:
-        self.log('Error: Git extension turn offd - incompatible Dulwich version')
+        self.log('Error: Git extension turn offd- incompatible Dulwich version')
         self.dulwich_ok = False
     else:
         self.dulwich_ok = True
@@ -405,7 +405,7 @@ Use fixture repositories with known states:
 - `Python >= 3.7`: Minimum Python version
 
 ### Optional
-- SCADE API: For IDE integration (not required for CLI usage)
+- SCADE API: For IDE integration (not required for command-line tool usage)
 
 ## Security Considerations
 

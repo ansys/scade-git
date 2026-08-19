@@ -26,6 +26,31 @@
 				<ed:Equation oid="!ed/2d56/2EB0/9B70/6616a7a14949"/>
 			</pragmas>
 		</Equation>
+		<!-- () = LibOp1(); -->
+		<Equation>
+			<right>
+				<!-- LibOp1() -->
+				<CallExpression>
+					<operator>
+						<OpCall name="1">
+							<operator>
+								<OperatorRef name="LibOp1"/>
+							</operator>
+						</OpCall>
+					</operator>
+					<pragmas>
+						<ed:CallExpression xmlns="http://www.esterel-technologies.com/ns/scade/pragmas/editor/8">
+							<references>
+								<OperatorRef path="LibOp1" refOid="!ed/618/3E23/85B0/6a7b31b5373c"/>
+							</references>
+						</ed:CallExpression>
+					</pragmas>
+				</CallExpression>
+			</right>
+			<pragmas>
+				<ed:Equation oid="!ed/c24/3E23/85B0/6a7b31d62845"/>
+			</pragmas>
+		</Equation>
 	</data>
 	<pragmas>
 		<ed:Operator oid="!ed/2d50/2EB0/9B70/6616a5db6f9e" xmlns="http://www.esterel-technologies.com/ns/scade/pragmas/editor/8">
@@ -35,6 +60,14 @@
 						<EquationGE presentable="!ed/2d56/2EB0/9B70/6616a7a14949">
 							<position>
 								<Point x="3228" y="3387"/>
+							</position>
+							<size>
+								<Size width="1773" height="1402"/>
+							</size>
+						</EquationGE>
+						<EquationGE presentable="!ed/c24/3E23/85B0/6a7b31d62845">
+							<position>
+								<Point x="3307" y="6615"/>
 							</position>
 							<size>
 								<Size width="1773" height="1402"/>

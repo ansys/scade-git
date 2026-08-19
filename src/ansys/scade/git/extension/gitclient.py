@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -23,12 +23,13 @@
 """Front-end for Git commands."""
 
 from abc import ABCMeta, abstractmethod
+import configparser
 from enum import Enum
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import site
 import sys
-from typing import List, Tuple
+from typing import Dict, Iterator, List, Tuple
 
 # force user installed modules to have priority on Python installation
 site_user = site.getusersitepackages()
@@ -38,11 +39,14 @@ if site_user in sys.path:
 
 import dulwich as dulwich  # noqa: E402
 from dulwich import porcelain as git  # noqa: E402
+from dulwich.objects import Blob, Commit, Tag, Tree  # noqa: E402
+from dulwich.objectspec import parse_commit  # noqa: E402
 from dulwich.repo import Repo  # noqa: E402
-from dulwich.objects import Commit, Tag  # noqa: E402
 
 # minimum Dulwich version
 min_dulwich_ver = (0, 21, 3)
+tree_mode = 0o040000
+gitlink_mode = 0o160000
 
 GitStatus = Enum(
     'GitStatus',
@@ -101,6 +105,7 @@ class GitClient(metaclass=ABCMeta):
         self.branch = ''
         self.repo = None
         self.files_status = {}
+        self.submodules_paths = []
         # check Dulwich version
         dulwich_ver = dulwich.__version__
         if dulwich_ver < min_dulwich_ver:  # pyright: ignore[reportOperatorIssue]
@@ -153,6 +158,7 @@ class GitClient(metaclass=ABCMeta):
         bool
         """
         self.files_status = {}
+        self.submodules_paths = []
         if self.dulwich_ok:
             self.repo_path = find_git_repo(project_path)
         if self.repo_path:
@@ -169,19 +175,31 @@ class GitClient(metaclass=ABCMeta):
             # typing annotation incorrect for git.status: str | Repo
             staged, unstaged, untracked = git.status(self.repo)  # type: ignore
 
+            def normalize_git_path(path: str | bytes) -> str:
+                """Normalize Dulwich path values for stable key matching."""
+                path_str = path.decode('utf-8') if isinstance(path, bytes) else path
+                return path_str.replace('\\', '/').rstrip('/')
+
+            staged_add = {normalize_git_path(file) for file in staged['add']}
+            staged_modify = {normalize_git_path(file) for file in staged['modify']}
+            staged_delete = {normalize_git_path(file) for file in staged['delete']}
+            unstaged_set = {normalize_git_path(file) for file in unstaged}
+            untracked_list = [normalize_git_path(file) for file in untracked]
+
             # list files & status in git repo
-            repo_files = git.ls_files(self.repo)
+            repo_files = [normalize_git_path(file) for file in git.ls_files(self.repo)]
             for file in repo_files:
-                file_str = file.decode('utf-8')
+                file_str = file
                 # ['added', 'removed_staged', 'modified_staged', 'modified_unstaged',
                 # 'untracked', 'removed_unstaged', 'clean', 'extern']
-                if file in staged['add']:
+                if file_str in staged_add:
                     status = GitStatus.added
+                # deleted staged files are not listed in ls_files
                 # elif (file in staged['delete']):
                 #    status = GitStatus.removed_staged
-                elif file in staged['modify']:
+                elif file_str in staged_modify:
                     status = GitStatus.modified_staged
-                elif file in unstaged:
+                elif file_str in unstaged_set:
                     file_abs_path = path_repo / file_str
                     if file_abs_path.is_file():
                         status = GitStatus.modified_unstaged
@@ -195,17 +213,18 @@ class GitClient(metaclass=ABCMeta):
                 self.files_status[file_str] = status
 
             # deleted staged files are not listed in ls_files
-            for file in staged['delete']:
-                file_str = file.decode('utf-8')
+            for file_str in staged_delete:
                 status = GitStatus.removed_staged
                 self.files_status[file_str] = status
 
             # untracked files are not listed in ls_files
             # untracked returned as str, Windows path in 19.13 but posix in 21.3
-            for file_str in untracked:
+            for file_str in untracked_list:
                 status = GitStatus.untracked
                 self.files_status[file_str] = status
 
+            # get submodules paths
+            self.submodules_paths = self.get_submodule_paths()
             return True
         else:
             self.repo_name = ''
@@ -253,14 +272,14 @@ class GitClient(metaclass=ABCMeta):
             for refname, refvalue in self.repo.refs.as_dict().items():
                 if refvalue:
                     self._walk_commits(refvalue, all_commits)
-            
+
         # Sort by timestamp (descending)
         all_commits_list = sorted(all_commits.items(), key=lambda x: x[1], reverse=True)
         # for testing
         # fill list until 1000 entries
-        #for i in range(len(all_commits_list), 1000):
+        # for i in range(len(all_commits_list), 1000):
         #    all_commits_list.append(all_commits_list[-1])
-        
+
         # return 1000 newest commits
         return all_commits_list[:1000]
 
@@ -303,13 +322,47 @@ class GitClient(metaclass=ABCMeta):
                     abspath = Path(self.repo_path) / path
                 status = self.files_status.get(index_file_name, None)
                 if not status:
-                    self.log("not status: %s %s" % (abspath, abspath.exists()))
-                    status = GitStatus.untracked if abspath.exists() else GitStatus.error
+                    #self.log("not status: %s %s" % (abspath, abspath.exists()))
+                    if abspath.exists():
+                        if self.is_submodule_file(abspath):
+                            status = GitStatus.extern
+                        else:
+                            status = GitStatus.untracked
+                    else:
+                        status = GitStatus.error
                 return index_file_name, status
             except ValueError:
                 return file_path, GitStatus.extern
         else:
             return '', GitStatus.none
+
+    def get_submodule_paths(self, committish: str | bytes | Commit | Tag | None = None) -> List[str]:
+        """Return the list of absolute submodule paths for a commit."""
+        if not self.repo or not self.repo_path:
+            return []
+
+        try:
+            commit = self._resolve_commit(self.repo, committish)
+        except BaseException as e:
+            self.log('Error submodules: {0}'.format(e))
+            return []
+
+        return [
+            (Path(self.repo_path) / self._to_local_path(rel_path)).resolve()
+            for rel_path, mode, _ in self._iter_tree(self.repo, commit.tree)
+            if mode == gitlink_mode
+        ]
+
+    def is_submodule_file(self, path: Path) -> bool:
+        normalized = os.path.normcase(str(path.resolve()))
+        for submodule_path in self.submodules_paths:
+            normalized_submodule = os.path.normcase(str(submodule_path))
+            if (
+                normalized == normalized_submodule
+                or normalized.startswith(normalized_submodule + os.sep)
+            ):
+                return True
+        return False
 
     def stage(self, files: List[str]):
         """
@@ -327,7 +380,7 @@ class GitClient(metaclass=ABCMeta):
                 # as well as repos (incorrect typing annotation)
                 return git.add(self.repo, files)  # type: ignore
             except BaseException as e:
-                self.log('Error stage: .{0}'.format(e))
+                self.log('Error stage: {0}'.format(e))
 
     def unstage(self, files: List[str]):
         """
@@ -381,7 +434,7 @@ class GitClient(metaclass=ABCMeta):
         if self.repo:
             git.reset(self.repo, 'hard')
 
-    def archive(self, committish:  str | bytes | Commit | Tag | None, file: str) -> bool:
+    def archive(self, committish: str | bytes | Commit | Tag | None, file: str) -> bool:
         """
         Archive a committish to a target file.
 
@@ -400,6 +453,190 @@ class GitClient(metaclass=ABCMeta):
             except BaseException as e:
                 self.log('Error archive: {0}'.format(e))
         return False
+
+    def _resolve_commit(self, repo: Repo, committish: str | bytes | Commit | Tag | None) -> Commit:
+        """Resolve a commit-like reference into a Commit object."""
+        if isinstance(committish, Commit):
+            return committish
+
+        if isinstance(committish, Tag):
+            return parse_commit(repo, committish.object[1])
+
+        if committish is None:
+            return parse_commit(repo, b'HEAD')
+
+        if isinstance(committish, str):
+            return parse_commit(repo, committish.encode('utf-8'))
+
+        return parse_commit(repo, committish)
+
+    def _iter_tree(
+        self, repo: Repo, tree_id: bytes, prefix: str = ''
+    ) -> Iterator[Tuple[str, int, bytes]]:
+        """Yield tree entries recursively as (path, mode, sha)."""
+        tree: Tree = repo[tree_id]
+        for name, mode, sha in tree.iteritems():
+            name_str = name.decode('utf-8')
+            path = ''.join([prefix, name_str])
+            yield path, mode, sha
+            if mode == tree_mode:
+                yield from self._iter_tree(repo, sha, ''.join([path, '/']))
+
+    def _to_local_path(self, rel_posix_path: str) -> Path:
+        """Return a local path from a POSIX Git path."""
+        return Path(*PurePosixPath(rel_posix_path).parts)
+
+    def _safe_output_path(self, output_dir: Path, rel_posix_path: str) -> Path:
+        """Build a path under output_dir and reject traversal."""
+        out_file = (output_dir / self._to_local_path(rel_posix_path)).resolve()
+        out_root = output_dir.resolve()
+        if out_file != out_root and out_root not in out_file.parents:
+            raise ValueError('Path traversal blocked: {0}'.format(rel_posix_path))
+        return out_file
+
+    def _read_blob_at_path(self, repo: Repo, tree_id: bytes, rel_posix_path: str) -> bytes:
+        """Read a blob from a tree using a POSIX relative path."""
+        tree: Tree = repo[tree_id]
+        parts = [p.encode('utf-8') for p in PurePosixPath(rel_posix_path).parts]
+        for i, part in enumerate(parts):
+            found = False
+            for name, mode, sha in tree.iteritems():
+                if name == part:
+                    found = True
+                    last = i == len(parts) - 1
+                    if last:
+                        obj = repo[sha]
+                        if isinstance(obj, Blob):
+                            return obj.data
+                        raise KeyError(rel_posix_path)
+                    if mode != tree_mode:
+                        raise KeyError(rel_posix_path)
+                    tree = repo[sha]
+                    break
+            if not found:
+                raise KeyError(rel_posix_path)
+        raise KeyError(rel_posix_path)
+
+    def _parse_gitmodules(self, gitmodules_data: bytes) -> Dict[str, str]:
+        """Parse .gitmodules and return path -> url mapping."""
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.read_string(gitmodules_data.decode('utf-8', errors='replace'))
+
+        paths_to_urls = {}
+        for section in parser.sections():
+            path = parser.get(section, 'path', fallback='')
+            url = parser.get(section, 'url', fallback='')
+            if path and url:
+                paths_to_urls[path] = url
+        return paths_to_urls
+
+    def _export_commit_files(self, repo: Repo, commit: Commit, output_dir: Path):
+        """Export regular files of a commit tree to output_dir."""
+        for rel_path, mode, sha in self._iter_tree(repo, commit.tree):
+            if mode == tree_mode or mode == gitlink_mode:
+                continue
+
+            obj = repo[sha]
+            if not isinstance(obj, Blob):
+                continue
+
+            out_file = self._safe_output_path(output_dir, rel_path)
+            out_file.parent.mkdir(parents=True, exist_ok=True)
+            out_file.write_bytes(obj.data)
+
+    def _export_with_submodules(
+        self,
+        repo: Repo,
+        repo_dir: Path,
+        commit: Commit,
+        output_dir: Path,
+    ) -> bool:
+        """Export commit files and recurse into local submodules."""
+        self._export_commit_files(repo, commit, output_dir)
+
+        try:
+            gitmodules = self._read_blob_at_path(repo, commit.tree, '.gitmodules')
+            submodule_urls = self._parse_gitmodules(gitmodules)
+        except KeyError:
+            submodule_urls = {}
+
+        for rel_path, mode, sha in self._iter_tree(repo, commit.tree):
+            if mode != gitlink_mode:
+                continue
+
+            submodule_repo_path = repo_dir / self._to_local_path(rel_path)
+            submodule_output_dir = output_dir / self._to_local_path(rel_path)
+            submodule_output_dir.mkdir(parents=True, exist_ok=True)
+
+            try:
+                submodule_repo = Repo(str(submodule_repo_path))
+            except BaseException:
+                if rel_path in submodule_urls:
+                    self.log(
+                        'Error export: submodule not found locally at {0} (url: {1})'.format(
+                            submodule_repo_path, submodule_urls[rel_path]
+                        )
+                    )
+                else:
+                    self.log(
+                        'Error export: submodule not found locally at {0}'.format(
+                            submodule_repo_path
+                        )
+                    )
+                return False
+
+            try:
+                submodule_commit = self._resolve_commit(submodule_repo, sha)
+            except BaseException as e:
+                self.log(
+                    'Error export: cannot resolve submodule commit for {0}: {1}'.format(rel_path, e)
+                )
+                return False
+
+            if not self._export_with_submodules(
+                submodule_repo,
+                submodule_repo_path,
+                submodule_commit,
+                submodule_output_dir,
+            ):
+                return False
+
+        return True
+
+    def export_to_directory(
+        self, committish: str | bytes | Commit | Tag | None, output_dir: str
+    ) -> bool:
+        """
+        Export a version to a plain directory, including submodules.
+
+        The output directory is a plain file copy (no .git metadata).
+
+        Parameters
+        ----------
+        committish : str | bytes | Commit | Tag | None
+            Name or id of the committish to export.
+        output_dir : str
+            Target output directory. It must be empty or not exist.
+        """
+        if not self.repo or not self.repo_path:
+            return False
+
+        try:
+            output_path = Path(output_dir)
+            if output_path.exists() and any(output_path.iterdir()):
+                raise ValueError('Output directory is not empty: {0}'.format(output_path))
+            output_path.mkdir(parents=True, exist_ok=True)
+
+            commit = self._resolve_commit(self.repo, committish)
+            return self._export_with_submodules(
+                self.repo,
+                Path(self.repo_path),
+                commit,
+                output_path,
+            )
+        except BaseException as e:
+            self.log('Error export: {0}'.format(e))
+            return False
 
     def commit(self, commit_text: str):
         """

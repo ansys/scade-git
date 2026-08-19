@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -41,7 +41,7 @@ def pytest_configure(config):
 @pytest.fixture(scope='session')
 def tmpdir():
     """Create/empty the temporary directory for output files."""
-    path = (Path('tests') / 'tmp').resolve()
+    path = Path(__file__).parent / 'tmp'
     try:
         rmtree(str(path))
     except FileNotFoundError:

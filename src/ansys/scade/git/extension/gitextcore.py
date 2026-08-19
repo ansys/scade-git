@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -22,19 +22,20 @@
 
 """SCADE custom extension for Git."""
 
+from datetime import datetime
 import os
 from pathlib import Path
 import shutil
 import tarfile
 import tempfile
-from typing import Union, List, Tuple
-from datetime import datetime
+from typing import List, Set, Tuple, Union
 
 import scade
 from scade.model.project.stdproject import FileRef, Project
 
 from ansys.scade.git.extension.gitclient import GitClient, GitStatus
-from ansys.scade.git.extension.ide import Command, Ide
+from ansys.scade.guitools.command import Command
+from ansys.scade.guitools.ide import Ide
 
 # configuration parameters
 BrowserCat = {
@@ -43,20 +44,6 @@ BrowserCat = {
     'Clean': 'Clean files',
     'Extern': 'Extern files',
 }
-
-
-def badpath(path: str, base: Path) -> bool:
-    """Return whether a file is external to the base hierarchy."""
-    # joinpath will ignore base if path is absolute
-    target = (base / path).resolve()
-    return not str(target).startswith(str(base))
-
-
-def badlink(info: tarfile.TarInfo, base: Path) -> bool:
-    """Return whether a link is external to the base hierarchy."""
-    # links are interpreted relative to the directory containing the link
-    path = (base / info.name).parent / info.linkname
-    return badpath(str(path), base)
 
 
 def create_temp_dir(folder: str):
@@ -154,19 +141,46 @@ def refresh_browser(ide: Ide):
             project_files_status[BrowserCat['Clean']].clear()
             project_files_status[BrowserCat['Extern']].clear()
 
+            reported_paths: Set[str] = set()
+
+            def is_already_reported(path: Path) -> bool:
+                normalized = os.path.normcase(str(path.resolve()))
+                if normalized in reported_paths:
+                    return True
+                reported_paths.add(normalized)
+                return False
+
             # look for files present in the SCADE project
             project_files = []
             for project in ide.get_projects():
-                # for project file
-                project_files.append(report_item(ide, project))
+                project_path = Path(project.pathname).resolve()
+
+                # for project file already added as a library in another project, do not report it again
+                if not is_already_reported(project_path):
+                    project_files.append(report_item(ide, project))
+
+                # for files registered in the project, do not report files that are part of a submodule
+                if _git_client.is_submodule_file(project_path):
+                    continue
+
                 # for files registered in the project
                 for fr in project.file_refs:
+                    filepath = Path(fr.pathname)
+                    if not filepath.is_absolute():
+                        filepath = (project_path.parent / filepath).resolve()
+
+                    if is_already_reported(filepath):
+                        continue
+
                     project_files.append(report_item(ide, fr))
                     # check if ann file for xscade
-                    filepath = Path(fr.pathname)
                     if filepath.suffix == '.xscade':
                         ann_file = filepath.with_suffix('.ann')
-                        if ann_file.exists():
+                        if (
+                            ann_file.exists()
+                            and not _git_client.is_submodule_file(ann_file)
+                            and not is_already_reported(ann_file)
+                        ):
                             project_files.append(report_item(ide, str(ann_file)))
 
             # look for files in git but not in the project: deleted files
@@ -419,13 +433,14 @@ class CmdDiff(GitRepoCommand):
     ide : Studio
         SCADE IDE environment.
     """
+
     # list of all commits of type Commit
     commits_id = []
-    # versions is a list of all data to identify all versions from 
+    # versions is a list of all data to identify all versions from
     # a specific type Branches, Commits, Tags
     # each data element is a list of two elements:
-        # type of versions: str (Branches, Commits, Tags)
-        # list of versions: List[str]
+    # type of versions: str (Branches, Commits, Tags)
+    # list of versions: List[str]
     versions: List[Tuple[str, List[str]]] = []
 
     def __init__(self, ide: Ide):
@@ -464,9 +479,9 @@ class CmdDiff(GitRepoCommand):
         version_id_idx = selected[1]
         # check for cancel
         if version_type_idx == -1 or version_id_idx == -1:
-            self.ide.log('Diff cancelled, no version selected') 
+            self.ide.log('Diff cancelled, no version selected')
             return
-        
+
         version_type = self.versions[version_type_idx][0]
         if version_type == "Branches":
             version = self.versions[version_type_idx][1][version_id_idx]
@@ -475,19 +490,17 @@ class CmdDiff(GitRepoCommand):
             version = self.commits_id[version_id_idx]
             version_str = self.versions[version_type_idx][1][version_id_idx]
             version_path = "".join([c for c in version_str[:8] if c.isalnum() or c in "._-"])
-        #elif version_type == "Tags":
-            # TBD
+        # elif version_type == "Tags":
+        # TBD
         else:
             self.ide.log('Diff cancelled: version type not handled')
             return
-        
+
         tmp_dir = create_temp_dir(
             os.path.join('SCADE', 'git-diff', _git_client.repo_name, version_path)
-            )
+        )
         active_project = self.ide.get_projects()[0]
-        diff_project = tmp_dir / Path(active_project.pathname).relative_to(
-            _git_client.repo_path
-            )
+        diff_project = tmp_dir / Path(os.path.relpath(active_project.pathname, _git_client.repo_path))
 
         # create a tar archive of the version
         archive_file = tmp_dir.with_suffix('.tar')
@@ -534,6 +547,20 @@ class CmdDiff(GitRepoCommand):
                 self.ide.log(f'{finfo.name} is blocked: hard link to {finfo.linkname}')
             else:
                 yield finfo
+
+
+def badpath(path: str, base: Path) -> bool:
+    """Return whether a file is external to the base hierarchy."""
+    # joinpath will ignore base if path is absolute
+    target = (base / path).resolve()
+    return not str(target).startswith(str(base))
+
+
+def badlink(info: tarfile.TarInfo, base: Path) -> bool:
+    """Return whether a link is external to the base hierarchy."""
+    # links are interpreted relative to the directory containing the link
+    path = (base / info.name).parent / info.linkname
+    return badpath(str(path), base)
 
 
 script_path = Path(__file__)

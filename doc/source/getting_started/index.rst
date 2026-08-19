@@ -12,7 +12,8 @@ The ``ansys-scade-git`` package supports only the versions of Python delivered w
 Ansys SCADE, starting from 2021 R2:
 
 * 2021 R2 through 2023 R1: Python 3.7
-* 2023 R2 and later: Python 3.10
+* 2023 R2 through 2025 R2: Python 3.10
+* 2026 R1 and later: Python 3.12
 
 Install in user mode
 --------------------
@@ -40,8 +41,13 @@ contribute to Ansys SCADE Git Extensions, see :ref:`contribute_scade_git` for in
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
+
+   quickstart
+   development_setup
+   testing
+   code_organization
 
 .. LINKS AND REFERENCES
 .. _pip: https://pypi.org/project/pip/

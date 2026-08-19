@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -20,11 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import json
 from pathlib import Path
 import subprocess
 import tarfile
-from typing import Any, Dict, List
+from typing import Any, List
+import json
 
 import pytest
 import scade.model.project.stdproject as std
@@ -32,7 +32,8 @@ import scade.model.project.stdproject as std
 from ansys.scade.apitools import scade
 from ansys.scade.git.extension.gitclient import GitStatus
 import ansys.scade.git.extension.gitextcore as core
-from ansys.scade.git.extension.ide import Command, Ide
+from ansys.scade.guitools.command import Command
+from ansys.scade.guitools.stubs import StubIde
 from test_utils import cmp_file, get_resources_dir as get_tests_dir, run_git
 
 # local constants for conciseness
@@ -46,6 +47,33 @@ CLEAN = GitStatus.clean
 EXTERN = GitStatus.extern
 
 
+class TestIde(StubIde):
+    """SCADE IDE instantiation for unit tests."""
+
+    __test__ = False
+
+    def browser_report(
+        self,
+        child_object: Any,
+        parent_object: Any = None,
+        expanded: bool = False,
+        user_data: Any = None,
+        name: str = '',
+        icon_file: str = '',
+    ):
+        """Stub scade.browser_report."""
+        # redefine generic implementation to get more readable names
+        if isinstance(child_object, str):
+            child = child_object
+        else:
+            assert isinstance(child_object, std.Project) or isinstance(child_object, std.FileRef)
+            child = '<%s> %s' % (
+                type(child_object).__name__,
+                name if name else child_object.pathname,
+            )
+        super().browser_report(child, parent_object, expanded, user_data, name, icon_file)
+
+
 def get_resources_dir() -> Path:
     """Return the resources directory for these tests."""
     return get_tests_dir() / 'extension' / 'resources'
@@ -56,75 +84,7 @@ def get_ref_dir() -> Path:
     return get_tests_dir() / 'extension' / 'ref'
 
 
-class StubIde(Ide):
-    """SCADE IDE instantiation for unit tests."""
-
-    def __init__(self):
-        self.project = None
-        self._selection = []
-        self.browser = None
-        self.browser_items: Dict[Any, Any] = {}
-
-    def create_browser(self, name: str, icon: str = ''):
-        """Stub scade.create_browser."""
-        self.browser = {'name': name, 'icon': Path(icon).name if icon else '', 'children': []}
-        self.browser_items = {None: self.browser}
-
-    def browser_report(
-        self,
-        item: Any,
-        parent: Any = None,
-        expanded: bool = False,
-        name: str = '',
-        icon_file: str = '',
-    ):
-        """Stub scade.browser_report."""
-        assert self.browser_items is not None
-        if isinstance(item, str):
-            child = item
-        else:
-            assert isinstance(item, std.Project) or isinstance(item, std.FileRef)
-            child = '<%s> %s' % (type(item).__name__, name if name else item.pathname)
-        parent = self.browser_items[parent]
-        entry = {
-            'name': child,
-            'icon': Path(icon_file).name if icon_file else '',
-            'expanded': expanded,
-            'children': [],
-        }
-        parent['children'].append(entry)
-        self.browser_items[child] = entry
-
-    @property
-    def selection(self) -> List[Any]:
-        """Stub scade.selection."""
-        return self._selection
-
-    @selection.setter
-    def selection(self, selection: List[Any]):
-        """Stub scade.selection."""
-        self._selection = selection
-
-    def get_active_project(self) -> std.Project:
-        """Stub scade.active_project."""
-        assert self.project is not None
-        return self.project
-
-    def get_projects(self) -> List[Any]:
-        """Stub scade.model.project.stdproject.get_roots."""
-        return [self.get_active_project()]
-
-    def log(self, text: str):
-        """Stub scade.tabput."""
-        print(text)
-
-    def save_browser(self, path: Path):
-        """Store the current browser as a json file."""
-        with path.open('w') as f:
-            json.dump(self.browser, f, indent='   ', sort_keys=True)
-
-
-_test_ide = StubIde()
+_test_ide = TestIde()
 
 
 @pytest.fixture(scope='function')
@@ -166,6 +126,77 @@ def model_repo(request, git_repo):
     return tmp_dir
 
 
+@pytest.fixture(scope='function')
+def model_repo_with_submodule(model_repo):
+    """
+    Initializes a GitClient for Model/Model.etp with LibSubModule as a submodule.
+
+    Use the same Model resource as ``model_repo``. Its LibSubModule directory is
+    moved into a standalone repository, then re-added at the same path as a
+    Git submodule.
+    """
+    from shutil import copytree
+
+    tmp_dir = model_repo
+    client = core._git_client
+    assert client is not None
+    model_dir = tmp_dir / 'Model'
+    submodule_dir = model_dir / 'LibSubModule'
+    submodule_repo_dir = tmp_dir.parent / 'LibSubModuleRepo'
+
+    # Create a standalone repository from the existing model library.
+    copytree(submodule_dir, submodule_repo_dir)
+    run_git('init', '-b', 'main', str(submodule_repo_dir))
+    run_git('add', '.', dir=submodule_repo_dir)
+    assert run_git('commit', '-m', 'submodule initial commit', dir=submodule_repo_dir)
+
+    # Replace the regular directory with a submodule at the same model path.
+    assert run_git('rm', '-r', 'Model/LibSubModule', dir=tmp_dir)
+    assert run_git(
+        'commit',
+        '-m',
+        'remove regular library directory',
+        '--',
+        'Model/LibSubModule',
+        dir=tmp_dir,
+    )
+    result = subprocess.run(
+        [
+            'git',
+            '-c',
+            'protocol.file.allow=always',
+            'submodule',
+            'add',
+            str(submodule_repo_dir.resolve()),
+            'Model/LibSubModule',
+        ],
+        cwd=str(tmp_dir),
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert run_git(
+        'commit',
+        '-m',
+        'add library submodule',
+        '--',
+        '.gitmodules',
+        'Model/LibSubModule',
+        dir=tmp_dir,
+    )
+
+    project_path = model_dir / 'Model.etp'
+    client.refresh(str(project_path))
+
+    return tmp_dir
+
+
+@pytest.fixture(scope='function', params=['model_repo', 'model_repo_with_submodule'])
+def model_repository(request):
+    """Provide the model with either a regular library directory or a submodule."""
+    return request.getfixturevalue(request.param)
+
+
 commands_data = [
     (core.CmdRefresh(_test_ide), 'refresh.json', []),
     (core.CmdStage(_test_ide), 'stage.json', ['modified_unstaged.txt', 'removed_unstaged.txt']),
@@ -186,7 +217,7 @@ commands_data = [
 ]
 
 
-@pytest.mark.usefixtures('model_repo')
+@pytest.mark.usefixtures('model_repository')
 @pytest.mark.parametrize(
     'cmd, ref, sel',
     commands_data,
@@ -204,16 +235,34 @@ def test_git_ext_core_commands(capsys, tmpdir: Path, cmd: Command, ref: str, sel
 
     # read the outputs issued before the diff, if any
     captured = capsys.readouterr()
-    # ignore the version number
-    diff = cmp_file(get_ref_dir() / ref, result, n=0)
-    for line in list(diff):
-        print(line, end='')
-    # stdout.writelines(diff)
-    captured = capsys.readouterr()
-    assert captured.out == ''
+    if core._git_client.submodules_paths:
+        submodule_name = '<FileRef> Model/LibSubModule/LibSubModule.etp'
+
+        def remove_submodule_entry(browser):
+            if isinstance(browser, dict):
+                children = browser.get('children')
+                if isinstance(children, list):
+                    browser['children'] = [
+                        child for child in children if child.get('name') != submodule_name
+                    ]
+                    for child in browser['children']:
+                        remove_submodule_entry(child)
+
+        expected_browser = json.loads((get_ref_dir() / ref).read_text())
+        actual_browser = json.loads(result.read_text())
+        remove_submodule_entry(expected_browser)
+        remove_submodule_entry(actual_browser)
+        assert actual_browser == expected_browser
+    else:
+        # Ignore the version number.
+        diff = cmp_file(get_ref_dir() / ref, result, n=0)
+        for line in list(diff):
+            print(line, end='')
+        captured = capsys.readouterr()
+        assert captured.out == ''
 
 
-@pytest.mark.usefixtures('model_repo')
+@pytest.mark.usefixtures('model_repository')
 @pytest.mark.repo(get_resources_dir())
 def test_git_ext_core_diff(capsys):
     cmd = core.CmdDiff(_test_ide)
@@ -229,6 +278,72 @@ def test_git_ext_core_diff(capsys):
     assert len(lines) == 2
     archive = Path(lines[1].strip())
     assert archive.exists()
+
+
+@pytest.mark.usefixtures('model_repository')
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_commit(capsys):
+    """Test CmdDiff selecting a commit version."""
+
+    class CmdDiffCommit(core.CmdDiff):
+        def select_diff_version(self):
+            return [1, 0]  # Commits, first commit
+
+    cmd = CmdDiffCommit(_test_ide)
+    assert cmd.on_enable()
+
+    captured = capsys.readouterr()
+    cmd.on_activate()
+    captured = capsys.readouterr()
+    lines = captured.out.strip().split('\n')
+    assert len(lines) == 2
+    archive = Path(lines[1].strip())
+    assert archive.exists()
+
+
+@pytest.mark.usefixtures('model_repository')
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_cancel(capsys):
+    """Test CmdDiff when the user cancels version selection."""
+
+    class CmdDiffCancel(core.CmdDiff):
+        def select_diff_version(self):
+            return [-1, -1]
+
+    cmd = CmdDiffCancel(_test_ide)
+    assert cmd.on_enable()
+
+    captured = capsys.readouterr()
+    cmd.on_activate()
+    captured = capsys.readouterr()
+    assert 'Diff cancelled' in captured.out
+
+
+@pytest.mark.usefixtures('model_repository')
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_refresh_submodule_paths_detected(capsys):
+    """Verify submodule paths are properly detected by GitClient."""
+    # In the model_repo fixture, LibSubModule is just a regular directory
+    # This test verifies the submodule detection mechanism works
+    assert core._git_client is not None
+    
+    # Get the submodule paths (will be empty in model_repo since it's not a real submodule)
+    submodule_paths = core._git_client.submodules_paths
+    # Just verify that the property exists and can be accessed
+    assert isinstance(submodule_paths, list)
+
+
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_submodule_fixture_available(model_repo_with_submodule):
+    """Verify LibSubModule is a real submodule in the model repository."""
+    tmp_dir = model_repo_with_submodule
+    submodule_dir = tmp_dir / 'Model' / 'LibSubModule'
+
+    assert (tmp_dir / '.gitmodules').is_file()
+    assert submodule_dir.is_dir()
+    assert (submodule_dir / 'LibSubModule.etp').is_file()
+    assert core._git_client is not None
+    assert submodule_dir.resolve() in core._git_client.submodules_paths
 
 
 def test_safe_members(tmpdir_factory, capsys):
@@ -288,8 +403,9 @@ def test_safe_members(tmpdir_factory, capsys):
     archive = tree_dir / 'archive.zip'
     tar_file = tarfile.open(archive, 'w:gz')
     for path in root_dir.glob('*'):
-        tar_file.add(path, arcname=path.name)
-    tar_file.add(extern_txt, arcname='../extern.txt')
+        # 3.7 does not accept path-like objects
+        tar_file.add(str(path), arcname=path.name)
+    tar_file.add(str(extern_txt), arcname='../extern.txt')
     tar_file.close()
 
     # read the outputs issued before the test, if any

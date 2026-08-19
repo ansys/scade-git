@@ -25,7 +25,7 @@ Ansys SCADE Git Extensions
 For information on available extensions and how to use them,
 see each of the following:
 
-.. grid:: 1 1 2 2
+.. grid:: 1 1 3 3
     :gutter: 2
 
     .. grid-item-card:: :octicon:`browser` GUI extensions
@@ -41,11 +41,18 @@ see each of the following:
        Understand how to use command line merge tools for Git or other configuration
        management tools.
 
+    .. grid-item-card:: :octicon:`package` Architecture
+       :link: architecture
+       :link-type: doc
+
+       Understand the design and architecture of the SCADE Git Extensions.
+
 .. toctree::
    :hidden:
    :maxdepth: 3
 
    getting_started/index
+   architecture
    gui-extensions/index
    merge-tools/index
    contributing

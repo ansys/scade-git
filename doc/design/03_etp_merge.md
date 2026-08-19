@@ -855,7 +855,7 @@ If conflicts:
 - **Entities**: Tested with projects up to 10,000 entities
 - **Depth**: Tested with folder depth up to 20 levels
 - **Properties**: Tested with up to 1,000 properties per entity
-- **Memory**: ~1MB per 1,000 entities (cached)
+- **Memory**: ~1 MB per 1,000 entities (cached)
 
 ## Testing Strategy
 

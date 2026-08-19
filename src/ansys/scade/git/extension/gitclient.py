@@ -29,7 +29,7 @@ import os
 from pathlib import Path, PurePosixPath
 import site
 import sys
-from typing import Dict, Iterator, List, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple, Union
 
 # force user installed modules to have priority on Python installation
 site_user = site.getusersitepackages()
@@ -47,6 +47,7 @@ from dulwich.repo import Repo  # noqa: E402
 min_dulwich_ver = (0, 21, 3)
 tree_mode = 0o040000
 gitlink_mode = 0o160000
+Commitish = Union[str, bytes, Commit, Tag]
 
 GitStatus = Enum(
     'GitStatus',
@@ -65,6 +66,12 @@ GitStatus = Enum(
         'none',
     ],
 )
+
+
+def normalize_git_path(path: Union[str, bytes]) -> str:
+    """Normalize Dulwich path values for stable key matching."""
+    path_str = path.decode('utf-8') if isinstance(path, bytes) else path
+    return path_str.replace('\\', '/').rstrip('/')
 
 
 def find_git_repo(local_proj_path: str) -> str:
@@ -174,11 +181,6 @@ class GitClient(metaclass=ABCMeta):
             # git status for the current repo
             # typing annotation incorrect for git.status: str | Repo
             staged, unstaged, untracked = git.status(self.repo)  # type: ignore
-
-            def normalize_git_path(path: str | bytes) -> str:
-                """Normalize Dulwich path values for stable key matching."""
-                path_str = path.decode('utf-8') if isinstance(path, bytes) else path
-                return path_str.replace('\\', '/').rstrip('/')
 
             staged_add = {normalize_git_path(file) for file in staged['add']}
             staged_modify = {normalize_git_path(file) for file in staged['modify']}
@@ -336,9 +338,7 @@ class GitClient(metaclass=ABCMeta):
         else:
             return '', GitStatus.none
 
-    def get_submodule_paths(
-        self, committish: str | bytes | Commit | Tag | None = None
-    ) -> List[str]:
+    def get_submodule_paths(self, committish: Optional[Commitish] = None) -> List[str]:
         """Return the list of absolute submodule paths for a commit."""
         if not self.repo or not self.repo_path:
             return []
@@ -436,7 +436,7 @@ class GitClient(metaclass=ABCMeta):
         if self.repo:
             git.reset(self.repo, 'hard')
 
-    def archive(self, committish: str | bytes | Commit | Tag | None, file: str) -> bool:
+    def archive(self, committish: Optional[Commitish], file: str) -> bool:
         """
         Archive a committish to a target file.
 
@@ -456,7 +456,7 @@ class GitClient(metaclass=ABCMeta):
                 self.log('Error archive: {0}'.format(e))
         return False
 
-    def _resolve_commit(self, repo: Repo, committish: str | bytes | Commit | Tag | None) -> Commit:
+    def _resolve_commit(self, repo: Repo, committish: Optional[Commitish]) -> Commit:
         """Resolve a commit-like reference into a Commit object."""
         if isinstance(committish, Commit):
             return committish
@@ -605,9 +605,7 @@ class GitClient(metaclass=ABCMeta):
 
         return True
 
-    def export_to_directory(
-        self, committish: str | bytes | Commit | Tag | None, output_dir: str
-    ) -> bool:
+    def export_to_directory(self, committish: Optional[Commitish], output_dir: str) -> bool:
         """
         Export a version to a plain directory, including submodules.
 

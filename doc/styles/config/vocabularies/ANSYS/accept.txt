@@ -36,3 +36,16 @@ Reqs
 enum
 OIDs
 traceType
+stderr
+repo
+mypy
+Git's
+location
+Postconditions
+traceback
+e.g.
+dialogs
+gitclient
+(s)
+normalized_path
+files_status

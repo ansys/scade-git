@@ -186,7 +186,7 @@ To test GUI extension changes:
 
 1. **Restart SCADE Suite** after making changes
 2. **Open a test project** with Git initialized
-3. **Use the Git browser** to verify functionality
+3. **Use the Git browser** to verify feature
 4. **Check the output pane** for logged messages
 
 .. note::
@@ -439,7 +439,7 @@ Add changelog entries in ``doc/changelog.d/``:
 Changelog categories:
 
 * ``.added.md``: New features
-* ``.changed.md``: Changes in existing functionality
+* ``.changed.md``: Changes in existing feature
 * ``.deprecated.md``: Soon-to-be removed features
 * ``.removed.md``: Removed features
 * ``.fixed.md``: Bug fixes

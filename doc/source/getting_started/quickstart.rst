@@ -111,7 +111,7 @@ After modifying files in SCADE:
 
 **Stage Individual Files:**
 
-#. Right-click on a file in the **Unstaged** category
+#. Right-click a file in the **Unstaged** category
 #. Select **Git → Stage**
 
 **Stage All Files:**
@@ -157,7 +157,7 @@ To remove files from staging:
 
 **Unstage Individual Files:**
 
-#. Right-click on a file in the **Staged** category
+#. Right-click a file in the **Staged** category
 #. Select **Git → Unstage**
 
 **Unstage All Files:**

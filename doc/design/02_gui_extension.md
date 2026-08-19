@@ -106,7 +106,7 @@ class Command(metaclass=ABCMeta):
 
 **Rationale:**
 - Encapsulates each Git operation as an object
-- Enables/disables commands based on context
+- Turn on/turn off commands based on context
 - Separates UI concerns from business logic
 - Supports undo/redo in future (not yet implemented)
 - Testable without IDE
@@ -559,8 +559,8 @@ git_client.reset_files([file4])
 ### Error Categories
 
 1. **Initialization Errors**
-   - No Git repository found → Show info message, disable commands
-   - Dulwich not installed → Show error, disable extension
+   - No Git repository found → Show info message, turn off commands
+   - Dulwich not installed → Show error, turn off extension
    - Invalid SCADE project → Log error, skip project
 
 2. **Operation Errors**
@@ -569,7 +569,7 @@ git_client.reset_files([file4])
    - Network error during fetch → Show error, rollback operation
 
 3. **UI Errors**
-   - Browser creation failed → Log error, disable browser updates
+   - Browser creation failed → Log error, turn off browser updates
    - Icon file not found → Use default icon, log warning
    - Dialog display error → Log error, use fallback (direct commit)
 
@@ -579,7 +579,7 @@ git_client.reset_files([file4])
 - **Info**: Status bar message (disappears after 5 seconds)
 - **Warning**: Message box with warning icon
 - **Error**: Message box with error icon and details
-- **Critical**: Message box + disable extension
+- **Critical**: Message box + turn off extension
 
 **Error Logging:**
 All errors logged to SCADE output pane via `ide.log()`.
@@ -625,7 +625,7 @@ All errors logged to SCADE output pane via `ide.log()`.
 **Location:** `tests/extension/test_gitextcore.py`
 
 **Test Cases:**
-- Command enable/disable logic
+- Command turn on/turn off logic
 - File categorization algorithm
 - Path validation (badpath, badlink)
 - Browser refresh logic (mocked)

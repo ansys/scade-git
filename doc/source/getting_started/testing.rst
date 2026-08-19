@@ -8,7 +8,7 @@ Overview
 
 The test suite ensures code quality and prevents regressions. Tests are organized by component:
 
-* **Extension tests**: GUI extension and Git client functionality
+* **Extension tests**: GUI extension and Git client feature
 * **ETP merge tests**: Project file merge logic
 * **ALMGT merge tests**: Traceability file merge logic
 

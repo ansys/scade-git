@@ -79,7 +79,7 @@ It consists of the following key components:
 
 * **gitextension.py**: Main entry point for the SCADE IDE extension
 
-  - Implements ``Studio`` class that provides SCADE IDE-specific functionality
+  - Implements ``Studio`` class that provides SCADE IDE-specific feature
   - Creates Git browser, menus, toolbars, and context menus
   - Handles user interactions and delegates to command handlers
   - Implements ``GitClient`` subclass for IDE-specific logging
@@ -348,7 +348,7 @@ Dependency Management
 
 The package uses ``site.getusersitepackages()`` to ensure user-installed modules
 take precedence over system Python installations, allowing users to upgrade
-dependencies like Dulwich without admin privileges.
+dependencies like Dulwich without administrator privileges.
 
 Extension Points
 ----------------

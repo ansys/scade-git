@@ -16,6 +16,7 @@ Ansys SCADE, starting from 2021 R2:
 * 2026 R1 and later: Python 3.12
 
 .. _install_in_user_mode:
+
 Install in user mode
 --------------------
 The following steps are necessary for installing Ansys SCADE Git Extensions in user mode. If you want to

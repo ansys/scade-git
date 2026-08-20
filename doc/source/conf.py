@@ -45,6 +45,7 @@ html_theme_options = {
 extensions = [
     "numpydoc",
     "sphinx.ext.intersphinx",
+    "sphinxcontrib.mermaid",
     "sphinx_copybutton",
     "sphinx_design",
 ]

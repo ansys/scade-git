@@ -51,6 +51,13 @@
                      "children": [],
                      "expanded": false,
                      "icon_file": "clean.ico",
+                     "name": "<FileRef> Model/LibSubModule/LibSubModule.etp",
+                     "user_data": null
+                  },
+                  {
+                     "children": [],
+                     "expanded": false,
+                     "icon_file": "clean.ico",
                      "name": "<FileRef> Model/Child/Child.xscade",
                      "user_data": null
                   },

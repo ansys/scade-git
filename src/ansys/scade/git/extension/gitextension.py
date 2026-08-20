@@ -42,6 +42,9 @@ from ansys.scade.git.extension.gitextcore import (
 )
 from ansys.scade.guitools.studio import studio
 
+# add debugging support for the extension
+# import ansys.scade.git.extension.debug_vsc
+
 
 class GitClient(AbsGitClient):
     """GitClient implementation to log the messages to the IDE."""

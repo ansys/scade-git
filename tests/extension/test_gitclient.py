@@ -26,6 +26,7 @@
 # workaround: use 'getattr', or add 'type: ignore' pragma --> too verbose
 
 from pathlib import Path
+from subprocess import run
 from typing import Tuple
 
 import pytest
@@ -227,6 +228,14 @@ class TestGitClientNominal:
         branches = self.git_client.get_branch_list()
         assert 'main' in branches
 
+    def test_commit_list(self):
+        self.git_client.refresh(str(self.dir / 'Model.etp'))
+        # basic test: make sure the commit 'xxxx' is present
+        commits = self.git_client.get_commits_list()
+        assert type(commits[0][0]) is bytes
+        assert len(commits[0][0]) == 40
+        assert commits[0][1] > 1765471530
+
     def test_archive(self, tmpdir):
         self.git_client.refresh(str(self.dir / 'Model.etp'))
         # add any file
@@ -234,6 +243,15 @@ class TestGitClientNominal:
         status = self.git_client.archive('main', str(output))
         assert status
         assert output.exists()
+
+    def test_export_to_directory(self, tmpdir):
+        self.git_client.refresh(str(self.dir / 'Model.etp'))
+        output = tmpdir / 'Export'
+        status = self.git_client.export_to_directory('main', str(output))
+        assert status
+        assert output.exists()
+        assert (output / 'Model.etp').exists()
+        assert not (output / '.git').exists()
 
 
 # unexisting project in the parent of the repository
@@ -290,6 +308,12 @@ class TestGitClientRobustnessWrongArgs:
         # no exception
         assert not status
 
+    def test_export_to_directory(self, tmpdir):
+        output = tmpdir / 'InvalidExport'
+        status = self.git_client.export_to_directory('<wrong branch>', str(output))
+        # no exception
+        assert not status
+
 
 @pytest.mark.repo(get_resources_dir() / 'Model')
 @pytest.mark.usefixtures('cls_tmp_repo')
@@ -339,6 +363,103 @@ class TestGitClientRobustnessWrongRepo:
         assert not status
         assert not output.exists()
 
+    def test_export_to_directory(self, tmpdir):
+        self.git_client.refresh(str(self.dir / 'Model.etp'))
+        output = tmpdir / 'NotProducedExport'
+        status = self.git_client.export_to_directory('HEAD', str(output))
+        # no exception
+        assert not status
+
     def test_branch_list(self):
         branches = self.git_client.get_branch_list()
         assert branches == []
+
+    def test_commit_list(self):
+        commits = self.git_client.get_commits_list()
+        assert commits == []
+
+
+class TestGitClientExportSubmodule:
+    """Verify export_to_directory handles submodules."""
+
+    class _Client(GitClient):
+        def log(self, text: str):
+            """Ignore logs in tests."""
+            print(text)
+
+    def _run_git(self, cwd: Path, *args: str):
+        cp = run(['git', *args], cwd=str(cwd), capture_output=True, text=True)
+        if cp.stdout:
+            print(cp.stdout)
+        if cp.stderr:
+            print(cp.stderr)
+        assert cp.returncode == 0
+
+    def test_export_to_directory_submodule(self, tmp_path: Path):
+        root_repo = tmp_path / 'root'
+        sub_repo = tmp_path / 'subrepo'
+        export_dir = tmp_path / 'export'
+
+        root_repo.mkdir()
+        sub_repo.mkdir()
+
+        self._run_git(sub_repo, 'init', '-b', 'main')
+        (sub_repo / 'sub.txt').write_text('submodule content\n', encoding='utf-8')
+        self._run_git(sub_repo, 'add', 'sub.txt')
+        self._run_git(
+            sub_repo,
+            '-c',
+            'user.email=test@example.com',
+            '-c',
+            'user.name=test',
+            'commit',
+            '-m',
+            'sub init',
+        )
+
+        self._run_git(root_repo, 'init', '-b', 'main')
+        (root_repo / 'root.txt').write_text('root content\n', encoding='utf-8')
+        self._run_git(root_repo, 'add', 'root.txt')
+        self._run_git(
+            root_repo,
+            '-c',
+            'user.email=test@example.com',
+            '-c',
+            'user.name=test',
+            'commit',
+            '-m',
+            'root init',
+        )
+
+        self._run_git(
+            root_repo,
+            '-c',
+            'protocol.file.allow=always',
+            'submodule',
+            'add',
+            str(sub_repo),
+            'deps/sub',
+        )
+        self._run_git(
+            root_repo,
+            '-c',
+            'user.email=test@example.com',
+            '-c',
+            'user.name=test',
+            'commit',
+            '-m',
+            'add submodule',
+        )
+
+        client = self._Client()
+        status = client.refresh(str(root_repo / 'root.txt'))
+        assert status
+
+        exported = client.export_to_directory('main', str(export_dir))
+        assert exported
+        assert (export_dir / 'root.txt').read_text(encoding='utf-8') == 'root content\n'
+        assert (export_dir / 'deps' / 'sub' / 'sub.txt').read_text(
+            encoding='utf-8'
+        ) == 'submodule content\n'
+        assert not (export_dir / '.git').exists()
+        assert not (export_dir / 'deps' / 'sub' / '.git').exists()

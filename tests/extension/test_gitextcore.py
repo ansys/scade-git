@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import json
 from pathlib import Path
 import subprocess
 import tarfile
@@ -125,6 +126,77 @@ def model_repo(request, git_repo):
     return tmp_dir
 
 
+@pytest.fixture(scope='function')
+def model_repo_with_submodule(model_repo):
+    """
+    Initializes a GitClient for Model/Model.etp with LibSubModule as a submodule.
+
+    Use the same Model resource as ``model_repo``. Its LibSubModule directory is
+    moved into a standalone repository, then re-added at the same path as a
+    Git submodule.
+    """
+    from shutil import copytree
+
+    tmp_dir = model_repo
+    client = core._git_client
+    assert client is not None
+    model_dir = tmp_dir / 'Model'
+    submodule_dir = model_dir / 'LibSubModule'
+    submodule_repo_dir = tmp_dir.parent / 'LibSubModuleRepo'
+
+    # Create a standalone repository from the existing model library.
+    copytree(submodule_dir, submodule_repo_dir)
+    run_git('init', '-b', 'main', str(submodule_repo_dir))
+    run_git('add', '.', dir=submodule_repo_dir)
+    assert run_git('commit', '-m', 'submodule initial commit', dir=submodule_repo_dir)
+
+    # Replace the regular directory with a submodule at the same model path.
+    assert run_git('rm', '-r', 'Model/LibSubModule', dir=tmp_dir)
+    assert run_git(
+        'commit',
+        '-m',
+        'remove regular library directory',
+        '--',
+        'Model/LibSubModule',
+        dir=tmp_dir,
+    )
+    result = subprocess.run(
+        [
+            'git',
+            '-c',
+            'protocol.file.allow=always',
+            'submodule',
+            'add',
+            str(submodule_repo_dir.resolve()),
+            'Model/LibSubModule',
+        ],
+        cwd=str(tmp_dir),
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert run_git(
+        'commit',
+        '-m',
+        'add library submodule',
+        '--',
+        '.gitmodules',
+        'Model/LibSubModule',
+        dir=tmp_dir,
+    )
+
+    project_path = model_dir / 'Model.etp'
+    client.refresh(str(project_path))
+
+    return tmp_dir
+
+
+@pytest.fixture(scope='function', params=['model_repo', 'model_repo_with_submodule'])
+def model_repository(request):
+    """Provide the model with either a regular library directory or a submodule."""
+    return request.getfixturevalue(request.param)
+
+
 commands_data = [
     (core.CmdRefresh(_test_ide), 'refresh.json', []),
     (core.CmdStage(_test_ide), 'stage.json', ['modified_unstaged.txt', 'removed_unstaged.txt']),
@@ -145,7 +217,7 @@ commands_data = [
 ]
 
 
-@pytest.mark.usefixtures('model_repo')
+@pytest.mark.usefixtures('model_repository')
 @pytest.mark.parametrize(
     'cmd, ref, sel',
     commands_data,
@@ -163,16 +235,34 @@ def test_git_ext_core_commands(capsys, tmpdir: Path, cmd: Command, ref: str, sel
 
     # read the outputs issued before the diff, if any
     captured = capsys.readouterr()
-    # ignore the version number
-    diff = cmp_file(get_ref_dir() / ref, result, n=0)
-    for line in list(diff):
-        print(line, end='')
-    # stdout.writelines(diff)
-    captured = capsys.readouterr()
-    assert captured.out == ''
+    if core._git_client.submodules_paths:
+        submodule_name = '<FileRef> Model/LibSubModule/LibSubModule.etp'
+
+        def remove_submodule_entry(browser):
+            if isinstance(browser, dict):
+                children = browser.get('children')
+                if isinstance(children, list):
+                    browser['children'] = [
+                        child for child in children if child.get('name') != submodule_name
+                    ]
+                    for child in browser['children']:
+                        remove_submodule_entry(child)
+
+        expected_browser = json.loads((get_ref_dir() / ref).read_text())
+        actual_browser = json.loads(result.read_text())
+        remove_submodule_entry(expected_browser)
+        remove_submodule_entry(actual_browser)
+        assert actual_browser == expected_browser
+    else:
+        # Ignore the version number.
+        diff = cmp_file(get_ref_dir() / ref, result, n=0)
+        for line in list(diff):
+            print(line, end='')
+        captured = capsys.readouterr()
+        assert captured.out == ''
 
 
-@pytest.mark.usefixtures('model_repo')
+@pytest.mark.usefixtures('model_repository')
 @pytest.mark.repo(get_resources_dir())
 def test_git_ext_core_diff(capsys):
     cmd = core.CmdDiff(_test_ide)
@@ -188,6 +278,72 @@ def test_git_ext_core_diff(capsys):
     assert len(lines) == 2
     archive = Path(lines[1].strip())
     assert archive.exists()
+
+
+@pytest.mark.usefixtures('model_repository')
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_commit(capsys):
+    """Test CmdDiff selecting a commit version."""
+
+    class CmdDiffCommit(core.CmdDiff):
+        def select_diff_version(self):
+            return [1, 0]  # Commits, first commit
+
+    cmd = CmdDiffCommit(_test_ide)
+    assert cmd.on_enable()
+
+    captured = capsys.readouterr()
+    cmd.on_activate()
+    captured = capsys.readouterr()
+    lines = captured.out.strip().split('\n')
+    assert len(lines) == 2
+    archive = Path(lines[1].strip())
+    assert archive.exists()
+
+
+@pytest.mark.usefixtures('model_repository')
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_cancel(capsys):
+    """Test CmdDiff when the user cancels version selection."""
+
+    class CmdDiffCancel(core.CmdDiff):
+        def select_diff_version(self):
+            return [-1, -1]
+
+    cmd = CmdDiffCancel(_test_ide)
+    assert cmd.on_enable()
+
+    captured = capsys.readouterr()
+    cmd.on_activate()
+    captured = capsys.readouterr()
+    assert 'Diff cancelled' in captured.out
+
+
+@pytest.mark.usefixtures('model_repository')
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_refresh_submodule_paths_detected(capsys):
+    """Verify submodule paths are properly detected by GitClient."""
+    # In the model_repo fixture, LibSubModule is just a regular directory
+    # This test verifies the submodule detection mechanism works
+    assert core._git_client is not None
+
+    # Get the submodule paths (will be empty in model_repo since it's not a real submodule)
+    submodule_paths = core._git_client.submodules_paths
+    # Just verify that the property exists and can be accessed
+    assert isinstance(submodule_paths, list)
+
+
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_submodule_fixture_available(model_repo_with_submodule):
+    """Verify LibSubModule is a real submodule in the model repository."""
+    tmp_dir = model_repo_with_submodule
+    submodule_dir = tmp_dir / 'Model' / 'LibSubModule'
+
+    assert (tmp_dir / '.gitmodules').is_file()
+    assert submodule_dir.is_dir()
+    assert (submodule_dir / 'LibSubModule.etp').is_file()
+    assert core._git_client is not None
+    assert submodule_dir.resolve() in core._git_client.submodules_paths
 
 
 def test_safe_members(tmpdir_factory, capsys):

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Project id="1" oid_count="112" defaultConfiguration="23">
+<Project id="1" oid_count="87" defaultConfiguration="23">
 	<props>
 		<Prop id="10" name="@STUDIO:PRODUCT">
 			<value>SC</value>
@@ -121,7 +121,7 @@
 			<value>34</value>
 			<value>39</value>
 			<value>44</value>
-			<value>65</value>
+			<value>66</value>
 		</Prop>
 		<Prop id="40" name="@REPORTER:FORMAT">
 			<value>rtf</value>
@@ -233,176 +233,81 @@
 			<value>Timing and Stack Verifiers</value>
 			<value>57</value>
 		</Prop>
-		<Prop id="66" name="@REPORTER:FORMAT">
+		<Prop id="65" name="@STUDIO:TOOLCONF">
+			<value>Timing and Stack Analysis Tools</value>
+			<value>57</value>
+		</Prop>
+		<Prop id="67" name="@REPORTER:FORMAT">
 			<value>rtf</value>
-			<configuration>65</configuration>
+			<configuration>66</configuration>
 		</Prop>
-		<Prop id="67" name="@REPORTER:SCRIPT">
+		<Prop id="68" name="@REPORTER:SCRIPT">
 			<value>Reporter/ScadeQualifiedReport.tcl</value>
-			<configuration>65</configuration>
+			<configuration>66</configuration>
 		</Prop>
-		<Prop id="68" name="@REPORTER:RotateLandscape">
+		<Prop id="69" name="@REPORTER:RotateLandscape">
 			<value>true</value>
-			<configuration>65</configuration>
+			<configuration>66</configuration>
 		</Prop>
-		<Prop id="69" name="@REPORTER:cstDisplayType">
+		<Prop id="70" name="@REPORTER:cstDisplayType">
 			<value>Flat</value>
-			<configuration>65</configuration>
+			<configuration>66</configuration>
 		</Prop>
-		<Prop id="70" name="@REPORTER:AllowRowToBreak">
+		<Prop id="71" name="@REPORTER:AllowRowToBreak">
 			<value>true</value>
-			<configuration>65</configuration>
+			<configuration>66</configuration>
 		</Prop>
-		<Prop id="71" name="@REPORTER:DisplayCalledAndCalling">
+		<Prop id="72" name="@REPORTER:DisplayCalledAndCalling">
 			<value>true</value>
-			<configuration>65</configuration>
+			<configuration>66</configuration>
 		</Prop>
-		<Prop id="72" name="@REPORTER:DisplayKCGPragma">
+		<Prop id="73" name="@REPORTER:DisplayKCGPragma">
 			<value>true</value>
-			<configuration>65</configuration>
+			<configuration>66</configuration>
 		</Prop>
-		<Prop id="73" name="@SCADE:DEFAULTFILE">
-			<value>Model.xscade</value>
+		<Prop id="74" name="@SCADE:DEFAULTFILE">
+			<value>LibSubModule.xscade</value>
 		</Prop>
-		<Prop id="74" name="@SCADE:SEMFILE">
-			<value>Model.err</value>
+		<Prop id="75" name="@SCADE:SEMFILE">
+			<value>LibSubModule.err</value>
 		</Prop>
-		<Prop id="75" name="@SCADE:NOTEFILE">
+		<Prop id="76" name="@SCADE:NOTEFILE">
 			<value>$(SCADE)/lib/DefaultAty.aty</value>
 		</Prop>
-		<Prop id="76" name="@SCADE:NEWVARIABLESYMBOLS">
+		<Prop id="77" name="@SCADE:NEWVARIABLESYMBOLS">
 			<value>true</value>
 		</Prop>
-		<Prop id="77" name="@STUDIO:TITLE">
+		<Prop id="78" name="@STUDIO:TITLE">
 			<value>&lt;title&gt;</value>
 		</Prop>
-		<Prop id="78" name="@STUDIO:SUBTITLE">
+		<Prop id="79" name="@STUDIO:SUBTITLE">
 			<value>&lt;subtitle&gt;</value>
 		</Prop>
-		<Prop id="79" name="@STUDIO:DESCRIPTION">
+		<Prop id="80" name="@STUDIO:DESCRIPTION">
 			<value>&lt;description&gt;</value>
 		</Prop>
-		<Prop id="80" name="@STUDIO:AUTHORS">
+		<Prop id="81" name="@STUDIO:AUTHORS">
 			<value>&lt;authors&gt;</value>
 		</Prop>
-		<Prop id="81" name="@STUDIO:COMPAGNY">
+		<Prop id="82" name="@STUDIO:COMPAGNY">
 			<value>&lt;company&gt;</value>
 		</Prop>
-		<Prop id="82" name="@STUDIO:DATE">
+		<Prop id="83" name="@STUDIO:DATE">
 			<value>&lt;date&gt;</value>
 		</Prop>
-		<Prop id="83" name="@STUDIO:INDEX">
+		<Prop id="84" name="@STUDIO:INDEX">
 			<value>&lt;index&gt;</value>
 		</Prop>
-		<Prop id="84" name="@STUDIO:REFERENCE">
+		<Prop id="85" name="@STUDIO:REFERENCE">
 			<value>&lt;reference&gt;</value>
-		</Prop>
-		<Prop id="85" name="@STUDIO:TOOLCONF">
-			<value>Timing and Stack Analysis Tools</value>
-			<value>14</value>
-			<value>23</value>
-			<value>34</value>
-			<value>39</value>
-			<value>44</value>
-			<value>54</value>
-			<value>57</value>
-			<value>65</value>
-		</Prop>
-		<Prop id="87" name="@STUDIO:TOOLCONF">
-			<value>Design Verifier</value>
-			<value>14</value>
-			<value>23</value>
-			<value>34</value>
-			<value>39</value>
-			<value>44</value>
-			<value>54</value>
-			<value>57</value>
-			<value>65</value>
-		</Prop>
-		<Prop id="100" name="@STUDIO:TOOLCONF">
-			<value>DiffAnalyzer</value>
-			<value>14</value>
-			<value>23</value>
-			<value>34</value>
-			<value>39</value>
-			<value>44</value>
-			<value>54</value>
-			<value>57</value>
-			<value>65</value>
-		</Prop>
-		<Prop id="101" name="@STUDIO:TOOLCONF">
-			<value>Synchronization</value>
-			<value>14</value>
-			<value>23</value>
-			<value>34</value>
-			<value>39</value>
-			<value>44</value>
-			<value>54</value>
-			<value>57</value>
-			<value>65</value>
-		</Prop>
-		<Prop id="102" name="@STUDIO:TOOLCONF">
-			<value>Import/Export</value>
-			<value>14</value>
-			<value>23</value>
-			<value>34</value>
-			<value>39</value>
-			<value>44</value>
-			<value>54</value>
-			<value>57</value>
-			<value>65</value>
 		</Prop>
 	</props>
 	<roots>
-		<Folder id="3" extensions="vsp;etp" name="SCADE Libraries">
-			<elements>
-				<FileRef id="4" persistAs="$(SCADE)\libraries\SC65\libdigital\libdigital.etp"/>
-				<FileRef id="112" persistAs="LibSubModule\LibSubModule.etp"/>
-			</elements>
-		</Folder>
+		<Folder id="3" extensions="vsp;etp" name="SCADE Libraries"/>
 		<Folder id="12" extensions="xscade;scade" name="Model Files">
 			<elements>
-				<Folder id="13" extensions="xscade;scade" name="Separate Files">
-					<elements>
-						<FileRef id="93" persistAs="Child\Child.xscade">
-							<props>
-								<Prop id="92" name="@SCADE:NONROOT">
-									<value>true</value>
-								</Prop>
-							</props>
-						</FileRef>
-						<FileRef id="95" persistAs="Root.xscade">
-							<props>
-								<Prop id="94" name="@SCADE:NONROOT">
-									<value>true</value>
-								</Prop>
-							</props>
-						</FileRef>
-					</elements>
-				</Folder>
-				<FileRef id="86" persistAs="P.xscade"/>
-			</elements>
-		</Folder>
-		<Folder id="88" name="Design Verifier File">
-			<elements>
-				<FileRef id="89" persistAs="Model.l4"/>
-			</elements>
-		</Folder>
-		<Folder id="90" name="C Files">
-			<elements>
-				<FileRef id="91" persistAs="..\Sibling\Macros.h"/>
-			</elements>
-		</Folder>
-		<Folder id="103" name="Misc. FIles">
-			<elements>
-				<FileRef id="104" persistAs="removed_unstaged.txt"/>
-				<FileRef id="105" persistAs="removed_staged.txt"/>
-				<FileRef id="106" persistAs="modified_unstaged.txt"/>
-				<FileRef id="107" persistAs="modified_staged.txt"/>
-				<FileRef id="108" persistAs="commit.txt"/>
-				<FileRef id="109" persistAs="reset.txt"/>
-				<FileRef id="110" persistAs="untracked.txt"/>
-				<FileRef id="111" persistAs="new.txt"/>
+				<Folder id="13" extensions="xscade;scade" name="Separate Files"/>
+				<FileRef id="87" persistAs="LibOp1.xscade"/>
 			</elements>
 		</Folder>
 	</roots>
@@ -414,6 +319,6 @@
 		<Configuration id="44" name="Coverage"/>
 		<Configuration id="54" name="MetricRule"/>
 		<Configuration id="57" name="Timing and Stack"/>
-		<Configuration id="65" name="Cert. Reporter"/>
+		<Configuration id="66" name="Cert. Reporter"/>
 	</configurations>
 </Project>

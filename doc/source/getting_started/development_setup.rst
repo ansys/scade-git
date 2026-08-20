@@ -170,7 +170,7 @@ Making Changes
 
 2. **Make your changes** in the appropriate module
 
-3. **Test your changes** (see :ref:`development_setup:Running Tests`)
+**Test your changes** (see :ref:`running_tests`)
 
 4. **Commit your changes:**
 
@@ -215,6 +215,8 @@ To test with Git:
 2. Create test branches with conflicting changes
 3. Attempt to merge branches
 4. Verify merge tools are invoked
+
+.. _running_tests:
 
 Running Tests
 -------------

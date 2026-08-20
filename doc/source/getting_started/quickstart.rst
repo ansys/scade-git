@@ -11,7 +11,7 @@ Before starting, ensure you have:
 * A valid Ansys SCADE license
 * SCADE Suite 2021 R2 or later installed
 * Git installed and configured on your system
-* The ``ansys-scade-git`` package installed (see :ref:`getting_started/index:Install in user mode`)
+* The ``ansys-scade-git`` package installed (see :ref:`install_in_user_mode`)
 
 Step 1: Register the Extension
 -------------------------------

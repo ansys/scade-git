@@ -378,9 +378,14 @@ class GitClient(metaclass=ABCMeta):
         """
         if self.repo:
             try:
-                # porcelain.add accepts any paths, absolute or relative to the repo,
-                # as well as repos (incorrect typing annotation)
-                return git.add(self.repo, files)  # type: ignore
+                # Dulwich resolves relative paths against the process working directory.
+                repo_path = Path(self.repo_path)
+                paths = [
+                    str(file_path if file_path.is_absolute() else repo_path / file_path)
+                    for file in files
+                    for file_path in [Path(file)]
+                ]
+                return git.add(self.repo, paths)  # type: ignore
             except BaseException as e:
                 self.log('Error stage: {0}'.format(e))
 

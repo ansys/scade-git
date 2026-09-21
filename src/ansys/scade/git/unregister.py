@@ -45,6 +45,7 @@ def git_config() -> bool:
     """
 
     def unregister_driver(id: str) -> bool:
+        """Unregister a Git diff driver."""
         status = True
         for param in ['name', 'driver', 'trustExitCode']:
             cmd = ['git', 'config', '--global', '--unset', 'merge.%s.%s' % (id, param)]

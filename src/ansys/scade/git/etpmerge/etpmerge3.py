@@ -22,7 +22,6 @@
 
 """Merge3 for SCADE project files (ETP)."""
 
-import os
 from pathlib import Path
 import traceback
 from typing import Set
@@ -440,9 +439,9 @@ class EtpMerge3:
         # save the local project as pathname
         tmp = pathname + '.etp'
         self.local.save(tmp)
+        path = Path(tmp)
         if self.conflicts:
             # append the conflicts to the end of file
-            path = Path(tmp)
             with path.open('at') as f:
                 for context, local, remote in self.conflicts:
                     # path not meaningful, at least with Git
@@ -455,17 +454,16 @@ class EtpMerge3:
                     # f.write('>>>>>>> remote:%s\n' % path.name)
                     f.write('>>>>>>>\n')
         if not crlf:
-            path = Path(tmp)
             with path.open('r') as f:
                 content = f.read()
             bytes = content.encode('utf-8')
             with path.open('wb') as f:
                 f.write(bytes)
-        os.replace(tmp, pathname)
+        path.replace(pathname)
 
     def is_crlf(self) -> bool:
         """Detect the mode of the local file, either unix (LF) or windows (CR/LF)."""
-        with open(self.local.pathname, 'rb') as f:
+        with Path(self.local.pathname).open('rb') as f:
             content = f.read()
         crlf = content.count(b'\r\n')
         return crlf > 0

@@ -159,7 +159,6 @@ class CacheBase(Visit):
         """Resolve a property by id, or by key in its owner's base."""
         if not self.resolve_by_id(prop):
             # unset/set issue? try by key...
-            # TODO: consider configuration._base's id?
             if prop.entity._base:
                 prop._base = prop.entity._base._map_props.get(get_prop_key(prop))
         super().visit_prop(prop)

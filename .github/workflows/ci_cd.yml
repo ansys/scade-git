@@ -25,7 +25,7 @@ permissions: {}
 jobs:
 
   sc:
-    uses: ansys/scade-actions/.github/workflows/scade-ext-workflow.yml@v3.0.8
+    uses: ansys/scade-actions/.github/workflows/scade-ext-workflow.yml@v3
     permissions:
       attestations: write # needed for build-wheelhouse and build-library jobs
       contents: write # needed for update-changelog, doc-deploy-pr, release, doc-deploy-dev, and doc-deploy-stable jobs

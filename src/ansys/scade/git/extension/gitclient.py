@@ -272,14 +272,13 @@ class GitClient(metaclass=ABCMeta):
         if self.repo:
             for file in files:
                 try:
-                    # WorkTree.stage only accepts relative paths to the repo path
+                    # repo.stage only accepts relative paths to the repo path
                     file_path = Path(file)
                     if file_path.is_absolute():
                         index_file = file_path.relative_to(self.repo_path).as_posix()
                     else:
                         index_file = file
-                    # replaces deprecated Repo.stage (removed in dulwich 0.26)
-                    self.repo.get_worktree().stage([index_file])
+                    self.repo.stage([index_file])
                 except BaseException as e:
                     self.log('Error stage: {0}'.format(e))
 
@@ -296,14 +295,13 @@ class GitClient(metaclass=ABCMeta):
         if self.repo:
             for file in files:
                 try:
-                    # WorkTree.unstage only accepts relative paths to the repo path
+                    # repo.unstage only accepts relative paths to the repo path
                     file_path = Path(file)
                     if file_path.is_absolute():
                         index_file = file_path.relative_to(self.repo_path).as_posix()
                     else:
                         index_file = file
-                    # replaces deprecated Repo.unstage (removed in dulwich 0.26)
-                    self.repo.get_worktree().unstage([index_file])
+                    self.repo.unstage([index_file])
                 except BaseException as e:
                     self.log('Error unstage: {0}'.format(e))
 

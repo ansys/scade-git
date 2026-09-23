@@ -41,7 +41,8 @@ def pytest_configure(config):
 @pytest.fixture(scope='session')
 def tmpdir():
     """Create/empty the temporary directory for output files."""
-    path = (Path('tests') / 'tmp').resolve()
+    # anchor on this file: GitClient.refresh() calls os.chdir, so a CWD-relative path breaks
+    path = Path(__file__).resolve().parent / 'tmp'
     try:
         rmtree(str(path))
     except FileNotFoundError:

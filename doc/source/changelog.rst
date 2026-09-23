@@ -9,6 +9,22 @@ This document contains the release notes for the project.
 
 .. towncrier release notes start
 
+`0.3.1 <https://github.com/ansys/scade-git/releases/tag/v0.3.1>`_ - September 23, 2026
+======================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Bump pypa/gh-action-pypi-publish v1.14.2
+          - `#104 <https://github.com/ansys/scade-git/pull/104>`_
+
+
 `0.3.0 <https://github.com/ansys/scade-git/releases/tag/v0.3.0>`_ - September 23, 2026
 ======================================================================================
 

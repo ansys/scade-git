@@ -9,4 +9,5 @@
 * [ansgbenneha](https://github.com/ansgbenneha)
 * [Jean Henry](https://github.com/ansjhenry)
 * [Jorge Martínez](https://github.com/jorgepiloto)
+* [Ludovic Oddos (Ansys)](https://github.com/ansloddos)
 * [Revathy Venugopal](https://github.com/Revathyvenugopal162)

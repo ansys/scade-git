@@ -24,6 +24,7 @@
 
 from abc import ABCMeta, abstractmethod
 import configparser
+from contextlib import ExitStack
 from enum import Enum
 import os
 from pathlib import Path, PurePosixPath
@@ -39,6 +40,7 @@ if site_user in sys.path:
 
 import dulwich as dulwich  # noqa: E402
 from dulwich import porcelain as git  # noqa: E402
+from dulwich.errors import NotGitRepository  # noqa: E402
 from dulwich.objects import Blob, Commit, Tag, Tree  # noqa: E402
 from dulwich.objectspec import parse_commit  # noqa: E402
 from dulwich.repo import Repo  # noqa: E402
@@ -166,6 +168,7 @@ class GitClient(metaclass=ABCMeta):
         """
         self.files_status = {}
         self.submodules_paths = []
+        self.deleted = set()
         if self.dulwich_ok:
             self.repo_path = find_git_repo(project_path)
         if self.repo_path:
@@ -188,6 +191,8 @@ class GitClient(metaclass=ABCMeta):
             unstaged_set = {normalize_git_path(file) for file in unstaged}
             untracked_list = [normalize_git_path(file) for file in untracked]
 
+            self.deleted.update(staged_delete)
+            
             # list files & status in git repo
             repo_files = [normalize_git_path(file) for file in git.ls_files(self.repo)]
             for file in repo_files:
@@ -207,6 +212,7 @@ class GitClient(metaclass=ABCMeta):
                         status = GitStatus.modified_unstaged
                     else:
                         status = GitStatus.removed_unstaged
+                        self.deleted.add(file_str)
                 # untracked files are not listed in ls_files
                 # elif (file_str in untracked):
                 #    status = GitStatus.untracked
@@ -222,8 +228,9 @@ class GitClient(metaclass=ABCMeta):
             # untracked files are not listed in ls_files
             # untracked returned as str, Windows path in 19.13 but posix in 21.3
             for file_str in untracked_list:
-                status = GitStatus.untracked
-                self.files_status[file_str] = status
+                # check if the file is already in the list, added as unstaged deleted
+                # dulwich returns also such file as untracked, but we want to keep the deleted status
+                self.files_status[file_str] = self.files_status.get(file_str, GitStatus.untracked)
 
             # get submodules paths
             self.submodules_paths = self.get_submodule_paths()
@@ -551,12 +558,26 @@ class GitClient(metaclass=ABCMeta):
             out_file.parent.mkdir(parents=True, exist_ok=True)
             out_file.write_bytes(obj.data)
 
+    def _open_submodule_repo(self, repo_dir: Path) -> Repo:
+        """Open a submodule using a normalized Git control-directory path."""
+        gitfile = repo_dir / '.git'
+        if gitfile.is_file():
+            contents = gitfile.read_text(encoding='utf-8').rstrip('\r\n')
+            prefix = 'gitdir: '
+            if not contents.startswith(prefix):
+                raise ValueError('Invalid Git directory pointer: {0}'.format(gitfile))
+            git_dir = (repo_dir / contents[len(prefix) :]).resolve()
+            return Repo(str(git_dir), bare=True)
+        return Repo(str(repo_dir))
+
     def _export_with_submodules(
         self,
         repo: Repo,
         repo_dir: Path,
         commit: Commit,
         output_dir: Path,
+        local_repos: Dict[Path, Repo],
+        repo_stack: ExitStack,
     ) -> bool:
         """Export commit files and recurse into local submodules."""
         self._export_commit_files(repo, commit, output_dir)
@@ -567,44 +588,65 @@ class GitClient(metaclass=ABCMeta):
         except KeyError:
             submodule_urls = {}
 
-        for rel_path, mode, sha in self._iter_tree(repo, commit.tree):
-            if mode != gitlink_mode:
-                continue
-
+        submodules = [
+            (rel_path, sha)
+            for rel_path, mode, sha in self._iter_tree(repo, commit.tree)
+            if mode == gitlink_mode
+        ]
+        for rel_path, _ in submodules:
             submodule_repo_path = repo_dir / self._to_local_path(rel_path)
-            submodule_output_dir = output_dir / self._to_local_path(rel_path)
-            submodule_output_dir.mkdir(parents=True, exist_ok=True)
+            if submodule_repo_path not in local_repos:
+                try:
+                    local_repos[submodule_repo_path] = repo_stack.enter_context(
+                        self._open_submodule_repo(submodule_repo_path)
+                    )
+                except NotGitRepository:
+                    continue
 
-            try:
-                submodule_repo = Repo(str(submodule_repo_path))
-            except BaseException:
+        for rel_path, sha in submodules:
+            submodule_repo_path = repo_dir / self._to_local_path(rel_path)
+            candidates = []
+            if submodule_repo_path in local_repos:
+                candidates.append((submodule_repo_path, local_repos[submodule_repo_path]))
+            candidates.extend(
+                (path, candidate)
+                for path, candidate in local_repos.items()
+                if path != submodule_repo_path
+            )
+
+            for candidate_path, candidate_repo in candidates:
+                try:
+                    submodule_commit = self._resolve_commit(candidate_repo, sha)
+                except (KeyError, ValueError):
+                    continue
+                submodule_repo_path = candidate_path
+                submodule_repo = candidate_repo
+                break
+            else:
                 if rel_path in submodule_urls:
                     self.log(
-                        'Error export: submodule not found locally at {0} (url: {1})'.format(
-                            submodule_repo_path, submodule_urls[rel_path]
+                        'Error export: submodule commit {0} not available locally at {1} '
+                        '(url: {2})'.format(
+                            sha.decode('ascii'), submodule_repo_path, submodule_urls[rel_path]
                         )
                     )
                 else:
                     self.log(
-                        'Error export: submodule not found locally at {0}'.format(
-                            submodule_repo_path
+                        'Error export: submodule commit {0} not available locally at {1}'.format(
+                            sha.decode('ascii'), submodule_repo_path
                         )
                     )
                 return False
 
-            try:
-                submodule_commit = self._resolve_commit(submodule_repo, sha)
-            except BaseException as e:
-                self.log(
-                    'Error export: cannot resolve submodule commit for {0}: {1}'.format(rel_path, e)
-                )
-                return False
-
+            submodule_output_dir = self._safe_output_path(output_dir, rel_path)
+            submodule_output_dir.mkdir(parents=True, exist_ok=True)
             if not self._export_with_submodules(
                 submodule_repo,
                 submodule_repo_path,
                 submodule_commit,
                 submodule_output_dir,
+                local_repos,
+                repo_stack,
             ):
                 return False
 
@@ -624,6 +666,7 @@ class GitClient(metaclass=ABCMeta):
             Target output directory. It must be empty or not exist.
         """
         if not self.repo or not self.repo_path:
+            self.log('Error export: no Git repository is open')
             return False
 
         try:
@@ -633,12 +676,16 @@ class GitClient(metaclass=ABCMeta):
             output_path.mkdir(parents=True, exist_ok=True)
 
             commit = self._resolve_commit(self.repo, committish)
-            return self._export_with_submodules(
-                self.repo,
-                Path(self.repo_path),
-                commit,
-                output_path,
-            )
+            with ExitStack() as repo_stack:
+                repo_path = Path(self.repo_path)
+                return self._export_with_submodules(
+                    self.repo,
+                    repo_path,
+                    commit,
+                    output_path,
+                    {repo_path: self.repo},
+                    repo_stack,
+                )
         except BaseException as e:
             self.log('Error export: {0}'.format(e))
             return False

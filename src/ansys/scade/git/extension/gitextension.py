@@ -23,6 +23,8 @@
 """SCADE custom extension for Git."""
 
 # from scade.tool.suite.gui import register_load_model_callable, register_unload_model_callable
+from typing import List, Tuple
+
 import scade
 from scade.tool.suite.gui.commands import ContextMenu, Menu, Toolbar
 from scade.tool.suite.gui.dialogs import Dialog, message_box
@@ -43,7 +45,7 @@ from ansys.scade.git.extension.gitextcore import (
 from ansys.scade.guitools.studio import studio
 
 # add debugging support for the extension
-# import ansys.scade.git.extension.debug_vsc
+#import ansys.scade.git.extension.debug_vsc
 
 
 class GitClient(AbsGitClient):
@@ -70,36 +72,46 @@ def log(text: str):
         scade.tabput("LOG", "Git Extension - " + text + "\n")  # type: ignore
 
 
-class SelectBranchDialog(Dialog):
-    """Custom dialog for selecting a branch."""
+class SelectVersionDialog(Dialog):
+    """Custom dialog for selecting a branch or commit."""
 
-    def __init__(self, name):
-        super().__init__(name, 300, 200)
-        self.branch = ''
+    def __init__(self, name: str, versions: List[Tuple[str, List[str]]]):
+        super().__init__(name, 440, 240)
+        self.versions = versions
+        self.items = []
+        self.indices = []
+        for type_index, (version_type, entries) in enumerate(versions):
+            for entry_index, entry in enumerate(entries):
+                self.items.append(f'{version_type}: {entry} [{entry_index + 1}]')
+                self.indices.append([type_index, entry_index])
+        self.pending_selection = [-1, -1]
+        self.selection = [-1, -1]
 
     def on_build(self):
         """Build the dialog."""
-        Button(self, 'Diff', 220, 15, 45, 25, self.on_close_click)
-        Button(self, 'Cancel', 220, 55, 45, 25, self.on_cancel_click)
-        branches = git_client.get_branch_list()
-        ListBox(self, branches, 15, 15, 200, 100, self.on_list_branch_selection, style=['sort'])
+        Button(self, 'Diff', 380, 15, 45, 25, self.on_close_click)
+        Button(self, 'Cancel', 380, 55, 45, 25, self.on_cancel_click)
+        ListBox(self, self.items, 15, 15, 350, 190, self.on_list_version_selection)
 
     def on_close_click(self, button):
-        """Close the dialog."""
-        self.close()
+        """Confirm the selected version."""
+        if self.pending_selection == [-1, -1]:
+            log('Error: select one version to diff')
+        else:
+            self.selection = self.pending_selection
+            self.close()
 
     def on_cancel_click(self, button):
-        """Cancel the dialog."""
-        self.branch = ''
+        """Cancel without selecting a version."""
         self.close()
 
-    def on_list_branch_selection(self, list, index):
-        """Store the selected branch."""
-        branch = list.get_selection()
-        if len(branch) == 1:
-            self.branch = str(branch[0])
+    def on_list_version_selection(self, list, index):
+        """Store the currently highlighted version."""
+        selected = list.get_selection()
+        if len(selected) == 1 and selected[0] in self.items:
+            self.pending_selection = self.indices[self.items.index(selected[0])]
         else:
-            log('Error: select only one branch: {0}'.format(branch))
+            self.pending_selection = [-1, -1]
 
 
 class CommitDialog(Dialog):
@@ -155,11 +167,11 @@ class CmdCommit(CoreCmdCommit):
 class CmdDiff(CoreCmdDiff):
     """SCADE Command: Diff."""
 
-    def select_branch(self) -> str:
+    def select_diff_version(self) -> List[int]:
         """Override default behavior."""
-        select_branch = SelectBranchDialog('Select Branch')
-        select_branch.do_modal()
-        return select_branch.branch
+        dialog = SelectVersionDialog('Select Version', self.versions)
+        dialog.do_modal()
+        return dialog.selection
 
 
 # def on_load_model(project):

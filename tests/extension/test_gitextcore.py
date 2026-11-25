@@ -20,11 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import builtins
+import importlib.util
 import json
+import os
 from pathlib import Path
+import stat
 import subprocess
+import sys
 import tarfile
+from types import ModuleType, SimpleNamespace
 from typing import Any, List
+from unittest.mock import Mock
 
 import pytest
 import scade.model.project.stdproject as std
@@ -299,6 +306,390 @@ def test_git_ext_core_diff_commit(capsys):
     assert len(lines) == 2
     archive = Path(lines[1].strip())
     assert archive.exists()
+
+
+@pytest.mark.repo(get_resources_dir())
+@pytest.mark.parametrize('version_type', [0, 1], ids=['branch', 'commit'])
+def test_git_ext_core_diff_exports_recorded_submodule(
+    model_repo_with_submodule, monkeypatch, tmp_path, capsys, version_type
+):
+    """Export the submodule revision recorded in the selected superproject version."""
+    assert core._git_client is not None
+    submodule = model_repo_with_submodule / 'Model' / 'LibSubModule'
+    source = submodule / 'LibOp1.xscade'
+    recorded = subprocess.run(
+        ['git', 'show', 'HEAD:LibOp1.xscade'], cwd=submodule, capture_output=True, check=True
+    ).stdout
+    source.write_bytes(b'later submodule commit')
+    subprocess.run(['git', 'add', 'LibOp1.xscade'], cwd=submodule, check=True)
+    subprocess.run(
+        [
+            'git',
+            '-c',
+            'user.name=Test',
+            '-c',
+            'user.email=test@example.com',
+            'commit',
+            '-m',
+            'later submodule commit',
+        ],
+        cwd=submodule,
+        capture_output=True,
+        check=True,
+    )
+    source.write_bytes(b'changed working tree')
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    monkeypatch.setattr(core._git_client, 'get_branch_list', lambda: ['tests'])
+    commit_id = subprocess.run(
+        ['git', 'rev-parse', 'HEAD'],
+        cwd=model_repo_with_submodule,
+        capture_output=True,
+        check=True,
+    ).stdout.strip()
+    monkeypatch.setattr(core._git_client, 'get_commits_list', lambda: [(commit_id, 0)])
+
+    class SelectVersion(core.CmdDiff):
+        def select_diff_version(self):
+            return [version_type, 0]
+
+    capsys.readouterr()
+    SelectVersion(_test_ide).on_activate()
+    output = capsys.readouterr().out
+    project = Path(output.strip().split('\n')[-1].strip())
+    assert project.is_file()
+    assert (project.parent / 'LibSubModule' / 'LibOp1.xscade').read_bytes() == recorded
+    assert not (project.parent / 'LibSubModule' / '.git').exists()
+
+
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_exports_nested_submodules(
+    model_repo_with_submodule, monkeypatch, tmp_path, capsys
+):
+    """Export a submodule nested inside another submodule."""
+    assert core._git_client is not None
+    submodule = model_repo_with_submodule / 'Model' / 'LibSubModule'
+    nested_repo = tmp_path / 'nested_repo'
+    nested_repo.mkdir()
+
+    def git(cwd, *args):
+        subprocess.run(
+            ['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.com', *args],
+            cwd=cwd,
+            capture_output=True,
+            check=True,
+        )
+
+    git(nested_repo, 'init', '-b', 'main')
+    (nested_repo / 'nested.txt').write_text('recorded nested content', encoding='utf-8')
+    git(nested_repo, 'add', 'nested.txt')
+    git(nested_repo, 'commit', '-m', 'nested initial commit')
+    git(submodule, '-c', 'protocol.file.allow=always', 'submodule', 'add', str(nested_repo), 'nested')
+    git(submodule, 'commit', '-m', 'add nested submodule')
+    submodule_path = str(Path('Model') / 'LibSubModule')
+    git(model_repo_with_submodule, 'add', submodule_path)
+    git(model_repo_with_submodule, 'commit', '-m', 'update submodule', '--', submodule_path)
+    (submodule / 'nested' / 'nested.txt').write_text('local change', encoding='utf-8')
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    monkeypatch.setattr(core._git_client, 'get_branch_list', lambda: ['tests'])
+    capsys.readouterr()
+
+    core.CmdDiff(_test_ide).on_activate()
+    project = Path(capsys.readouterr().out.strip().split('\n')[-1].strip())
+    nested_file = project.parent / 'LibSubModule' / 'nested' / 'nested.txt'
+    assert nested_file.read_text(encoding='utf-8') == 'recorded nested content'
+    assert not (nested_file.parent / '.git').exists()
+
+
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_reuses_available_nested_submodule_commit(
+    model_repo_with_submodule, monkeypatch, tmp_path, capsys
+):
+    """Export an uninitialized nested submodule from an available local commit."""
+    assert core._git_client is not None
+    submodule = model_repo_with_submodule / 'Model' / 'LibSubModule'
+    remote = model_repo_with_submodule.parent / 'LibSubModuleRepo'
+
+    def git(cwd, *args):
+        return subprocess.run(
+            ['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.com', *args],
+            cwd=cwd,
+            capture_output=True,
+            check=True,
+        )
+
+    recorded = git(submodule, 'show', 'HEAD:LibOp1.xscade').stdout
+    git(submodule, '-c', 'protocol.file.allow=always', 'submodule', 'add', str(remote), 'nested')
+    git(submodule, 'commit', '-m', 'add nested submodule')
+    submodule_path = str(Path('Model') / 'LibSubModule')
+    git(model_repo_with_submodule, 'add', submodule_path)
+    git(model_repo_with_submodule, 'commit', '-m', 'update submodule', '--', submodule_path)
+    (submodule / 'nested' / '.git').unlink()
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    monkeypatch.setattr(core._git_client, 'get_branch_list', lambda: ['tests'])
+    capsys.readouterr()
+
+    core.CmdDiff(_test_ide).on_activate()
+    output = capsys.readouterr().out
+    assert 'Launch the Diff Analyzer' in output
+    project = Path(output.strip().split('\n')[-1].strip())
+    assert (project.parent / 'LibSubModule' / 'nested' / 'LibOp1.xscade').read_bytes() == recorded
+
+
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_normalizes_submodule_gitfile_path(
+    model_repo_with_submodule, monkeypatch, tmp_path, capsys
+):
+    """Avoid opening pack indexes through unnecessarily long relative gitdir paths."""
+    assert core._git_client is not None
+    submodule = model_repo_with_submodule / 'Model' / 'LibSubModule'
+    subprocess.run(['git', 'repack', '-a', '-d'], cwd=submodule, capture_output=True, check=True)
+    original_open = builtins.open
+
+    def legacy_open(file, *args, **kwargs):
+        if isinstance(file, (str, bytes, os.PathLike)):
+            path = Path(os.fsdecode(file))
+            if path.suffix == '.idx' and '..' in path.parts:
+                raise FileNotFoundError('Unnormalized pack index path')
+        return original_open(file, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, 'open', legacy_open)
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    monkeypatch.setattr(core._git_client, 'get_branch_list', lambda: ['tests'])
+    capsys.readouterr()
+
+    core.CmdDiff(_test_ide).on_activate()
+    output = capsys.readouterr().out
+    assert 'Launch the Diff Analyzer' in output
+    project = Path(output.strip().split('\n')[-1].strip())
+    assert (project.parent / 'LibSubModule' / 'LibOp1.xscade').is_file()
+
+
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_missing_submodule_is_not_reported_as_success(
+    model_repo_with_submodule, monkeypatch, tmp_path, capsys
+):
+    """Do not offer an incomplete export when the recorded submodule is unavailable."""
+    assert core._git_client is not None
+    submodule = model_repo_with_submodule / 'Model' / 'LibSubModule'
+    (submodule / '.git').unlink()
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    monkeypatch.setattr(core._git_client, 'get_branch_list', lambda: ['tests'])
+    capsys.readouterr()
+
+    core.CmdDiff(_test_ide).on_activate()
+    output = capsys.readouterr().out
+
+    assert 'submodule' in output.lower()
+    assert 'Launch the Diff Analyzer' not in output
+
+
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_reports_unavailable_submodule_commit(
+    model_repo_with_submodule, monkeypatch, tmp_path, capsys
+):
+    """Do not substitute a different commit when the recorded one is missing."""
+    assert core._git_client is not None
+    missing_commit = '1' * 40
+    submodule_path = (Path('Model') / 'LibSubModule').as_posix()
+    subprocess.run(
+        ['git', 'update-index', '--cacheinfo', '160000', missing_commit, submodule_path],
+        cwd=model_repo_with_submodule,
+        capture_output=True,
+        check=True,
+    )
+    subprocess.run(
+        [
+            'git',
+            '-c',
+            'user.name=Test',
+            '-c',
+            'user.email=test@example.com',
+            'commit',
+            '-m',
+            'record missing submodule commit',
+        ],
+        cwd=model_repo_with_submodule,
+        capture_output=True,
+        check=True,
+    )
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    monkeypatch.setattr(core._git_client, 'get_branch_list', lambda: ['tests'])
+    capsys.readouterr()
+
+    core.CmdDiff(_test_ide).on_activate()
+    output = capsys.readouterr().out
+    assert missing_commit in output
+    assert 'Launch the Diff Analyzer' not in output
+
+
+@pytest.fixture
+def git_extension(monkeypatch):
+    """Load the GUI extension with stand-ins for the Studio-only APIs."""
+    commands = ModuleType('scade.tool.suite.gui.commands')
+    commands.ContextMenu = commands.Menu = commands.Toolbar = Mock()
+    dialogs = ModuleType('scade.tool.suite.gui.dialogs')
+
+    class Dialog:
+        def __init__(self, name, width, height):
+            pass
+
+        def close(self):
+            pass
+
+    dialogs.Dialog = Dialog
+    dialogs.message_box = Mock()
+    widgets = ModuleType('scade.tool.suite.gui.widgets')
+    widgets.Button = widgets.EditBox = widgets.ListBox = Mock()
+    studio = ModuleType('ansys.scade.guitools.studio')
+    studio.studio = _test_ide
+    for module in (commands, dialogs, widgets, studio):
+        monkeypatch.setitem(sys.modules, module.__name__, module)
+    monkeypatch.setattr(core.GitClient, 'get_init_status', lambda self: False)
+    monkeypatch.setattr(core, 'set_git_client', lambda client: None)
+    monkeypatch.setattr(scade, 'tabput', lambda *args: None, raising=False)
+    path = Path(core.__file__).with_name('gitextension.py')
+    spec = importlib.util.spec_from_file_location('test_gitextension_module', path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.mark.usefixtures('model_repo')
+@pytest.mark.repo(get_resources_dir())
+@pytest.mark.parametrize('version_type', [0, 1])
+def test_gui_diff_selects_requested_version(git_extension, monkeypatch, tmp_path, version_type):
+    """The GUI opens a dialog and exports the selected branch or commit."""
+    assert core._git_client is not None
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    export = Mock(wraps=core._git_client.export_to_directory)
+    monkeypatch.setattr(core._git_client, 'export_to_directory', export)
+
+    def select_version(dialog):
+        dialog.on_build()
+        assert git_extension.ListBox.call_args.args[1] == dialog.items
+        index = 1 if version_type == 0 else len(dialog.versions[0][1])
+        selected = SimpleNamespace(get_selection=lambda: [dialog.items[index]])
+        dialog.on_list_version_selection(selected, [index])
+        dialog.on_close_click(None)
+
+    monkeypatch.setattr(git_extension.SelectVersionDialog, 'do_modal', select_version, raising=False)
+    cmd = git_extension.CmdDiff(_test_ide)
+    cmd.on_activate()
+
+    expected = cmd.versions[0][1][1] if version_type == 0 else cmd.commits_id[0]
+    export.assert_called_once()
+    assert export.call_args.args[0] == expected
+
+
+def test_gui_diff_distinguishes_duplicate_commit_labels(git_extension):
+    """Identical abbreviated commit labels still select the intended commit."""
+    dialog = git_extension.SelectVersionDialog(
+        'Select Version', [('Branches', []), ('Commits', ['abc12345  date', 'abc12345  date'])]
+    )
+    selected = SimpleNamespace(get_selection=lambda: [dialog.items[1]])
+    dialog.on_list_version_selection(selected, [1])
+    dialog.on_close_click(None)
+    assert dialog.selection == [1, 1]
+
+
+@pytest.mark.usefixtures('model_repo')
+@pytest.mark.repo(get_resources_dir())
+@pytest.mark.parametrize('action', ['cancel', 'window_close', 'no_selection'])
+def test_gui_diff_without_confirmation_does_not_export(git_extension, monkeypatch, action):
+    """Cancel, closing the window, or confirming no selection must not export."""
+    assert core._git_client is not None
+    export = Mock()
+    monkeypatch.setattr(core._git_client, 'export_to_directory', export)
+
+    def close_dialog(dialog):
+        dialog.on_build()
+        if action != 'no_selection':
+            selected = SimpleNamespace(get_selection=lambda: [dialog.items[0]])
+            dialog.on_list_version_selection(selected, [0])
+        if action == 'cancel':
+            dialog.on_cancel_click(None)
+        elif action == 'no_selection':
+            dialog.on_close_click(None)
+
+    monkeypatch.setattr(git_extension.SelectVersionDialog, 'do_modal', close_dialog, raising=False)
+    git_extension.CmdDiff(_test_ide).on_activate()
+    export.assert_not_called()
+
+
+def test_create_temp_dir_replaces_existing_export(tmp_path, monkeypatch):
+    """Repeated exports use the same directory and remove stale contents."""
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    folder = str(Path('SCADE') / 'git-diff' / 'repo' / 'release.1')
+    old_dir = tmp_path / folder
+    old_dir.mkdir(parents=True)
+    old_file = old_dir / 'old.txt'
+    old_file.write_text('previous export')
+
+    first = core.create_temp_dir(folder)
+    (first / 'new.txt').write_text('first export')
+    second = core.create_temp_dir(folder)
+
+    assert first == second == old_dir
+    assert second.is_dir()
+    assert not old_file.exists()
+    assert not (first / 'new.txt').exists()
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows read-only file behavior')
+def test_create_temp_dir_removes_read_only_files(tmp_path, monkeypatch):
+    """A read-only file in an earlier export must not prevent replacement."""
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    folder = str(Path('SCADE') / 'git-diff' / 'repo' / 'branch')
+    old_dir = tmp_path / folder
+    old_dir.mkdir(parents=True)
+    old_file = old_dir / 'old.txt'
+    old_file.write_text('previous export')
+    old_file.chmod(stat.S_IREAD)
+    try:
+        assert core.create_temp_dir(folder) == old_dir
+        assert not old_file.exists()
+    finally:
+        if old_file.exists():
+            old_file.chmod(stat.S_IWRITE)
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows file locking behavior')
+def test_create_temp_dir_reports_locked_files(tmp_path, monkeypatch):
+    """A file that cannot be removed must report the original cleanup error."""
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    folder = str(Path('SCADE') / 'git-diff' / 'repo' / 'branch')
+    old_dir = tmp_path / folder
+    old_dir.mkdir(parents=True)
+    old_file = old_dir / 'old.txt'
+    old_file.write_text('previous export')
+
+    with old_file.open('r'):
+        with pytest.raises(PermissionError):
+            core.create_temp_dir(folder)
+
+
+@pytest.mark.usefixtures('model_repo')
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_repeated_dotted_branch(capsys, tmp_path, monkeypatch):
+    """Repeated diffs on a dotted branch replace the previous exported project."""
+    assert core._git_client is not None
+    run_git('branch', 'release.1', dir=core._git_client.repo_path)
+    monkeypatch.setattr(core._git_client, 'get_branch_list', lambda: ['release.1'])
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    cmd = core.CmdDiff(_test_ide)
+    capsys.readouterr()
+
+    cmd.on_activate()
+    first = Path(capsys.readouterr().out.strip().split('\n')[-1].strip())
+    first.write_text('stale export')
+    cmd.on_activate()
+    second = Path(capsys.readouterr().out.strip().split('\n')[-1].strip())
+
+    assert first == second
+    assert second.is_file()
+    assert second.read_text() != 'stale export'
+    assert not list(tmp_path.rglob('*.tar'))
 
 
 @pytest.mark.usefixtures('model_repository')

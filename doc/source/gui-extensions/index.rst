@@ -57,13 +57,18 @@ An edit box allows to enter the commit message:
 Git diff merge
 ~~~~~~~~~~~~~~
 
-A dialog lists all available branches in Git.
+A dialog lists the available Git branches and commits.
 
 .. image:: /_static/Gitdiff.png
   :alt: Git branches
 
-Once you select one branch and click Diff, the extension copies this project
+Once you select a version and click Diff, the extension copies this project
 version in a temporary folder and lists the path in the Git messages window.
+The export includes the revisions of submodules recorded by the selected version,
+including nested submodules. Their recorded commits must be available locally;
+the extension does not fetch them. If a submodule is not initialized, an exact
+matching commit can also be reused from another local submodule of the selected
+project.
 You must add this project to the workspace and manually launch the
 Diff Analyzer to start a diff merge session.
 There is no script access to this IDE command at this time to completely
@@ -72,8 +77,10 @@ automate the process.
 .. image:: /_static/Gitdifflog.png
   :alt: Git diff log message
 
-The temporary folder must be manually cleaned if you need to free disk space.
-It is located in ``%LOCALAPPDATA%\temp\SCADE\git-diff\<git repository name>\<branch name (only alpha num char, no spaces)>``
+Each diff replaces the earlier export for the same version. Close any files in
+that export before running the diff again. Exports for other versions remain
+until removed manually from
+``%TEMP%\SCADE\git-diff\<git repository name>\<version>``.
 
 ..
     ## Installation

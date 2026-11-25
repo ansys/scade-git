@@ -26,6 +26,7 @@ from datetime import datetime
 import os
 from pathlib import Path
 import shutil
+import stat
 import tarfile
 import tempfile
 from typing import List, Set, Tuple, Union
@@ -48,19 +49,31 @@ BrowserCat = {
 
 def create_temp_dir(folder: str):
     """
-    Create a temporary directory.
-
-    If the folder already exists, it is deleted.
+    Create an empty temporary directory, replacing any previous contents.
 
     Parameters
     ----------
-    text : str
-        Message to display.
+    folder : str
+        Path of the directory, relative to the system temp directory.
     """
-    tmp_dir = Path(tempfile.gettempdir()) / folder
-    shutil.rmtree(tmp_dir, ignore_errors=True)
-    tmp_dir.mkdir(parents=True)
-    return tmp_dir
+    path = Path(tempfile.gettempdir()) / folder
+
+    def remove_readonly(func, name, exc_info):
+        error = exc_info[1]
+        if (
+            isinstance(error, PermissionError)
+            and func in (os.unlink, os.rmdir)
+            and not os.stat(name).st_mode & stat.S_IWRITE
+        ):
+            os.chmod(name, os.stat(name).st_mode | stat.S_IWRITE)
+            func(name)
+        else:
+            raise error.with_traceback(exc_info[2])
+
+    if path.exists():
+        shutil.rmtree(path, onerror=remove_readonly)
+    path.mkdir(parents=True)
+    return path
 
 
 def create_browser(ide: Ide, branch_name: str):
@@ -186,7 +199,11 @@ def refresh_browser(ide: Ide):
                             project_files.append(report_item(ide, str(ann_file)))
 
             # look for files in git but not in the project: deleted files
-            # not possible as the repo can contain several SCADE projects
+            # the repo can contain several SCADE projects
+            # but it is expected to be an exception
+            for file in _git_client.deleted:
+                if not is_already_reported(Path(file)):
+                    report_item(ide, file)
 
             return
             # todo: symbol file has no absolute path, relative to the project ?
@@ -506,28 +523,20 @@ class CmdDiff(GitRepoCommand):
             os.path.relpath(active_project.pathname, _git_client.repo_path)
         )
 
-        # create a tar archive of the version
-        archive_file = tmp_dir.with_suffix('.tar')
-        _git_client.archive(version, str(archive_file))
-        if archive_file.exists():
-            # untar the archive in tmp_dir
-            tar_file = tarfile.open(archive_file)
-            safe_members = self.safe_members(tmp_dir, tar_file)
-            # the archive is built on the same repo a few lines above: its content is known
-            tar_file.extractall(tmp_dir, members=safe_members)  # nosec B202
-            tar_file.close()
-            # delete the tar archive"
-            archive_file.unlink()
-            # display the version project to compare with the current
-            # project in the Git output tab
-            if diff_project.exists():
-                self.ide.log(
-                    'Launch the Diff Analyzer tool with the project\n   {0}'.format(
-                        str(diff_project)
-                    )
-                )
-                # self.ide.log('module scade: {0}'.format(getmembers(scade.tool.suite.diff)))
-                # scade.tool.suite.diff_analyze(active_project.pathname, diff_project.asposix())
+        if not _git_client.export_to_directory(version, str(tmp_dir)):
+            self.ide.log('Diff cancelled: version export failed; see Messages tab for details')
+            return
+
+        if diff_project.exists():
+            self.ide.log(
+                'Launch the Diff Analyzer tool with the project\n   {0}'.format(str(diff_project))
+            )
+            # self.ide.log('module scade: {0}'.format(getmembers(scade.tool.suite.diff)))
+            # scade.tool.suite.diff_analyze(active_project.pathname, diff_project.asposix())
+        else:
+            self.ide.log(
+                'Diff cancelled: project not found in exported version: {0}'.format(diff_project)
+            )
 
     def select_diff_version(self) -> List[int]:
         """Provide a default behavior for command line tools."""

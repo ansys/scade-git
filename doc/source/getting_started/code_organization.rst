@@ -217,7 +217,7 @@ Package configuration using modern Python packaging:
 
    [project]
    name = "ansys-scade-git"
-   version = "0.3.dev0"
+   version = "0.3.2-dev0"
    dependencies = [
        "ansys-scade-apitools",
        "dulwich==0.24.1",

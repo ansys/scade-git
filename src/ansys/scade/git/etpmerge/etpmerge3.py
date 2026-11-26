@@ -24,6 +24,7 @@
 
 import os
 from pathlib import Path
+import sys
 import traceback
 from typing import Set
 
@@ -321,7 +322,7 @@ class EtpMerge3:
                 if local in locals:
                     locals.remove(local)
                 else:
-                    print('Duplicated property %s (%d)' % (local.name, local.id))
+                    print('Duplicated property %s (%d)' % (local.name, local.id), file=sys.stderr)
                 # merge the values
                 self.merge_values(local, remote)
             else:
@@ -440,27 +441,24 @@ class EtpMerge3:
         # save the local project as pathname
         tmp = pathname + '.etp'
         self.local.save(tmp)
+        path = Path(tmp)
+        # the project files are encoded in UTF-8: they are processed as bytes
+        # to avoid any conversion from/to the system's encoding
+        newline = '\r\n' if crlf else '\n'
         if self.conflicts:
             # append the conflicts to the end of file
-            path = Path(tmp)
-            with path.open('at') as f:
-                for context, local, remote in self.conflicts:
-                    # path not meaningful, at least with Git
-                    # f.write('<<<<<<< HEAD:%s\n' % path.name)
-                    f.write('<<<<<<< HEAD\n')
-                    f.write('%s\n' % context)
-                    f.write('%s\n' % local)
-                    f.write('=======\n')
-                    f.write('%s\n' % remote)
-                    # f.write('>>>>>>> remote:%s\n' % path.name)
-                    f.write('>>>>>>>\n')
+            lines = []
+            for context, local, remote in self.conflicts:
+                # path not meaningful, at least with Git
+                # '<<<<<<< HEAD:%s' % path.name
+                lines += ['<<<<<<< HEAD', context, local, '=======', remote]
+                # '>>>>>>> remote:%s' % path.name
+                lines.append('>>>>>>>')
+            with path.open('ab') as f:
+                f.write(''.join(line + newline for line in lines).encode('utf-8'))
         if not crlf:
-            path = Path(tmp)
-            with path.open('r') as f:
-                content = f.read()
-            bytes = content.encode('utf-8')
-            with path.open('wb') as f:
-                f.write(bytes)
+            content = path.read_bytes()
+            path.write_bytes(content.replace(b'\r\n', b'\n'))
         os.replace(tmp, pathname)
 
     def is_crlf(self) -> bool:

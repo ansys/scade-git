@@ -159,8 +159,14 @@ class GTFile:
                 assert selfllr is not None  # nosec B101  # addresses linter
                 if hlr not in selfllr.edits:
                     # add the hlr edit
-                    attrib = {'id': hlr, 'traceType': elem.get('traceType')}
-                    et.SubElement(selfllr.elem, 'requirement', attrib, None)
+                    attrib = {'id': hlr}
+                    trace_type = elem.get('traceType')
+                    if trace_type is not None:
+                        # a None value is rejected by lxml
+                        attrib['traceType'] = trace_type
+                    new_elem = et.SubElement(selfllr.elem, 'requirement', attrib, None)
+                    # keep the cache consistent: the object is not empty anymore
+                    selfllr.edits[hlr] = new_elem
 
         # the remaining hlrs in base have been deleted on remote:
         # remove them locally if still present
@@ -170,7 +176,6 @@ class GTFile:
                 for hlr in basellr.edits.keys():
                     elem = selfllr.edits.pop(hlr, None)
                     if elem is not None:
-                        print('not empty')
                         selfllr.elem.remove(elem)
                 if selfllr.is_empty():
                     self.llrs.pop(selfllr.id)

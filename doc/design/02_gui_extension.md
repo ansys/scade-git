@@ -402,19 +402,17 @@ Unstage Operation:
 **Safety Measures:**
 - Validate temp directory path (prevent path traversal)
 - Clean up old temp directories
-- Use safe tar extraction (prevent tar bombs)
+- Export the files directly from the Git objects, without any archive extraction
 
 **Implementation:**
 ```python
-def badpath(path: str, base: Path) -> bool:
-    """Return whether a file is external to the base hierarchy."""
-    target = (base / path).resolve()
-    return not str(target).startswith(str(base))
-
-def badlink(info: tarfile.TarInfo, base: Path) -> bool:
-    """Return whether a link is external to the base hierarchy."""
-    path = (base / info.name).parent / info.linkname
-    return badpath(str(path), base)
+def _safe_output_path(self, output_dir: Path, rel_posix_path: str) -> Path:
+    """Build a path under output_dir and reject traversal."""
+    out_file = (output_dir / self._to_local_path(rel_posix_path)).resolve()
+    out_root = output_dir.resolve()
+    if out_file != out_root and out_root not in out_file.parents:
+        raise ValueError('Path traversal blocked: {0}'.format(rel_posix_path))
+    return out_file
 ```
 
 ## User Interface Design
@@ -627,7 +625,7 @@ All errors logged to SCADE output pane via `ide.log()`.
 **Test Cases:**
 - Command turn on/turn off logic
 - File categorization algorithm
-- Path validation (badpath, badlink)
+- Diff export (path validation, submodules, active project)
 - Browser refresh logic (mocked)
 - Stage/unstage selection processing
 

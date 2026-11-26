@@ -41,6 +41,7 @@ if site_user in sys.path:
 import dulwich as dulwich  # noqa: E402
 from dulwich import porcelain as git  # noqa: E402
 from dulwich.errors import NotGitRepository  # noqa: E402
+from dulwich.index import index_entry_from_path  # noqa: E402
 from dulwich.objects import Blob, Commit, Tag, Tree  # noqa: E402
 from dulwich.objectspec import parse_commit  # noqa: E402
 from dulwich.repo import Repo  # noqa: E402
@@ -112,8 +113,12 @@ class GitClient(metaclass=ABCMeta):
         self.repo_path = ''
         self.repo_name = ''
         self.branch = ''
+        # whether HEAD is detached: branch then contains a description of HEAD
+        self.detached = False
         self.repo = None
         self.files_status = {}
+        # map of the normalized names of the files in the index to their actual name
+        self._status_names = {}
         self.submodules_paths = []
         # check Dulwich version
         dulwich_ver = dulwich.__version__
@@ -153,6 +158,12 @@ class GitClient(metaclass=ABCMeta):
         """
         return self.dulwich_ok
 
+    def close(self):
+        """Release the resources, such as the pack files, held by the open repository."""
+        if self.repo:
+            self.repo.close()
+            self.repo = None
+
     def refresh(self, project_path: str) -> bool:
         """
         Get the status of the files for the input project.
@@ -166,7 +177,10 @@ class GitClient(metaclass=ABCMeta):
         -------
         bool
         """
+        # a new instance of the repository is created below
+        self.close()
         self.files_status = {}
+        self._status_names = {}
         self.submodules_paths = []
         self.deleted = set()
         if self.dulwich_ok:
@@ -174,12 +188,16 @@ class GitClient(metaclass=ABCMeta):
         if self.repo_path:
             path_repo = Path(self.repo_path)
             self.repo_name = str(path_repo.name)
-            os.chdir(self.repo_path)
             self.repo = Repo(self.repo_path)
-            ref_chain, _ = self.repo.refs.follow(b'HEAD')
-            # active_branch not supported by dulwich prior 20
-            self.branch = git.active_branch(self.repo).decode('utf-8')
-            # self.branch = str(Path(str(ref_chain[1].decode('utf-8'))).relative_to('refs/heads').as_posix()) # noqa: E501
+            try:
+                # active_branch not supported by dulwich prior 20
+                self.branch = git.active_branch(self.repo).decode('utf-8')
+                self.detached = False
+            except (IndexError, ValueError):
+                # HEAD is not a branch: checkout of a commit or of a tag
+                head = self.repo.head().decode('ascii')
+                self.branch = 'HEAD detached at {0}'.format(head[:7])
+                self.detached = True
 
             # git status for the current repo
             # typing annotation incorrect for git.status: str | Repo
@@ -192,27 +210,30 @@ class GitClient(metaclass=ABCMeta):
             untracked_list = [normalize_git_path(file) for file in untracked]
 
             self.deleted.update(staged_delete)
-            
+
             # list files & status in git repo
             repo_files = [normalize_git_path(file) for file in git.ls_files(self.repo)]
             for file in repo_files:
                 file_str = file
                 # ['added', 'removed_staged', 'modified_staged', 'modified_unstaged',
                 # 'untracked', 'removed_unstaged', 'clean', 'extern']
-                if file_str in staged_add:
+                # a file with unstaged changes is reported as unstaged, even if it is also
+                # staged: its latest changes are not in the index, and the commit omits them
+                if file_str in unstaged_set:
+                    # a submodule is a directory, its checked-out commit can differ from the
+                    # recorded one
+                    if (path_repo / file_str).exists():
+                        status = GitStatus.modified_unstaged
+                    else:
+                        status = GitStatus.removed_unstaged
+                        self.deleted.add(file_str)
+                elif file_str in staged_add:
                     status = GitStatus.added
                 # deleted staged files are not listed in ls_files
                 # elif (file in staged['delete']):
                 #    status = GitStatus.removed_staged
                 elif file_str in staged_modify:
                     status = GitStatus.modified_staged
-                elif file_str in unstaged_set:
-                    file_abs_path = path_repo / file_str
-                    if file_abs_path.is_file():
-                        status = GitStatus.modified_unstaged
-                    else:
-                        status = GitStatus.removed_unstaged
-                        self.deleted.add(file_str)
                 # untracked files are not listed in ls_files
                 # elif (file_str in untracked):
                 #    status = GitStatus.untracked
@@ -234,33 +255,42 @@ class GitClient(metaclass=ABCMeta):
 
             # get submodules paths
             self.submodules_paths = self.get_submodule_paths()
+            # index names by normalized path, to find the files with a different case
+            self._status_names = {os.path.normcase(_): _ for _ in self.files_status}
             return True
         else:
             self.repo_name = ''
             self.branch = ''
+            self.detached = False
             self.repo = None
             return False
 
     def _walk_commits(self, commit_id, commits_dict):
         """
-        Depth-first traversal, avoiding duplicates.
+        Traverse the history, avoiding duplicates.
+
+        The traversal is iterative: the depth of a linear history is the number of
+        commits, which exceeds the recursion limit.
 
         Returns
         -------
         Fill commits_dict with commit_id: timestamp pairs.
         """
         if self.repo:
-            if commit_id in commits_dict:
-                return
-            try:
-                obj = self.repo[commit_id]
+            pending = [commit_id]
+            while pending:
+                commit_id = pending.pop()
+                if commit_id in commits_dict:
+                    continue
+                try:
+                    obj = self.repo[commit_id]
+                except KeyError:
+                    # Commit not found (edge case), e.g. shallow clone
+                    continue
                 # Check if it's a Commit object
                 if isinstance(obj, Commit):
                     commits_dict[commit_id] = obj.commit_time
-                    for parent_id in obj.parents:
-                        self._walk_commits(parent_id, commits_dict)
-            except KeyError:
-                pass  # Commit not found (edge case)
+                    pending.extend(obj.parents)
 
     def get_commits_list(self) -> List[Tuple]:
         """
@@ -331,6 +361,13 @@ class GitClient(metaclass=ABCMeta):
                     abspath = Path(self.repo_path) / path
                 status = self.files_status.get(index_file_name, None)
                 if not status:
+                    # the file system is case insensitive on Windows: the path can differ
+                    # from the one in the index, which must be used by the Git commands
+                    actual_name = self._status_names.get(os.path.normcase(index_file_name))
+                    if actual_name:
+                        index_file_name = actual_name
+                        status = self.files_status[actual_name]
+                if not status:
                     # self.log("not status: %s %s" % (abspath, abspath.exists()))
                     if abspath.exists():
                         if self.is_submodule_file(abspath):
@@ -364,14 +401,47 @@ class GitClient(metaclass=ABCMeta):
 
     def is_submodule_file(self, path: Path) -> bool:
         """Return whether a path is a submodule or belongs to one."""
+        return self._in_submodule(path, strict=False)
+
+    def is_inside_submodule(self, path: Union[str, Path]) -> bool:
+        """
+        Return whether a path belongs to a submodule, excluding the submodule itself.
+
+        The submodule's path is not rejected: it is a gitlink, which the superproject
+        can stage to record a new commit of the submodule.
+
+        Parameters
+        ----------
+        path : Union[str, Path]
+            Input path, either absolute or relative to the Git repository.
+        """
+        path = Path(path)
+        if not path.is_absolute():
+            path = Path(self.repo_path) / path
+        return self._in_submodule(path, strict=True)
+
+    def _in_submodule(self, path: Path, strict: bool) -> bool:
         normalized = os.path.normcase(str(path.resolve()))
         for submodule_path in self.submodules_paths:
             normalized_submodule = os.path.normcase(str(submodule_path))
-            if normalized == normalized_submodule or normalized.startswith(
+            if (not strict and normalized == normalized_submodule) or normalized.startswith(
                 normalized_submodule + os.sep
             ):
                 return True
         return False
+
+    def _reject_submodule_files(self, files: List[str], action: str) -> List[str]:
+        """Return the input files, except the ones that belong to a submodule."""
+        accepted = []
+        for file in files:
+            if self.is_inside_submodule(file):
+                self.log(
+                    'Error {0}: {1} belongs to a submodule, '
+                    'use the Git repository of the submodule'.format(action, file)
+                )
+            else:
+                accepted.append(file)
+        return accepted
 
     def stage(self, files: List[str]):
         """
@@ -389,12 +459,37 @@ class GitClient(metaclass=ABCMeta):
                 repo_path = Path(self.repo_path)
                 paths = [
                     str(file_path if file_path.is_absolute() else repo_path / file_path)
-                    for file in files
+                    for file in self._reject_submodule_files(files, 'stage')
                     for file_path in [Path(file)]
                 ]
+                # Dulwich prior to 0.24 does not add the submodules correctly
+                submodules = [_ for _ in paths if self._is_submodule_root(Path(_))]
+                for submodule in submodules:
+                    self._stage_submodule(Path(submodule))
+                paths = [_ for _ in paths if _ not in submodules]
+                if not paths:
+                    return None
                 return git.add(self.repo, paths)  # type: ignore
             except BaseException as e:
                 self.log('Error stage: {0}'.format(e))
+
+    def _is_submodule_root(self, path: Path) -> bool:
+        """Return whether a path is the path of a submodule."""
+        normalized = os.path.normcase(str(path.resolve()))
+        return normalized in {os.path.normcase(str(_)) for _ in self.submodules_paths}
+
+    def _stage_submodule(self, path: Path):
+        """Record the checked-out commit of a submodule in the Git index."""
+        assert self.repo is not None  # nosec B101  # addresses linter
+        entry = index_entry_from_path(os.fsencode(str(path)))
+        if entry is None:
+            self.log('Error stage: the submodule {0} is not initialized'.format(path))
+            return
+        name = path.resolve().relative_to(Path(self.repo_path).resolve()).as_posix()
+        name = self._status_names.get(os.path.normcase(name), name)
+        index = self.repo.open_index()
+        index[os.fsencode(name)] = entry
+        index.write()
 
     def unstage(self, files: List[str]):
         """
@@ -407,7 +502,7 @@ class GitClient(metaclass=ABCMeta):
             relative to the Git repository.
         """
         if self.repo:
-            for file in files:
+            for file in self._reject_submodule_files(files, 'unstage'):
                 try:
                     # repo.unstage only accepts relative paths to the repo path
                     file_path = Path(file)
@@ -415,6 +510,8 @@ class GitClient(metaclass=ABCMeta):
                         index_file = file_path.relative_to(self.repo_path).as_posix()
                     else:
                         index_file = file
+                    # use the name in the index, the file system is case insensitive on Windows
+                    index_file = self._status_names.get(os.path.normcase(index_file), index_file)
                     self.repo.unstage([index_file])
                 except BaseException as e:
                     self.log('Error unstage: {0}'.format(e))
@@ -430,7 +527,7 @@ class GitClient(metaclass=ABCMeta):
             relative to the Git repository.
         """
         if self.repo:
-            for file in files:
+            for file in self._reject_submodule_files(files, 'reset'):
                 try:
                     # porcelain.reset_file only accepts relative paths to the repo path
                     file_path = Path(file)
@@ -439,6 +536,7 @@ class GitClient(metaclass=ABCMeta):
                         index_file = str(file_path.relative_to(self.repo_path))
                     else:
                         index_file = file
+                    index_file = self._status_names.get(os.path.normcase(index_file), index_file)
                     git.reset_file(self.repo, index_file)
                 except BaseException as e:
                     self.log('Error reset: {0}'.format(e))
@@ -690,15 +788,35 @@ class GitClient(metaclass=ABCMeta):
             self.log('Error export: {0}'.format(e))
             return False
 
-    def commit(self, commit_text: str):
+    def has_staged_changes(self) -> bool:
+        """Return whether the Git index differs from the last commit."""
+        if not self.repo:
+            return False
+        # typing annotation incorrect for git.status: str | Repo
+        staged, _, _ = git.status(self.repo)  # type: ignore
+        return any(staged.values())
+
+    def commit(self, commit_text: str) -> bool:
         """
         Commit the changes.
+
+        Empty commits are refused.
 
         Parameters
         ----------
         commit_text : str
             Message associated to the commit.
+
+        Returns
+        -------
+        bool
+            Whether a commit has been created.
         """
         if self.repo:
+            if not self.has_staged_changes():
+                self.log('Error commit: nothing to commit, no staged changes')
+                return False
             # typing annotation incorrect for git.commit: str | Repo
             git.commit(self.repo, message=commit_text)  # type: ignore
+            return True
+        return False

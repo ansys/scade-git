@@ -23,6 +23,7 @@
 """Entry point."""
 
 from argparse import ArgumentParser
+import sys
 
 from ansys.scade.git import __version__
 from ansys.scade.git.almgtmerge.almgtmerge3 import merge3
@@ -38,7 +39,7 @@ def main():
     options = parser.parse_args()
 
     status = merge3(options.local, options.remote, options.base, options.merged)
-    exit(0 if status else 1)
+    sys.exit(0 if status else 1)
 
 
 if __name__ == '__main__':

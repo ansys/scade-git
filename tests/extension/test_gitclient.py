@@ -25,13 +25,15 @@
 # by cls_tmp_repo and cls_git_repo fixtures
 # workaround: use 'getattr', or add 'type: ignore' pragma --> too verbose
 
+import os
 from pathlib import Path
 from subprocess import run
-from typing import Tuple
+import sys
+from typing import List, Tuple
 
 import pytest
 
-from ansys.scade.git.extension.gitclient import GitClient, GitStatus
+from ansys.scade.git.extension.gitclient import GitClient, GitStatus, find_git_repo
 from test_utils import get_resources_dir as get_tests_dir
 
 # local constants for conciseness
@@ -178,7 +180,8 @@ class TestGitClientNominal:
         path = Path('removed_staged.txt')
         _, status = self.git_client.get_file_status(str(path))
         assert status == CLEAN
-        path.unlink()
+        # the paths relative to the repository do not depend on the current directory
+        (self.dir / path).unlink()
         self.git_client.stage([str(path)])
         self.git_client.refresh(project_path)
         _, status = self.git_client.get_file_status(str(path))
@@ -463,3 +466,377 @@ class TestGitClientExportSubmodule:
         ) == 'submodule content\n'
         assert not (export_dir / '.git').exists()
         assert not (export_dir / 'deps' / 'sub' / '.git').exists()
+
+
+class TestGitClientSubmoduleFiles:
+    """Verify the files of a submodule are not handled by the superproject."""
+
+    class _Client(GitClient):
+        def __init__(self):
+            super().__init__()
+            self.logs = []
+
+        def log(self, text: str):
+            """Store the logs."""
+            self.logs.append(text)
+
+    @staticmethod
+    def _git(cwd: Path, *args: str) -> str:
+        cmd = ['git', '-c', 'user.email=test@example.com', '-c', 'user.name=test']
+        cmd += ['-c', 'protocol.file.allow=always', *args]
+        cp = run(cmd, cwd=str(cwd), capture_output=True, text=True)
+        assert cp.returncode == 0, cp.stderr
+        return cp.stdout
+
+    @pytest.fixture
+    def client(self, tmp_path: Path) -> '_Client':
+        sub_repo = tmp_path / 'subrepo'
+        root_repo = tmp_path / 'root'
+        for repo, name in [(sub_repo, 'sub.txt'), (root_repo, 'root.txt')]:
+            repo.mkdir()
+            self._git(repo, 'init', '-b', 'main')
+            (repo / name).write_text(name, encoding='utf-8')
+            self._git(repo, 'add', name)
+            self._git(repo, 'commit', '-m', 'init')
+        self._git(root_repo, 'submodule', 'add', str(sub_repo), 'deps/sub')
+        self._git(root_repo, 'commit', '-m', 'add submodule')
+        client = self._Client()
+        assert client.refresh(str(root_repo / 'root.txt'))
+        return client
+
+    def _index(self, client: '_Client') -> List[str]:
+        return self._git(Path(client.repo_path), 'ls-files').split()
+
+    def test_is_inside_submodule(self, client: '_Client'):
+        root = Path(client.repo_path)
+        assert client.is_inside_submodule('deps/sub/sub.txt')
+        assert client.is_inside_submodule(root / 'deps' / 'sub' / 'sub.txt')
+        assert client.is_inside_submodule('deps/sub/new/file.txt')
+        # the submodule itself can be staged by the superproject
+        assert not client.is_inside_submodule('deps/sub')
+        assert not client.is_inside_submodule('root.txt')
+        assert not client.is_inside_submodule('deps/subother/file.txt')
+
+    def test_stage_skips_submodule_files(self, client: '_Client'):
+        root = Path(client.repo_path)
+        (root / 'deps' / 'sub' / 'sub.txt').write_text('modified', encoding='utf-8')
+        (root / 'other.txt').write_text('other', encoding='utf-8')
+        client.stage(['deps/sub/sub.txt', str(root / 'other.txt')])
+        # no regular entry is created below the gitlink
+        assert self._index(client) == ['.gitmodules', 'deps/sub', 'other.txt', 'root.txt']
+        assert any('Error stage: deps/sub/sub.txt belongs to a submodule' in _ for _ in client.logs)
+
+    def test_stage_only_submodule_files(self, client: '_Client'):
+        root = Path(client.repo_path)
+        (root / 'deps' / 'sub' / 'sub.txt').write_text('modified', encoding='utf-8')
+        client.stage(['deps/sub/sub.txt'])
+        assert self._index(client) == ['.gitmodules', 'deps/sub', 'root.txt']
+
+    def test_submodule_at_other_commit(self, client: '_Client'):
+        root = Path(client.repo_path)
+        submodule = root / 'deps' / 'sub'
+        (submodule / 'sub.txt').write_text('v2', encoding='utf-8')
+        self._git(submodule, 'add', 'sub.txt')
+        self._git(submodule, 'commit', '-m', 'v2')
+        assert client.refresh(client.repo_path)
+        # the submodule is modified, not removed
+        assert client.files_status['deps/sub'] == MODIFIED_UNSTAGED
+        assert 'deps/sub' not in client.deleted
+
+        # the pointer can be staged
+        client.stage(['deps/sub'])
+        assert self._index(client) == ['.gitmodules', 'deps/sub', 'root.txt']
+        assert self._git(root, 'diff', '--cached', '--name-only').split() == ['deps/sub']
+
+    @pytest.mark.parametrize('action', ['unstage', 'reset_files'])
+    def test_unstage_reset_skip_submodule_files(self, client: '_Client', action: str):
+        getattr(client, action)(['deps/sub/sub.txt'])
+        name = 'unstage' if action == 'unstage' else 'reset'
+        assert client.logs == [
+            'Error {0}: deps/sub/sub.txt belongs to a submodule, '
+            'use the Git repository of the submodule'.format(name)
+        ]
+
+
+class TestGitClientCommitsList:
+    """Verify the list of commits."""
+
+    class _Client(GitClient):
+        def log(self, text: str):
+            """Print the logs to the standard output."""
+            print(text)
+
+    @staticmethod
+    def _fast_import(cwd: Path, script: str):
+        cp = run(
+            ['git', 'fast-import', '--quiet'],
+            cwd=str(cwd),
+            input=script.encode('ascii'),
+            capture_output=True,
+        )
+        assert cp.returncode == 0, cp.stderr
+
+    @staticmethod
+    def _commit(ref: str, time: int, parent: str = '') -> str:
+        # a commit without parent is added to the tip of the branch, if it exists
+        committer = 'committer test <test@example.com> {0} +0000'.format(time)
+        lines = ['commit {0}'.format(ref), committer, 'data 1', 'x']
+        if parent:
+            lines.append('from {0}'.format(parent))
+        return '\n'.join(lines) + '\n\n'
+
+    def test_long_history(self, tmp_path: Path):
+        # longer than the recursion limit, and than the number of returned commits
+        count = sys.getrecursionlimit() + 500
+        run(['git', 'init', '-b', 'main'], cwd=str(tmp_path), check=True, capture_output=True)
+        script = ''.join(self._commit('refs/heads/main', 1000000 + i) for i in range(count))
+        self._fast_import(tmp_path, script)
+        client = self._Client()
+        assert client.refresh(str(tmp_path))
+        commits = client.get_commits_list()
+        assert len(commits) == 1000
+        timestamps = [_[1] for _ in commits]
+        assert timestamps == sorted(timestamps, reverse=True)
+        assert timestamps[0] == 1000000 + count - 1
+
+    def test_branches_share_commits(self, tmp_path: Path):
+        run(['git', 'init', '-b', 'main'], cwd=str(tmp_path), check=True, capture_output=True)
+        script = self._commit('refs/heads/main', 100)
+        script += self._commit('refs/heads/main', 200)
+        script += self._commit('refs/heads/other', 300, 'refs/heads/main')
+        self._fast_import(tmp_path, script)
+        client = self._Client()
+        assert client.refresh(str(tmp_path))
+        # the common commits are reported once
+        assert [_[1] for _ in client.get_commits_list()] == [300, 200, 100]
+
+
+class TestGitClientDetachedHead:
+    """Verify refresh supports a detached HEAD."""
+
+    class _Client(GitClient):
+        def log(self, text: str):
+            """Print the logs to the standard output."""
+            print(text)
+
+    @staticmethod
+    def _git(cwd: Path, *args: str) -> str:
+        cmd = ['git', '-c', 'user.email=test@example.com', '-c', 'user.name=test', *args]
+        cp = run(cmd, cwd=str(cwd), capture_output=True, text=True)
+        assert cp.returncode == 0, cp.stderr
+        return cp.stdout.strip()
+
+    @pytest.fixture
+    def repo(self, tmp_path: Path) -> Path:
+        self._git(tmp_path, 'init', '-b', 'main')
+        for name in ['first.txt', 'second.txt']:
+            (tmp_path / name).write_text(name, encoding='utf-8')
+            self._git(tmp_path, 'add', name)
+            self._git(tmp_path, 'commit', '-m', name)
+        self._git(tmp_path, 'tag', 'v1', 'HEAD~1')
+        return tmp_path
+
+    def test_branch(self, repo: Path):
+        client = self._Client()
+        assert client.refresh(str(repo / 'first.txt'))
+        assert client.branch == 'main'
+        assert not client.detached
+
+    @pytest.mark.parametrize('target', ['v1', 'HEAD~1'])
+    def test_detached(self, repo: Path, target: str):
+        sha = self._git(repo, 'rev-parse', target + '^{commit}')
+        self._git(repo, 'checkout', '--detach', target)
+        client = self._Client()
+        assert client.refresh(str(repo / 'first.txt'))
+        assert client.branch == 'HEAD detached at ' + sha[:7]
+        assert client.detached
+        assert client.files_status['first.txt'] == GitStatus.clean
+        # the state is reset when the branch is checked out again
+        self._git(repo, 'checkout', 'main')
+        assert client.refresh(str(repo / 'first.txt'))
+        assert client.branch == 'main'
+        assert not client.detached
+
+
+class TestGitClientStagedAndUnstaged:
+    """Verify the status of the files changed again after being staged."""
+
+    class _Client(GitClient):
+        def log(self, text: str):
+            """Print the logs to the standard output."""
+            print(text)
+
+    @pytest.fixture
+    def client(self, tmp_path: Path) -> '_Client':
+        def git(*args: str):
+            cmd = ['git', '-c', 'user.email=test@example.com', '-c', 'user.name=test', *args]
+            assert run(cmd, cwd=str(tmp_path), capture_output=True).returncode == 0
+
+        git('init', '-b', 'main')
+        (tmp_path / 'tracked.txt').write_text('v1', encoding='utf-8')
+        git('add', 'tracked.txt')
+        git('commit', '-m', 'init')
+        client = self._Client()
+        assert client.refresh(str(tmp_path / 'tracked.txt'))
+        return client
+
+    def _status(self, client: '_Client', name: str) -> GitStatus:
+        assert client.refresh(client.repo_path)
+        return client.get_file_status(name)[1]
+
+    @pytest.mark.parametrize('name', ['tracked.txt', 'new.txt'])
+    def test_modified_after_stage(self, client: '_Client', name: str):
+        path = Path(client.repo_path) / name
+        path.write_text('v2', encoding='utf-8')
+        client.stage([name])
+        staged = ADDED if name == 'new.txt' else MODIFIED_STAGED
+        assert self._status(client, name) == staged
+        # the file is modified again: the staged version is not the current one
+        path.write_text('v3', encoding='utf-8')
+        assert self._status(client, name) == MODIFIED_UNSTAGED
+        # staging it again reports it as staged
+        client.stage([name])
+        assert self._status(client, name) == staged
+
+    def test_removed_after_stage(self, client: '_Client'):
+        path = Path(client.repo_path) / 'tracked.txt'
+        path.write_text('v2', encoding='utf-8')
+        client.stage(['tracked.txt'])
+        path.unlink()
+        assert self._status(client, 'tracked.txt') == REMOVED_UNSTAGED
+        assert 'tracked.txt' in client.deleted
+
+    @pytest.mark.skipif(sys.platform != 'win32', reason='case insensitive file system')
+    def test_case_mismatch(self, client: '_Client', capsys):
+        # the path of a file in a SCADE project can differ from the one in the index
+        path = Path(client.repo_path) / 'tracked.txt'
+        assert client.get_file_status('TRACKED.TXT') == ('tracked.txt', CLEAN)
+        assert client.get_file_status(str(path).upper()) == ('tracked.txt', CLEAN)
+        assert client.get_file_status('other.txt')[1] == GitStatus.error
+
+        path.write_text('v2', encoding='utf-8')
+        assert self._status(client, 'TRACKED.TXT') == MODIFIED_UNSTAGED
+        capsys.readouterr()
+        client.stage(['TRACKED.TXT'])
+        assert self._status(client, 'tracked.txt') == MODIFIED_STAGED
+        client.unstage(['TRACKED.TXT'])
+        assert self._status(client, 'tracked.txt') == MODIFIED_UNSTAGED
+        client.reset_files(['TRACKED.TXT'])
+        assert self._status(client, 'tracked.txt') == CLEAN
+        assert path.read_text(encoding='utf-8') == 'v1'
+        # none of the commands reports an error
+        assert 'Error' not in capsys.readouterr().out
+
+
+class TestGitClientCommit:
+    """Verify empty commits are refused."""
+
+    class _Client(GitClient):
+        def __init__(self):
+            super().__init__()
+            self.logs = []
+
+        def log(self, text: str):
+            """Store the logs."""
+            self.logs.append(text)
+
+    @pytest.fixture
+    def client(self, tmp_path: Path) -> '_Client':
+        cp = run(['git', 'init', '-b', 'main'], cwd=str(tmp_path), capture_output=True)
+        assert cp.returncode == 0
+        # commits are created by Dulwich: its author is read from the environment
+        config = tmp_path / '.git' / 'config'
+        config.write_text(
+            config.read_text() + '[user]\n\tname = test\n\temail = test@example.com\n'
+        )
+        client = self._Client()
+        assert client.refresh(str(tmp_path))
+        return client
+
+    def test_commit(self, client: '_Client'):
+        path = Path(client.repo_path) / 'file.txt'
+        # no commit yet, nothing staged
+        assert not client.has_staged_changes()
+        assert not client.commit('empty')
+        assert client.logs[-1] == 'Error commit: nothing to commit, no staged changes'
+
+        # initial commit, then a regular one
+        for content in ['v1', 'v2']:
+            path.write_text(content, encoding='utf-8')
+            client.stage(['file.txt'])
+            assert client.has_staged_changes()
+            assert client.commit(content)
+            assert not client.has_staged_changes()
+        assert len(client.get_commits_list()) == 2
+
+    def test_commit_unstaged_changes_only(self, client: '_Client'):
+        path = Path(client.repo_path) / 'file.txt'
+        path.write_text('v1', encoding='utf-8')
+        client.stage(['file.txt'])
+        assert client.commit('v1')
+        head = client.repo.head()  # type: ignore
+        path.write_text('v2', encoding='utf-8')
+        assert not client.commit('v2')
+        assert client.repo.head() == head  # type: ignore
+
+
+class TestGitClientClose:
+    """Verify the repository is released when it is not used anymore."""
+
+    class _Client(GitClient):
+        def log(self, text: str):
+            """Print the logs to the standard output."""
+            print(text)
+
+    @pytest.fixture
+    def client(self, tmp_path: Path) -> '_Client':
+        cp = run(['git', 'init', '-b', 'main'], cwd=str(tmp_path), capture_output=True)
+        assert cp.returncode == 0
+        client = self._Client()
+        assert client.refresh(str(tmp_path))
+        return client
+
+    @staticmethod
+    def _spy_close(client: '_Client') -> List[bool]:
+        closed = []
+        repo = client.repo
+        original = repo.close  # type: ignore
+        repo.close = lambda: closed.append(True) or original()  # type: ignore
+        return closed
+
+    def test_refresh_closes_previous_repo(self, client: '_Client'):
+        previous = client.repo
+        closed = self._spy_close(client)
+        assert client.refresh(client.repo_path)
+        assert closed == [True]
+        assert client.repo is not previous
+        # the new repository is usable
+        assert client.get_branch_list() == []
+
+    def test_refresh_outside_repo_closes_repo(self, client: '_Client', tmp_path_factory):
+        closed = self._spy_close(client)
+        outside = tmp_path_factory.mktemp('outside')
+        # find_git_repo is not influenced by a Git repository above the temporary directory
+        if find_git_repo(str(outside)):
+            pytest.skip('the temporary directory is in a Git repository')
+        assert not client.refresh(str(outside))
+        assert closed == [True]
+        assert client.repo is None
+
+    def test_close(self, client: '_Client'):
+        closed = self._spy_close(client)
+        client.close()
+        assert closed == [True]
+        assert client.repo is None
+        # no error if the repository is already closed
+        client.close()
+        assert closed == [True]
+
+    def test_refresh_keeps_current_directory(
+        self, client: '_Client', tmp_path_factory, monkeypatch
+    ):
+        # the current directory of the process, shared with SCADE, is not modified
+        elsewhere = tmp_path_factory.mktemp('elsewhere')
+        monkeypatch.chdir(elsewhere)
+        assert client.refresh(client.repo_path)
+        assert os.path.samefile(os.getcwd(), str(elsewhere))

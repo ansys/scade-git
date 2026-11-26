@@ -27,11 +27,10 @@ import os
 from pathlib import Path
 import shutil
 import stat
-import tarfile
+import sys
 import tempfile
 from typing import List, Set, Tuple, Union
 
-import scade
 from scade.model.project.stdproject import FileRef, Project
 
 from ansys.scade.git.extension.gitclient import GitClient, GitStatus
@@ -58,8 +57,7 @@ def create_temp_dir(folder: str):
     """
     path = Path(tempfile.gettempdir()) / folder
 
-    def remove_readonly(func, name, exc_info):
-        error = exc_info[1]
+    def remove_readonly(func, name, error):
         if (
             isinstance(error, PermissionError)
             and func in (os.unlink, os.rmdir)
@@ -68,10 +66,16 @@ def create_temp_dir(folder: str):
             os.chmod(name, os.stat(name).st_mode | stat.S_IWRITE)
             func(name)
         else:
-            raise error.with_traceback(exc_info[2])
+            raise error
 
     if path.exists():
-        shutil.rmtree(path, onerror=remove_readonly)
+        if sys.version_info >= (3, 12):
+            shutil.rmtree(path, onexc=remove_readonly)
+        else:
+            # onerror, which provides exc_info, is deprecated from Python 3.12
+            shutil.rmtree(
+                path, onerror=lambda func, name, exc_info: remove_readonly(func, name, exc_info[1])
+            )
     path.mkdir(parents=True)
     return path
 
@@ -143,7 +147,9 @@ def refresh_browser(ide: Ide):
         # active_project.save(active_project.pathname) # crash the editor on reload
         if _git_client.refresh(active_project.pathname):
             ide.log('Refreshed git repo {0}'.format(_git_client.repo_path))
-            branch_name = 'branch: ' + _git_client.branch
+            branch_name = _git_client.branch
+            if not _git_client.detached:
+                branch_name = 'branch: ' + branch_name
 
             # create SCADE Git browser
             create_browser(ide, branch_name)
@@ -164,14 +170,13 @@ def refresh_browser(ide: Ide):
                 return False
 
             # look for files present in the SCADE project
-            project_files = []
             for project in ide.get_projects():
                 project_path = Path(project.pathname).resolve()
 
                 # for project file already added as a library in another project,
                 # do not report it again
                 if not is_already_reported(project_path):
-                    project_files.append(report_item(ide, project))
+                    report_item(ide, project)
 
                 # for files registered in the project,
                 # do not report files that are part of a submodule
@@ -187,7 +192,7 @@ def refresh_browser(ide: Ide):
                     if is_already_reported(filepath):
                         continue
 
-                    project_files.append(report_item(ide, fr))
+                    report_item(ide, fr)
                     # check if ann file for xscade
                     if filepath.suffix == '.xscade':
                         ann_file = filepath.with_suffix('.ann')
@@ -196,25 +201,15 @@ def refresh_browser(ide: Ide):
                             and not _git_client.is_submodule_file(ann_file)
                             and not is_already_reported(ann_file)
                         ):
-                            project_files.append(report_item(ide, str(ann_file)))
+                            report_item(ide, str(ann_file))
 
             # look for files in git but not in the project: deleted files
             # the repo can contain several SCADE projects
             # but it is expected to be an exception
+            # the files are relative to the repository
             for file in _git_client.deleted:
-                if not is_already_reported(Path(file)):
+                if not is_already_reported(Path(_git_client.repo_path) / file):
                     report_item(ide, file)
-
-            return
-            # todo: symbol file has no absolute path, relative to the project ?
-            for session in scade.model.suite.get_roots():
-                # symbols files
-                model = session.model
-                for subop in model.sub_operators:
-                    symbol_file = subop.symbol_file
-                    ide.log('file: {0}'.format(str(symbol_file)))
-                    if str(symbol_file) != '':
-                        ide.log('file 2: {0}'.format(str(symbol_file)))
         else:
             ide.log("No repository found")
     else:
@@ -424,6 +419,9 @@ class CmdCommit(GitRepoCommand):
         """Run the command."""
         assert _git_client is not None  # nosec B101  # addresses linter
         refresh_browser(self.ide)
+        if not _git_client.has_staged_changes():
+            self.ide.log('Nothing to commit: no staged changes')
+            return
         if project_files_status[BrowserCat['Unstaged']]:
             confirm = self.confirm_commit()
             if not confirm:
@@ -474,6 +472,24 @@ class CmdDiff(GitRepoCommand):
     def on_activate(self):
         """Run the command."""
         assert _git_client is not None  # nosec B101  # addresses linter
+        active_project = self.ide.get_active_project()
+        if not active_project:
+            self.ide.log('Diff cancelled: no project loaded')
+            return
+        try:
+            project_rel_path = (
+                Path(active_project.pathname)
+                .resolve()
+                .relative_to(Path(_git_client.repo_path).resolve())
+            )
+        except ValueError:
+            self.ide.log(
+                'Diff cancelled: the project {0} is not in the Git repository {1}'.format(
+                    active_project.pathname, _git_client.repo_path
+                )
+            )
+            return
+
         # reset versions list
         self.versions.clear()
         self.commits_id.clear()
@@ -518,10 +534,7 @@ class CmdDiff(GitRepoCommand):
         tmp_dir = create_temp_dir(
             os.path.join('SCADE', 'git-diff', _git_client.repo_name, version_path)
         )
-        active_project = self.ide.get_projects()[0]
-        diff_project = tmp_dir / Path(
-            os.path.relpath(active_project.pathname, _git_client.repo_path)
-        )
+        diff_project = tmp_dir / project_rel_path
 
         if not _git_client.export_to_directory(version, str(tmp_dir)):
             self.ide.log('Diff cancelled: version export failed; see Messages tab for details')
@@ -542,38 +555,6 @@ class CmdDiff(GitRepoCommand):
         """Provide a default behavior for command line tools."""
         # default value used by tests
         return [0, 0]
-
-    def safe_members(self, base: Path, tar_file: tarfile.TarFile):
-        """
-        Filter the link members from an archive.
-
-        From https://stackoverflow.com/questions/10060069/safely-extract-zip-or-tar-using-python.
-        """
-        base = base.resolve()
-
-        for finfo in tar_file:
-            if badpath(finfo.name, base):
-                self.ide.log(f'{finfo.name} is blocked: illegal path')
-            elif finfo.issym() and badlink(finfo, base):
-                self.ide.log(f'{finfo.name} is blocked: symlink to {finfo.linkname}')
-            elif finfo.islnk() and badlink(finfo, base):
-                self.ide.log(f'{finfo.name} is blocked: hard link to {finfo.linkname}')
-            else:
-                yield finfo
-
-
-def badpath(path: str, base: Path) -> bool:
-    """Return whether a file is external to the base hierarchy."""
-    # joinpath will ignore base if path is absolute
-    target = (base / path).resolve()
-    return not str(target).startswith(str(base))
-
-
-def badlink(info: tarfile.TarInfo, base: Path) -> bool:
-    """Return whether a link is external to the base hierarchy."""
-    # links are interpreted relative to the directory containing the link
-    path = (base / info.name).parent / info.linkname
-    return badpath(str(path), base)
 
 
 script_path = Path(__file__)

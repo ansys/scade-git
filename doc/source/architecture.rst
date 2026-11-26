@@ -336,12 +336,12 @@ Security Considerations
 Path Traversal Protection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``badpath()`` and ``badlink()`` functions in ``gitextcore.py`` protect against
-path traversal attacks when extracting tarballs for diff operations:
+The ``GitClient._safe_output_path()`` method in ``gitclient.py`` protects against
+path traversal when a version is exported for diff operations:
 
-- Validates that extracted paths remain within intended base directory
-- Checks both direct paths and symbolic links
-- Prevents malicious archives from writing outside temporary directories
+- Validates that every exported path, including the files of the submodules,
+  remains within the output directory
+- Rejects the paths that would be written outside of the temporary directory
 
 Dependency Management
 ~~~~~~~~~~~~~~~~~~~~~

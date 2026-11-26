@@ -29,6 +29,7 @@ import sys
 from typing import Tuple
 
 from ansys.scade.git import get_srg_name
+from ansys.scade.git.register import read_lines, write_lines
 
 # APPDATA must be defined
 APPDATA = os.environ['APPDATA']
@@ -44,7 +45,7 @@ def git_config() -> bool:
     * Unregister merge tools for targeted file extensions
     """
 
-    def unregister_driver(id: str) -> bool:
+    def unregister_driver(id: str, required: bool = True) -> bool:
         status = True
         for param in ['name', 'driver', 'trustExitCode']:
             cmd = ['git', 'config', '--global', '--unset', 'merge.%s.%s' % (id, param)]
@@ -56,7 +57,8 @@ def git_config() -> bool:
                 print(gitrun.stdout)
             if gitrun.stderr:
                 print(gitrun.stderr)
-            if gitrun.returncode != 0:
+            # git config --unset returns 5 when the key is not set: nothing to remove
+            if gitrun.returncode not in (0, 5) and required:
                 status = False
                 print('Error: git config failed')
 
@@ -68,9 +70,13 @@ def git_config() -> bool:
     if not unregister_driver('etpmerge'):
         status = False
 
-    print('Git: unregister the amlgtmerge custom merge driver in Git global settings')
-    if not unregister_driver('amlgtmerge'):
+    print('Git: unregister the almgtmerge custom merge driver in Git global settings')
+    if not unregister_driver('almgtmerge'):
         status = False
+
+    # up to 0.3.1, the driver was registered under a misspelled name: not an error if absent
+    print('Git: unregister the legacy amlgtmerge custom merge driver in Git global settings')
+    unregister_driver('amlgtmerge', required=False)
 
     print('Git: unregister no diff for xscade files')
     if not unregister_driver('xscademerge'):
@@ -79,7 +85,7 @@ def git_config() -> bool:
     # unset git attributes
     gitattributes = Path(USERPROFILE, '.config', 'git', 'attributes')
     if gitattributes.exists():
-        contents = gitattributes.read_text().strip('\n').split('\n')
+        contents, newline = read_lines(gitattributes)
         modified = False
         for extension in ['xscade', 'etp', 'almgt']:
             line = '*.{0} merge={0}merge'.format(extension)
@@ -90,15 +96,18 @@ def git_config() -> bool:
             except ValueError:
                 pass
         if modified:
-            contents.append('')
-            gitattributes.write_text('\n'.join(contents))
+            write_lines(gitattributes, contents, newline)
     return status
 
 
 def unregister_srg_file(name: str):
     """Delete the srg file from Customize."""
     dst = Path(APPDATA, 'SCADE', 'Customize', name)
-    dst.unlink(missing_ok=True)
+    try:
+        dst.unlink()
+    except FileNotFoundError:
+        # Path.unlink(missing_ok=True) requires Python 3.8
+        pass
 
 
 def scade_config():
@@ -108,8 +117,10 @@ def scade_config():
 
 def unregister() -> Tuple[int, str]:
     """Implement the ``ansys.scade.registry/unregister`` entry point."""
-    git_config()
+    status = git_config()
     scade_config()
+    if not status:
+        return (1, 'Error: the Git configuration was not fully removed, see the messages above')
     return (0, '')
 
 

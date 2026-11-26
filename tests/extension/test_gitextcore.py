@@ -28,10 +28,10 @@ from pathlib import Path
 import stat
 import subprocess
 import sys
-import tarfile
 from types import ModuleType, SimpleNamespace
 from typing import Any, List
 from unittest.mock import Mock
+import warnings
 
 import pytest
 import scade.model.project.stdproject as std
@@ -636,6 +636,19 @@ def test_create_temp_dir_replaces_existing_export(tmp_path, monkeypatch):
     assert not (first / 'new.txt').exists()
 
 
+def test_create_temp_dir_no_deprecation_warning(tmp_path, monkeypatch):
+    """Replacing an export does not use the deprecated arguments of shutil.rmtree."""
+    monkeypatch.setattr(core.tempfile, 'gettempdir', lambda: str(tmp_path))
+    folder = str(Path('SCADE') / 'git-diff' / 'repo' / 'branch')
+    old_dir = tmp_path / folder
+    (old_dir / 'sub').mkdir(parents=True)
+    (old_dir / 'sub' / 'old.txt').write_text('previous export')
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', DeprecationWarning)
+        assert core.create_temp_dir(folder) == old_dir
+    assert not (old_dir / 'sub').exists()
+
+
 @pytest.mark.skipif(os.name != 'nt', reason='Windows read-only file behavior')
 def test_create_temp_dir_removes_read_only_files(tmp_path, monkeypatch):
     """A read-only file in an earlier export must not prevent replacement."""
@@ -712,6 +725,82 @@ def test_git_ext_core_diff_cancel(capsys):
 
 @pytest.mark.usefixtures('model_repository')
 @pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_commit_nothing_staged(capsys):
+    """Test CmdCommit when there is nothing to commit."""
+    asked = []
+
+    class CmdCommitSpy(core.CmdCommit):
+        def get_commit_text(self):
+            asked.append(True)
+            return 'some message'
+
+    cmd = CmdCommitSpy(_test_ide)
+    assert cmd.on_enable()
+    cmd.on_activate()
+    assert asked
+    repo = core._git_client.repo
+    head = repo.head()
+
+    # the first commit empties the index: the second one is refused, without any prompt
+    asked.clear()
+    capsys.readouterr()
+    cmd.on_activate()
+    assert 'Nothing to commit' in capsys.readouterr().out
+    assert not asked
+    assert repo.head() == head
+
+
+class _Project:
+    """Minimal SCADE project, the Diff command only uses its path."""
+
+    def __init__(self, pathname: str):
+        self.pathname = pathname
+
+
+@pytest.mark.usefixtures('model_repository')
+@pytest.mark.repo(get_resources_dir())
+def test_git_ext_core_diff_active_project(capsys, monkeypatch):
+    """Test CmdDiff exports the active project, not the first loaded one."""
+    assert core._git_client is not None
+    active = _test_ide.get_active_project()
+    other = _Project(str(Path(core._git_client.repo_path) / 'Other' / 'Other.etp'))
+    monkeypatch.setattr(_test_ide, 'get_projects', lambda: [other, active])
+    monkeypatch.setattr(_test_ide, 'get_active_project', lambda: active)
+
+    capsys.readouterr()
+    core.CmdDiff(_test_ide).on_activate()
+    output = capsys.readouterr().out
+    assert 'Launch the Diff Analyzer tool with the project' in output
+    assert Path(output.strip().split('\n')[-1].strip()).name == 'Model.etp'
+
+
+@pytest.mark.usefixtures('model_repository')
+@pytest.mark.repo(get_resources_dir())
+@pytest.mark.parametrize('location', ['outside', 'none'])
+def test_git_ext_core_diff_project_not_in_repo(capsys, monkeypatch, tmp_path, location):
+    """Test CmdDiff when there is no active project or it is not in the repository."""
+    asked = []
+
+    class CmdDiffSpy(core.CmdDiff):
+        def select_diff_version(self):
+            asked.append(True)
+            return [0, 0]
+
+    project = _Project(str(tmp_path / 'Other' / 'Other.etp')) if location == 'outside' else None
+    monkeypatch.setattr(_test_ide, 'get_active_project', lambda: project)
+
+    capsys.readouterr()
+    CmdDiffSpy(_test_ide).on_activate()
+    output = capsys.readouterr().out
+    # nothing is asked to the user, and nothing is exported
+    assert not asked
+    assert 'Diff cancelled' in output
+    assert 'is not in the Git repository' in output or 'no project loaded' in output
+    assert 'Launch the Diff Analyzer' not in output
+
+
+@pytest.mark.usefixtures('model_repository')
+@pytest.mark.repo(get_resources_dir())
 def test_git_ext_core_refresh_submodule_paths_detected(capsys):
     """Verify submodule paths are properly detected by GitClient."""
     # In the model_repo fixture, LibSubModule is just a regular directory
@@ -735,95 +824,3 @@ def test_git_ext_core_submodule_fixture_available(model_repo_with_submodule):
     assert (submodule_dir / 'LibSubModule.etp').is_file()
     assert core._git_client is not None
     assert submodule_dir.resolve() in core._git_client.submodules_paths
-
-
-def test_safe_members(tmpdir_factory, capsys):
-    """
-    Create an archive with links, make sure they are filtered.
-
-    tree
-        extern.txt
-        root
-            root.txt
-            slk_child.txt
-            hlk_child.txt
-            slk_extern.txt
-            hlk_extern.txt
-            child
-                child.txt
-                slk_root.txt
-                hlk_root.txt
-                slk_sibling.txt
-                hlk_sibling.txt
-            sibling
-                sibling.txt
-
-    """
-
-    def link_to(src_dir, target):
-        """create symbolic and hard links to target in src_dir."""
-        for prefix, flag in [('s', ''), ('h', ' /H')]:
-            src = src_dir / f'{prefix}lk_{target.name}'
-            cmd = f'mklink{flag} {str(src)} {str(target)}'
-            subprocess.run(['cmd.exe', '/C', cmd], capture_output=True, text=True)
-
-    tree_dir = Path(tmpdir_factory.mktemp('tree'))
-
-    # hierarchy
-    extern_txt = tree_dir / 'extern.txt'
-    extern_txt.write_text('extern.txt')
-    root_dir = tree_dir / 'root'
-    root_dir.mkdir()
-    root_txt = root_dir / 'root.txt'
-    root_txt.write_text('root.txt')
-    child_dir = root_dir / 'child'
-    child_dir.mkdir()
-    child_txt = child_dir / 'child.txt'
-    child_txt.write_text('child.txt')
-    sibling_dir = root_dir / 'sibling'
-    sibling_dir.mkdir()
-    sibling_txt = sibling_dir / 'sibling.txt'
-    sibling_txt.write_text('sibling.txt')
-    # links
-    link_to(root_dir, Path('child/child_txt'))
-    link_to(root_dir, Path('../extern_txt'))
-    link_to(child_dir, Path('../root_txt'))
-    link_to(child_dir, Path('../sibling/sibling_txt'))
-
-    # create an archive
-    archive = tree_dir / 'archive.zip'
-    tar_file = tarfile.open(archive, 'w:gz')
-    for path in root_dir.glob('*'):
-        # 3.7 does not accept path-like objects
-        tar_file.add(str(path), arcname=path.name)
-    tar_file.add(str(extern_txt), arcname='../extern.txt')
-    tar_file.close()
-
-    # read the outputs issued before the test, if any
-    captured = capsys.readouterr()
-
-    # get the instance of GitClient
-    cmd = core.CmdDiff(_test_ide)
-    tar_file = tarfile.open(archive)
-    extract_dir = tree_dir / 'extract'
-
-    tar_file.extractall(extract_dir, members=cmd.safe_members(extract_dir, tar_file))
-    tar_file.close()
-
-    # get the status of the command on stdout, must be two lines
-    captured = capsys.readouterr()
-    print(captured.out)
-    lines = set(captured.out.strip().split('\n'))
-    if False:
-        # test correct on host, failure in a ci-cd context: deactivated for now
-        assert lines == {
-            r'slk_extern_txt is blocked: symlink to ..\extern_txt',
-            '../extern.txt is blocked: illegal path',
-            # can't have this test successful
-            # r'hlk_extern_txt is blocked: hard link to ..\extern_txt',
-        }
-    else:
-        # workaround: do not test links
-        assert lines >= {
-            '../extern.txt is blocked: illegal path',
-        }

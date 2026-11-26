@@ -22,11 +22,16 @@
 
 """Registers the Git extensions and utilities."""
 
+try:
+    import importlib.metadata as importlib_metadata
+except ModuleNotFoundError:
+    import importlib_metadata
 import os
 from pathlib import Path
+import shutil
 import subprocess  # nosec B404  # used to call git config
 import sys
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 from ansys.scade.git import get_srg_name
 
@@ -34,6 +39,40 @@ from ansys.scade.git import get_srg_name
 APPDATA = os.environ['APPDATA']
 # USERPROFILE must be defined
 USERPROFILE = os.environ['USERPROFILE']
+
+
+def find_script(name: str) -> Optional[Path]:
+    """
+    Return the path of the console script installed with this package.
+
+    ``sys.executable`` cannot be used to locate the scripts: when the registration is
+    run by SCADE, it is the SCADE host, and ``pip install --user`` installs the
+    scripts outside of the interpreter's directory.
+
+    Parameters
+    ----------
+    name : str
+        Name of the script, without extension.
+    """
+    exe_name = '%s.exe' % name
+    try:
+        files = importlib_metadata.distribution('ansys-scade-git').files or []
+        for file in files:
+            if file.name.lower() == exe_name:
+                path = Path(file.locate()).resolve()  # type: ignore
+                if path.exists():
+                    return path
+    except importlib_metadata.PackageNotFoundError:
+        pass
+
+    # not installed from a distribution, look in the path and the interpreter's directory
+    which = shutil.which(name)
+    if which:
+        return Path(which)
+    exe = Path(sys.executable)
+    scripts_dir = exe.parent if exe.parent.name == 'Scripts' else exe.parent / 'Scripts'
+    path = scripts_dir / exe_name
+    return path if path.exists() else None
 
 
 def git_config() -> bool:
@@ -62,26 +101,23 @@ def git_config() -> bool:
 
         return status
 
-    # scripts directory in <python>/Scripts
     status = True
-    exe = Path(sys.executable)
-    if exe.parent.name == 'Scripts':
-        # virtual environment
-        scripts_dir = exe.parent
-    else:
-        # regular Python installation
-        scripts_dir = exe.parent / 'Scripts'
+
+    def register_merge_script(id: str, description: str) -> bool:
+        script = find_script(id)
+        if script is None:
+            print('Error: the script %s.exe is not found, the merge driver is not registered' % id)
+            return False
+        driver = '"%s" -b %%O -l %%A -r %%B -m %%A' % script
+        return register_driver(id, description, driver, 'true')
 
     print('Git: register the etpmerge custom merge driver in Git global settings')
-    driver = '"%s" -b %%O -l %%A -r %%B -m %%A' % (scripts_dir / 'etpmerge.exe')
-    description = 'Merge for SCADE project files'
-    if not register_driver('etpmerge', description, str(driver), 'true'):
+    if not register_merge_script('etpmerge', 'Merge for SCADE project files'):
         status = False
 
-    print('Git: register the amlgtmerge custom merge driver in Git global settings')
+    print('Git: register the almgtmerge custom merge driver in Git global settings')
     description = 'Merge for SCADE ALM Gateway not exported traceability files'
-    driver = '"%s" -b %%O -l %%A -r %%B -m %%A' % (scripts_dir / 'amlgtmerge.exe')
-    if not register_driver('amlgtmerge', description, str(driver), 'true'):
+    if not register_merge_script('almgtmerge', description):
         status = False
 
     print('Git: register no diff for xscade files')
@@ -92,7 +128,7 @@ def git_config() -> bool:
     # set git attributes
     gitattributes = Path(USERPROFILE, '.config', 'git', 'attributes')
     gitattributes.parent.mkdir(parents=True, exist_ok=True)
-    contents = gitattributes.read_text().strip('\n').split('\n') if gitattributes.exists() else []
+    contents, newline = read_lines(gitattributes)
     modified = False
     for extension in ['xscade', 'etp', 'almgt']:
         line = '*.{0} merge={0}merge'.format(extension)
@@ -101,19 +137,59 @@ def git_config() -> bool:
             contents.append(line)
             modified = True
     if modified:
-        contents.append('')
-        gitattributes.write_text('\n'.join(contents))
+        write_lines(gitattributes, contents, newline)
 
     return status
 
 
+def read_lines(path: Path) -> Tuple[List[str], str]:
+    """
+    Return the lines of a UTF-8 text file, and its line ending.
+
+    The line ending is returned to be able to write the file back without changing it.
+    The file is created with LF line endings, supported by Git, when it does not exist.
+
+    Parameters
+    ----------
+    path : Path
+        Path of the file, which may not exist.
+    """
+    if not path.exists():
+        return [], '\n'
+    text = path.read_bytes().decode('utf-8')
+    lines = text.splitlines()
+    while lines and not lines[-1]:
+        lines.pop()
+    return lines, '\r\n' if '\r\n' in text else '\n'
+
+
+def write_lines(path: Path, lines: List[str], newline: str):
+    """
+    Write lines to a UTF-8 text file, each line being terminated by `newline`.
+
+    Parameters
+    ----------
+    path : Path
+        Path of the file.
+    lines : List[str]
+        Lines to write.
+    newline : str
+        Line ending.
+    """
+    path.write_bytes(''.join(line + newline for line in lines).encode('utf-8'))
+
+
 def register_srg_file(srg: Path, install: Path):
-    """Copy the srg file to Customize and patch it with the installation directory."""
-    text = srg.open().read()
+    """
+    Copy the srg file to Customize and patch it with the installation directory.
+
+    The files are read and written with the system's encoding, as expected by SCADE.
+    """
+    text = srg.read_text()
     text = text.replace('%TARGETDIR%', install.as_posix())
     dst = Path(APPDATA, 'SCADE', 'Customize', srg.name)
     dst.parent.mkdir(parents=True, exist_ok=True)
-    dst.open('w').write(text)
+    dst.write_text(text)
 
 
 def scade_config():
@@ -124,8 +200,10 @@ def scade_config():
 
 def register() -> Tuple[int, str]:
     """Implement the ``ansys.scade.registry/register`` entry point."""
-    git_config()
+    status = git_config()
     scade_config()
+    if not status:
+        return (1, 'Error: the Git configuration is incomplete, see the messages above')
     return (0, '')
 
 

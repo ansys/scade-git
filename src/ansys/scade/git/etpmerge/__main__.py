@@ -23,6 +23,7 @@
 """Entry point."""
 
 from argparse import ArgumentParser
+import sys
 
 from ansys.scade.apitools import declare_project
 
@@ -59,7 +60,7 @@ def main():
 
     etp = EtpMerge3(local, remote, base)
     status = etp.merge3(options.merged)
-    exit(0 if status else 1)
+    sys.exit(0 if status else 1)
 
 
 if __name__ == '__main__':
